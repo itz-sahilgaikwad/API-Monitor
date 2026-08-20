@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - API Monitor</title>
+    <meta name="description" content="Admin portal for API Monitor">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body style="background: linear-gradient(135deg, #faf8f5 0%, #f5f0e8 50%, #faf8f5 100%);">
+    <div class="floating-shape"></div>
+    <div class="floating-shape"></div>
+
+    <div class="role-switch">
+        <a href="user_login.html">
+            <i data-lucide="user"></i>
+            User Login
+        </a>
+    </div>
+
+    <div class="login-container" style="border-color: rgba(212, 196, 176, 0.4);">
+        <div class="login-header">
+            <span class="admin-badge">Admin System</span>
+            <h1>Admin Portal</h1>
+            <p>Enter your credentials to access the admin dashboard</p>
+        </div>
+
+        <!-- Error / Success messages -->
+        <div id="alert-box"
+            style="display:none; padding:0.75rem 1rem; border-radius:10px; margin-bottom:1.25rem; font-size:0.9rem; font-weight:500; background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%); border: 1px solid #ffcdd2; color: #c62828;">
+        </div>
+
+        <form id="admin-form" novalidate>
+            <div class="form-group">
+                <label for="email">Admin Email</label>
+                <input type="email" id="email" name="email" class="form-input" placeholder="admin@domain.com" required
+                    autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-input"
+                    placeholder="Enter administrative password" required autocomplete="current-password">
+                <button type="button" class="password-toggle" onclick="togglePassword('password')"
+                    aria-label="Toggle password visibility">
+                    <i data-lucide="eye"></i>
+                </button>
+            </div>
+
+            <div class="options-row">
+                <label class="remember-me">
+                    <input type="checkbox" name="remember" id="remember">
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submit-btn"
+                style="background: linear-gradient(135deg, #d4c4b0 0%, #c4b5a0 50%, #d4c4b0 100%); color: white; box-shadow: 0 6px 20px -5px rgba(139, 115, 85, 0.4), 0 3px 10px -5px rgba(139, 115, 85, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3); position: relative; overflow: hidden;">
+                Secure Login
+            </button>
+        </form>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const API_BASE = 'http://127.0.0.1:8000/api/users';
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggleBtn = input.nextElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggleBtn.innerHTML = '<i data-lucide="eye-off"></i>';
+            } else {
+                input.type = 'password';
+                toggleBtn.innerHTML = '<i data-lucide="eye"></i>';
+            }
+            lucide.createIcons();
+        }
+
+        function showAlert(message, isError = true) {
+            const box = document.getElementById('alert-box');
+            box.textContent = message;
+            box.style.display = 'block';
+            if (isError) {
+                box.style.background = 'rgba(239, 68, 68, 0.2)';
+                box.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+                box.style.color = '#fca5a5';
+            } else {
+                box.style.background = 'rgba(34, 197, 94, 0.2)';
+                box.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+                box.style.color = '#86efac';
+            }
+        }
+
+        document.getElementById('admin-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('submit-btn');
+
+            if (!email || !password) {
+                showAlert('Please fill in all fields.');
+                return;
+            }
+
+            btn.textContent = 'Authenticating...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/admin-login/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save tokens
+                    localStorage.setItem('access_token', data.access);
+                    localStorage.setItem('refresh_token', data.refresh);
+                    localStorage.setItem('user_role', data.role);
+                    localStorage.setItem('user_email', data.email);
+
+                    showAlert('Access granted! Redirecting to admin dashboard...', false);
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1200);
+                } else {
+                    showAlert(data.error || 'Authentication failed. Please try again.');
+                }
+            } catch (err) {
+                showAlert('Cannot connect to server. Make sure the API is running.');
+            } finally {
+                btn.textContent = 'Secure Login';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

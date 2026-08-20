@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>User Login - API Monitor</title>
+
+    <meta
+        name="description"
+        content="Login to access your API monitoring dashboard"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/styles.css"
+    >
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+
+    <style>
+
+        /* =========================================================
+           COLOR / READABILITY OVERRIDES
+        ========================================================= */
+
+        body {
+            color: #172033 !important;
+        }
+
+
+        .login-container {
+            color: #172033 !important;
+        }
+
+
+        .login-header h1 {
+            color: #172033 !important;
+        }
+
+
+        .login-header p {
+            color: #64748b !important;
+        }
+
+
+        .form-group label {
+            color: #334155 !important;
+            font-weight: 700 !important;
+        }
+
+
+        .form-input {
+            color: #172033 !important;
+            background: #ffffff !important;
+            border: 1.5px solid #cbd5e1 !important;
+        }
+
+
+        .form-input::placeholder {
+            color: #94a3b8 !important;
+            opacity: 1 !important;
+        }
+
+
+        .form-input:focus {
+            border-color: #6366f1 !important;
+            box-shadow:
+                0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+        }
+
+
+        .options-row {
+            color: #475569 !important;
+        }
+
+
+        .remember-me {
+            color: #475569 !important;
+        }
+
+
+        .forgot-password {
+            color: #4f46e5 !important;
+            font-weight: 700 !important;
+        }
+
+
+        .forgot-password:hover {
+            color: #3730a3 !important;
+        }
+
+
+        .footer-links {
+            color: #64748b !important;
+        }
+
+
+        .footer-links a {
+            color: #4f46e5 !important;
+            font-weight: 700 !important;
+        }
+
+
+        /* =========================================================
+           SIGN IN BUTTON
+        ========================================================= */
+
+        .btn-submit {
+            background:
+                linear-gradient(
+                    135deg,
+                    #4f46e5,
+                    #6366f1
+                ) !important;
+
+            color: #ffffff !important;
+
+            border: none !important;
+
+            font-weight: 700 !important;
+
+            box-shadow:
+                0 8px 20px
+                rgba(79, 70, 229, 0.22) !important;
+
+            transition:
+                background 180ms ease,
+                box-shadow 180ms ease,
+                opacity 180ms ease !important;
+        }
+
+
+        .btn-submit:hover {
+            background:
+                linear-gradient(
+                    135deg,
+                    #4338ca,
+                    #4f46e5
+                ) !important;
+
+            box-shadow:
+                0 12px 25px
+                rgba(79, 70, 229, 0.30) !important;
+        }
+
+
+        .btn-submit:disabled {
+            background:
+                linear-gradient(
+                    135deg,
+                    #94a3b8,
+                    #a1a1aa
+                ) !important;
+
+            color: #ffffff !important;
+
+            box-shadow: none !important;
+
+            opacity: 0.7 !important;
+        }
+
+
+        /* =========================================================
+           PASSWORD TOGGLE
+        ========================================================= */
+
+        .password-toggle {
+            color: #64748b !important;
+        }
+
+
+        .password-toggle:hover {
+            color: #4f46e5 !important;
+        }
+
+
+        /* =========================================================
+           FORGOT PASSWORD BOX
+        ========================================================= */
+
+        #forgot-area {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #f8fafc,
+                    #eef2ff
+                ) !important;
+
+            border:
+                1px solid #c7d2fe !important;
+
+            color: #334155 !important;
+
+            position: relative;
+
+            z-index: 20;
+
+        }
+
+
+        #forgot-area p {
+
+            color: #475569 !important;
+
+            font-weight: 500 !important;
+
+        }
+
+
+        #forgot-email {
+
+            color: #172033 !important;
+
+            background: #ffffff !important;
+
+            border:
+                1.5px solid #cbd5e1 !important;
+
+        }
+
+
+        #forgot-email::placeholder {
+
+            color: #94a3b8 !important;
+
+        }
+
+
+        #forgot-email:focus {
+
+            border-color: #6366f1 !important;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(99, 102, 241, 0.12) !important;
+
+        }
+
+
+        /* =========================================================
+           RESET SEND BUTTON
+        ========================================================= */
+
+        .reset-send-btn {
+
+            width: auto !important;
+
+            min-width: 76px;
+
+            padding:
+                0.7rem 1rem !important;
+
+            color: #ffffff !important;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #4f46e5,
+                    #6366f1
+                ) !important;
+
+            border: none !important;
+
+            position: relative;
+
+            z-index: 50;
+
+            flex-shrink: 0;
+
+            transform: none !important;
+
+            transition:
+                background 180ms ease,
+                box-shadow 180ms ease,
+                opacity 180ms ease !important;
+
+        }
+
+
+        .reset-send-btn:hover {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #4338ca,
+                    #4f46e5
+                ) !important;
+
+            transform: none !important;
+
+            box-shadow:
+                0 8px 18px
+                rgba(79, 70, 229, 0.25) !important;
+
+        }
+
+
+        .reset-send-btn:active {
+
+            transform: none !important;
+
+        }
+
+
+        .reset-send-btn:focus {
+
+            transform: none !important;
+
+            outline: none !important;
+
+        }
+
+
+        .reset-send-btn:disabled {
+
+            transform: none !important;
+
+            cursor: not-allowed;
+
+            opacity: 0.65;
+
+        }
+
+
+        /* =========================================================
+           RESET ROW
+        ========================================================= */
+
+        .reset-input-row {
+
+            display: flex;
+
+            align-items: stretch;
+
+            gap: 8px;
+
+            width: 100%;
+
+        }
+
+
+        .reset-input-row input {
+
+            min-width: 0;
+
+        }
+
+
+        /* =========================================================
+           RESET MESSAGE
+        ========================================================= */
+
+        #forgot-msg {
+
+            min-height: 20px;
+
+            font-weight: 700 !important;
+
+        }
+
+
+        /* =========================================================
+           ALERT BOX
+        ========================================================= */
+
+        #alert-box {
+
+            color: #991b1b !important;
+
+            font-weight: 700 !important;
+
+        }
+
+
+
+        /* =========================================================
+           3D CARD
+        ========================================================= */
+
+        #login-card {
+
+            will-change: transform;
+
+        }
+
+
+        /* =========================================================
+           MOBILE
+        ========================================================= */
+
+        @media (max-width: 600px) {
+
+            .reset-input-row {
+
+                flex-direction: column;
+
+            }
+
+
+            .reset-send-btn {
+
+                width: 100% !important;
+
+            }
+
+        }
+
+    </style>
+    <link rel="stylesheet" href="theme.css">
+
+</head>
+
+
+<body
+    style="
+        background:
+        radial-gradient(
+            circle at top left,
+            #dbeafe 0%,
+            #f8fafc 35%,
+            #e0e7ff 70%,
+            #172033 100%
+        );
+        overflow: hidden;
+    "
+>
+
+
+    <!-- =========================================================
+         BACKGROUND
+    ========================================================== -->
+
+    <div class="floating-shape"></div>
+
+    <div class="floating-shape"></div>
+
+
+    <!-- =========================================================
+         LOGIN CARD
+    ========================================================== -->
+
+    <div
+        class="login-container"
+        id="login-card"
+        style="
+            transform-style: preserve-3d;
+            position: relative;
+        "
+    >
+
+
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
+
+        <div
+            class="login-header"
+            style="
+                position: relative;
+                z-index: 2;
+            "
+        >
+
+            <h1
+                style="
+                    perspective: 800px;
+                "
+            >
+
+                <span
+                    style="
+                        display: inline-block;
+
+                        transform:
+                            translateZ(24px);
+
+                        color: #172033 !important;
+
+                        text-shadow:
+                            0 8px 25px
+                            rgba(15, 23, 42, 0.18);
+                    "
+                >
+                    Welcome back
+                </span>
+
+            </h1>
+
+
+            <p>
+                Log in to your API Monitor account
+            </p>
+
+        </div>
+
+
+        <!-- =====================================================
+             ALERT
+        ====================================================== -->
+
+        <div
+            id="alert-box"
+            style="
+                display: none;
+
+                padding:
+                    0.75rem 1rem;
+
+                border-radius: 10px;
+
+                margin-bottom:
+                    1.25rem;
+
+                font-size:
+                    0.9rem;
+
+                font-weight:
+                    700;
+
+                background:
+                    #fef2f2;
+
+                border:
+                    1px solid #fecaca;
+
+                color:
+                    #991b1b;
+
+                position:
+                    relative;
+
+                z-index:
+                    10;
+            "
+        >
+        </div>
+
+
+        <!-- =====================================================
+             LOGIN FORM
+        ====================================================== -->
+
+        <form
+            id="login-form"
+            novalidate
+            style="
+                position: relative;
+                z-index: 2;
+            "
+        >
+
+
+            <!-- EMAIL / MOBILE -->
+
+            <div class="form-group">
+
+                <label for="identifier">
+
+                    Email or Mobile Number
+
+                </label>
+
+
+                <input
+                    type="text"
+                    id="identifier"
+                    name="identifier"
+                    class="form-input"
+                    placeholder="Enter email or mobile number"
+                    required
+                    autocomplete="username"
+                >
+
+            </div>
+
+
+            <!-- PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="password">
+
+                    Password
+
+                </label>
+
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-input"
+                    placeholder="Enter your password"
+                    required
+                    autocomplete="current-password"
+                >
+
+
+                <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePassword('password')"
+                    aria-label="Toggle password visibility"
+                >
+
+                    <i data-lucide="eye"></i>
+
+                </button>
+
+            </div>
+
+
+            <!-- OPTIONS -->
+
+            <div class="options-row">
+
+                <label class="remember-me">
+
+                    <input
+                        type="checkbox"
+                        name="remember"
+                        id="remember"
+                    >
+
+                    <span>
+                        Remember me
+                    </span>
+
+                </label>
+
+
+                <a
+                    href="#"
+                    class="forgot-password"
+                    onclick="
+                        openForgot();
+                        return false;
+                    "
+                >
+
+                    Forgot password?
+
+                </a>
+
+            </div>
+
+
+            <!-- SIGN IN -->
+
+            <button
+                type="submit"
+                class="btn-submit"
+                id="submit-btn"
+            >
+
+                Sign In
+
+            </button>
+
+        </form>
+
+
+        <!-- =====================================================
+             FORGOT PASSWORD
+        ====================================================== -->
+
+        <div
+            id="forgot-area"
+            style="
+                display: none;
+
+                margin-top: 14px;
+
+                padding: 16px;
+
+                background:
+                    linear-gradient(
+                        135deg,
+                        #f8fafc,
+                        #eef2ff
+                    );
+
+                border:
+                    1px solid #c7d2fe;
+
+                border-radius: 11px;
+
+                position:
+                    relative;
+
+                z-index:
+                    20;
+            "
+        >
+
+
+            <p
+                style="
+                    font-size: 0.82rem;
+
+                    color:
+                        #475569;
+
+                    margin-bottom:
+                        10px;
+
+                    font-weight:
+                        600;
+                "
+            >
+
+                Enter your email to receive a
+                password reset link.
+
+            </p>
+
+
+            <!-- RESET INPUT -->
+
+            <div class="reset-input-row">
+
+
+                <input
+                    type="email"
+                    id="forgot-email"
+                    placeholder="your@email.com"
+                    autocomplete="email"
+                    style="
+                        flex: 1;
+
+                        background:
+                            #ffffff;
+
+                        border:
+                            1.5px solid #cbd5e1;
+
+                        color:
+                            #172033;
+
+                        border-radius:
+                            8px;
+
+                        padding:
+                            10px 12px;
+
+                        font-size:
+                            0.84rem;
+
+                        font-family:
+                            inherit;
+
+                        outline:
+                            none;
+
+                        position:
+                            relative;
+
+                        z-index:
+                            30;
+                    "
+                >
+
+
+                <!-- SEND -->
+
+                <button
+                    type="button"
+                    id="send-reset-btn"
+                    class="
+                        btn-submit
+                        reset-send-btn
+                    "
+                    onclick="sendResetLink()"
+                >
+
+                    Send
+
+                </button>
+
+            </div>
+
+
+            <!-- MESSAGE -->
+
+            <div
+                id="forgot-msg"
+                style="
+                    font-size:
+                        0.78rem;
+
+                    margin-top:
+                        9px;
+
+                    display:
+                        none;
+
+                    min-height:
+                        20px;
+
+                    font-weight:
+                        700;
+                "
+            >
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             FOOTER
+        ====================================================== -->
+
+        <div
+            class="footer-links"
+            style="
+                position: relative;
+                z-index: 2;
+            "
+        >
+
+            Don't have an account?
+
+            <a href="register.html">
+
+                Sign up
+
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             BACKDROP
+        ====================================================== -->
+
+        <div
+            style="
+                position: absolute;
+
+                inset: -40px;
+
+                z-index: 0;
+
+                pointer-events: none;
+
+                background:
+                    radial-gradient(
+                        circle at 10% -10%,
+                        rgba(
+                            219,
+                            234,
+                            254,
+                            0.8
+                        ),
+                        transparent 60%
+                    ),
+
+                    radial-gradient(
+                        circle at 110% 110%,
+                        rgba(
+                            129,
+                            140,
+                            248,
+                            0.25
+                        ),
+                        transparent 55%
+                    );
+
+                opacity:
+                    0.8;
+
+                filter:
+                    blur(1px);
+            "
+        >
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         JAVASCRIPT
+    ========================================================== -->
+
+    <script>
+
+
+        /* ========================================================
+           LUCIDE
+        ======================================================== */
+
+        lucide.createIcons();
+
+
+        /* ========================================================
+           API
+        ======================================================== */
+
+        const API_BASE =
+            "http://127.0.0.1:8000/api/users";
+
+
+        /* ========================================================
+           3D CARD
+        ======================================================== */
+
+        const card =
+            document.getElementById(
+                "login-card"
+            );
+
+
+        let mouseLeaveTimeout =
+            null;
+
+
+        if (card) {
+
+
+            const getRect =
+                () =>
+                    card.getBoundingClientRect();
+
+
+            function handleMove(event) {
+
+
+                /*
+                 * Don't move the card while the
+                 * password reset section is being used.
+                 */
+
+                const forgotArea =
+                    document.getElementById(
+                        "forgot-area"
+                    );
+
+
+                if (
+                    forgotArea &&
+                    forgotArea.contains(
+                        event.target
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                const rect =
+                    getRect();
+
+
+                const x =
+                    event.clientX -
+                    rect.left;
+
+
+                const y =
+                    event.clientY -
+                    rect.top;
+
+
+                const centerX =
+                    rect.width / 2;
+
+
+                const centerY =
+                    rect.height / 2;
+
+
+                const rotateX =
+                    ((y - centerY) /
+                        centerY) *
+                    -8;
+
+
+                const rotateY =
+                    ((x - centerX) /
+                        centerX) *
+                    10;
+
+
+                card.style.transition =
+                    "transform 120ms ease-out, " +
+                    "box-shadow 120ms ease-out";
+
+
+                card.style.transform = `
+                    perspective(1100px)
+                    rotateX(${rotateX}deg)
+                    rotateY(${rotateY}deg)
+                    translateZ(35px)
+                `;
+
+
+                card.style.boxShadow =
+                    "0 26px 70px rgba(15,23,42,0.25)";
+
+            }
+
+
+            function resetTilt() {
+
+
+                card.style.transition =
+                    "transform 260ms ease-out, " +
+                    "box-shadow 260ms ease-out";
+
+
+                card.style.transform =
+                    "perspective(1100px) " +
+                    "rotateX(0deg) " +
+                    "rotateY(0deg) " +
+                    "translateZ(0)";
+
+
+                card.style.boxShadow =
+                    "0 25px 50px -12px " +
+                    "rgba(15,23,42,0.22)";
+
+            }
+
+
+            card.addEventListener(
+                "mousemove",
+                function(event) {
+
+
+                    const forgotArea =
+                        document.getElementById(
+                            "forgot-area"
+                        );
+
+
+                    if (
+                        forgotArea &&
+                        forgotArea.contains(
+                            event.target
+                        )
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    if (mouseLeaveTimeout) {
+
+                        clearTimeout(
+                            mouseLeaveTimeout
+                        );
+
+                    }
+
+
+                    handleMove(event);
+
+                }
+            );
+
+
+            card.addEventListener(
+                "mouseleave",
+                function() {
+
+                    mouseLeaveTimeout =
+                        setTimeout(
+                            resetTilt,
+                            40
+                        );
+
+                }
+            );
+
+
+            setTimeout(
+                function() {
+
+                    card.style.transition =
+                        "transform 500ms ease-out, " +
+                        "box-shadow 500ms ease-out";
+
+
+                    card.style.transform =
+                        "perspective(1100px) " +
+                        "translateY(-4px) " +
+                        "translateZ(20px)";
+
+
+                    setTimeout(
+                        resetTilt,
+                        520
+                    );
+
+                },
+                180
+            );
+
+        }
+
+
+        /* ========================================================
+           PASSWORD VISIBILITY
+        ======================================================== */
+
+        function togglePassword(
+            inputId
+        ) {
+
+
+            const input =
+                document.getElementById(
+                    inputId
+                );
+
+
+            const button =
+                input.nextElementSibling;
+
+
+            if (
+                input.type ===
+                "password"
+            ) {
+
+                input.type =
+                    "text";
+
+
+                button.innerHTML =
+                    '<i data-lucide="eye-off"></i>';
+
+            }
+
+            else {
+
+                input.type =
+                    "password";
+
+
+                button.innerHTML =
+                    '<i data-lucide="eye"></i>';
+
+            }
+
+
+            lucide.createIcons();
+
+        }
+
+
+        /* ========================================================
+           LOGIN INPUTS
+        ======================================================== */
+
+        const identifierInput =
+            document.getElementById(
+                "identifier"
+            );
+
+
+        const passwordInput =
+            document.getElementById(
+                "password"
+            );
+
+
+        const submitBtn =
+            document.getElementById(
+                "submit-btn"
+            );
+
+
+        /* ========================================================
+           VALIDATE LOGIN
+        ======================================================== */
+
+        function validateForm() {
+
+
+            const identifier =
+                identifierInput.value.trim();
+
+
+            const password =
+                passwordInput.value.trim();
+
+
+            const valid =
+                identifier !== "" &&
+                password !== "";
+
+
+            submitBtn.disabled =
+                !valid;
+
+
+            submitBtn.style.opacity =
+                valid
+                    ? "1"
+                    : "0.65";
+
+
+            submitBtn.style.cursor =
+                valid
+                    ? "pointer"
+                    : "not-allowed";
+
+        }
+
+
+        identifierInput.addEventListener(
+            "input",
+            validateForm
+        );
+
+
+        passwordInput.addEventListener(
+            "input",
+            validateForm
+        );
+
+
+        validateForm();
+
+
+        /* ========================================================
+           ALERT
+        ======================================================== */
+
+        function showAlert(
+            message,
+            isError = true
+        ) {
+
+
+            const box =
+                document.getElementById(
+                    "alert-box"
+                );
+
+
+            box.textContent =
+                message;
+
+
+            box.style.display =
+                "block";
+
+
+            if (isError) {
+
+
+                box.style.background =
+                    "#fef2f2";
+
+
+                box.style.border =
+                    "1px solid #fecaca";
+
+
+                box.style.color =
+                    "#991b1b";
+
+            }
+
+            else {
+
+
+                box.style.background =
+                    "#ecfdf5";
+
+
+                box.style.border =
+                    "1px solid #a7f3d0";
+
+
+                box.style.color =
+                    "#047857";
+
+            }
+
+        }
+
+
+        /* ========================================================
+           FORGOT PASSWORD
+        ======================================================== */
+
+        function openForgot() {
+
+
+            const area =
+                document.getElementById(
+                    "forgot-area"
+                );
+
+
+            const hidden =
+                area.style.display ===
+                    "none" ||
+                area.style.display ===
+                    "";
+
+
+            if (hidden) {
+
+
+                /*
+                 * Stop 3D movement.
+                 */
+
+                if (card) {
+
+                    card.style.transform =
+                        "perspective(1100px) " +
+                        "rotateX(0deg) " +
+                        "rotateY(0deg) " +
+                        "translateZ(0)";
+
+                }
+
+
+                area.style.display =
+                    "block";
+
+
+                setTimeout(
+                    function() {
+
+                        document
+                            .getElementById(
+                                "forgot-email"
+                            )
+                            .focus();
+
+                    },
+                    50
+                );
+
+            }
+
+            else {
+
+
+                area.style.display =
+                    "none";
+
+
+                if (card) {
+
+                    card.style.transform =
+                        "perspective(1100px) " +
+                        "rotateX(0deg) " +
+                        "rotateY(0deg) " +
+                        "translateZ(0)";
+
+                }
+
+            }
+
+        }
+
+
+        /* ========================================================
+           SEND RESET LINK
+        ======================================================== */
+
+        async function sendResetLink() {
+
+
+            const emailInput =
+                document.getElementById(
+                    "forgot-email"
+                );
+
+
+            const message =
+                document.getElementById(
+                    "forgot-msg"
+                );
+
+
+            const sendButton =
+                document.getElementById(
+                    "send-reset-btn"
+                );
+
+
+            const email =
+                emailInput.value.trim();
+
+
+            /*
+             * Empty email
+             */
+
+            if (!email) {
+
+
+                message.textContent =
+                    "Please enter your email address.";
+
+
+                message.style.color =
+                    "#b91c1c";
+
+
+                message.style.display =
+                    "block";
+
+
+                emailInput.focus();
+
+
+                return;
+
+            }
+
+
+            /*
+             * Email validation
+             */
+
+            const emailPattern =
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+            if (
+                !emailPattern.test(
+                    email
+                )
+            ) {
+
+
+                message.textContent =
+                    "Please enter a valid email address.";
+
+
+                message.style.color =
+                    "#b91c1c";
+
+
+                message.style.display =
+                    "block";
+
+
+                emailInput.focus();
+
+
+                return;
+
+            }
+
+
+            /*
+             * Button loading
+             */
+
+            sendButton.disabled =
+                true;
+
+
+            sendButton.textContent =
+                "Sending...";
+
+
+            sendButton.style.transform =
+                "none";
+
+
+            message.style.display =
+                "none";
+
+
+            try {
+
+
+                const response =
+                    await fetch(
+                        `${API_BASE}/forgot-password/`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    email:
+                                        email
+                                })
+                        }
+                    );
+
+
+                let data =
+                    null;
+
+
+                try {
+
+                    data =
+                        await response.json();
+
+                }
+
+                catch {
+
+                    data =
+                        null;
+
+                }
+
+
+                if (
+                    response.ok
+                ) {
+
+
+                    message.textContent =
+                        "✓ If that email is registered, " +
+                        "a reset link has been sent.";
+
+
+                    message.style.color =
+                        "#047857";
+
+                }
+
+                else {
+
+
+                    message.textContent =
+                        data?.error ||
+                        data?.detail ||
+                        "Unable to send reset link. Please try again.";
+
+
+                    message.style.color =
+                        "#b91c1c";
+
+                }
+
+
+                message.style.display =
+                    "block";
+
+            }
+
+            catch (error) {
+
+
+                console.error(
+                    error
+                );
+
+
+                message.textContent =
+                    "Cannot connect to server. " +
+                    "Make sure the API is running.";
+
+
+                message.style.color =
+                    "#b91c1c";
+
+
+                message.style.display =
+                    "block";
+
+            }
+
+            finally {
+
+
+                sendButton.textContent =
+                    "Send";
+
+
+                sendButton.disabled =
+                    false;
+
+
+                sendButton.style.transform =
+                    "none";
+
+            }
+
+        }
+
+
+        /* ========================================================
+           LOGIN
+        ======================================================== */
+
+        document
+            .getElementById(
+                "login-form"
+            )
+            .addEventListener(
+                "submit",
+                async function(event) {
+
+
+                    event.preventDefault();
+
+
+                    const identifier =
+                        document
+                            .getElementById(
+                                "identifier"
+                            )
+                            .value
+                            .trim();
+
+
+                    const password =
+                        document
+                            .getElementById(
+                                "password"
+                            )
+                            .value;
+
+
+                    const button =
+                        document
+                            .getElementById(
+                                "submit-btn"
+                            );
+
+
+                    if (
+                        !identifier ||
+                        !password
+                    ) {
+
+
+                        showAlert(
+                            "Please fill in all fields."
+                        );
+
+
+                        return;
+
+                    }
+
+
+                    button.textContent =
+                        "Signing in...";
+
+
+                    button.disabled =
+                        true;
+
+
+                    try {
+
+
+                        const response =
+                            await fetch(
+                                `${API_BASE}/login/`,
+                                {
+                                    method:
+                                        "POST",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    },
+
+                                    body:
+                                        JSON.stringify({
+                                            identifier:
+                                                identifier,
+
+                                            password:
+                                                password
+                                        })
+                                }
+                            );
+
+
+                        const data =
+                            await response.json();
+
+
+                        if (
+                            response.ok
+                        ) {
+
+
+                            /*
+                             * Store access token
+                             * under both names for
+                             * compatibility.
+                             */
+
+                            localStorage.setItem(
+                                "access",
+                                data.access
+                            );
+
+
+                            localStorage.setItem(
+                                "access_token",
+                                data.access
+                            );
+
+
+                            if (
+                                data.refresh
+                            ) {
+
+                                localStorage.setItem(
+                                    "refresh_token",
+                                    data.refresh
+                                );
+
+                            }
+
+
+                            if (
+                                data.role
+                            ) {
+
+                                localStorage.setItem(
+                                    "user_role",
+                                    data.role
+                                );
+
+                            }
+
+
+                            if (
+                                data.email
+                            ) {
+
+                                localStorage.setItem(
+                                    "user_email",
+                                    data.email
+                                );
+
+                            }
+
+
+                            showAlert(
+                                "Login successful! Redirecting...",
+                                false
+                            );
+
+
+                            setTimeout(
+                                function() {
+
+                                    window.location.href =
+                                        "/app/dashboard.html";
+
+                                },
+                                1000
+                            );
+
+                        }
+
+                        else {
+
+
+                            showAlert(
+                                data.error ||
+                                data.detail ||
+                                "Login failed. Please try again."
+                            );
+
+
+                            button.textContent =
+                                "Sign In";
+
+
+                            button.disabled =
+                                false;
+
+                        }
+
+                    }
+
+                    catch (error) {
+
+
+                        console.error(
+                            error
+                        );
+
+
+                        showAlert(
+                            "Cannot connect to server. " +
+                            "Make sure the API is running."
+                        );
+
+
+                        button.textContent =
+                            "Sign In";
+
+
+                        button.disabled =
+                            false;
+
+                    }
+
+                }
+            );
+
+
+        /* ========================================================
+           ENTER TO SEND RESET
+        ======================================================== */
+
+        document
+            .getElementById(
+                "forgot-email"
+            )
+            .addEventListener(
+                "keydown",
+                function(event) {
+
+                    if (
+                        event.key ===
+                        "Enter"
+                    ) {
+
+                        event.preventDefault();
+
+                        sendResetLink();
+
+                    }
+
+                }
+            );
+
+
+        /* ========================================================
+           ESCAPE
+        ======================================================== */
+
+        document.addEventListener(
+            "keydown",
+            function(event) {
+
+
+                if (
+                    event.key ===
+                    "Escape"
+                ) {
+
+
+                    const area =
+                        document.getElementById(
+                            "forgot-area"
+                        );
+
+
+                    if (
+                        area &&
+                        area.style.display ===
+                            "block"
+                    ) {
+
+                        area.style.display =
+                            "none";
+
+                    }
+
+                }
+
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,2634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>API Monitor Dashboard</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+   
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --background: #f8fafc;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: Inter, Arial, Helvetica, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(99, 102, 241, 0.10), transparent 35%),
+                radial-gradient(circle at top right, rgba(139, 92, 246, 0.08), transparent 30%),
+                var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* =========================
+           LAYOUT
+        ========================= */
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            width: 250px;
+            min-height: 100vh;
+            background: rgba(255, 255, 255, 0.88);
+            border-right: 1px solid var(--border);
+            padding: 26px 18px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            backdrop-filter: blur(15px);
+            z-index: 20;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 10px;
+            margin-bottom: 35px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 800;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+        }
+
+        .brand-text h2 {
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .brand-text span {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .nav-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0 12px;
+            margin-bottom: 10px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #64748b;
+            padding: 12px 13px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .nav a:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+            transform: translateX(2px);
+        }
+
+        .nav a.active {
+            background: linear-gradient(
+                135deg,
+                rgba(99, 102, 241, 0.12),
+                rgba(139, 92, 246, 0.08)
+            );
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .main {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            padding: 30px 35px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .page-title p {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            padding: 11px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-refresh {
+            background: white;
+            color: #475569;
+            border: 1px solid var(--border);
+        }
+
+        .btn-refresh:hover {
+            background: #f8fafc;
+        }
+
+        .btn-primary {
+            color: white;
+            background: linear-gradient(
+                135deg,
+                var(--primary),
+                var(--secondary)
+            );
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.20);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 12px 25px rgba(99, 102, 241, 0.28);
+        }
+
+        /* =========================
+           STAT CARDS
+        ========================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+            transition: all 0.25s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+        }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .stat-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+        }
+
+        .icon-purple {
+            background: #eef2ff;
+            color: #6366f1;
+        }
+
+        .icon-green {
+            background: #ecfdf5;
+            color: #10b981;
+        }
+
+        .icon-red {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .icon-yellow {
+            background: #fffbeb;
+            color: #f59e0b;
+        }
+
+        .icon-orange {
+            background: #fff7ed;
+            color: #f97316;
+        }
+
+        .stat-value {
+            font-size: 29px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        /* =========================
+           MAIN PANEL
+        ========================= */
+
+        .panel {
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 20px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title h2 {
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .panel-title p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .api-count {
+            background: #eef2ff;
+            color: var(--primary);
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* =========================
+           API LIST
+        ========================= */
+
+        #apiList {
+            padding: 8px 18px 18px;
+        }
+
+        .api-card {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: center;
+            padding: 18px;
+            margin-top: 10px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .api-card:hover {
+            border-color: #c7d2fe;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.07);
+            transform: translateY(-1px);
+        }
+
+        .api-main {
+            min-width: 0;
+        }
+
+        .api-name-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .api-name {
+            font-size: 15px;
+            font-weight: 750;
+        }
+
+        .api-url {
+            color: var(--muted);
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 700px;
+        }
+
+        .api-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .api-detail {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 9px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.2;
+        }
+
+        .api-detail strong {
+            color: #334155;
+            font-weight: 750;
+        }
+
+        .api-detail-error {
+            color: #b91c1c;
+            background: #fff1f2;
+            border-color: #ffe4e6;
+            max-width: 100%;
+        }
+
+        .api-detail-error strong {
+            color: #9f1239;
+        }
+
+        .api-detail-success {
+            color: #047857;
+            background: #ecfdf5;
+            border-color: #d1fae5;
+        }
+
+        .api-detail-success strong {
+            color: #065f46;
+        }
+
+        .api-detail-warning {
+            color: #92400e;
+            background: #fffbeb;
+            border-color: #fef3c7;
+        }
+
+        .api-detail-warning strong {
+            color: #78350f;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .status-up {
+            color: #047857;
+            background: #ecfdf5;
+        }
+
+        .status-up .status-dot {
+            background: #10b981;
+        }
+
+        .status-down {
+            color: #b91c1c;
+            background: #fef2f2;
+        }
+
+        .status-down .status-dot {
+            background: #ef4444;
+        }
+
+        .status-slow {
+            color: #b45309;
+            background: #fffbeb;
+        }
+
+        .status-slow .status-dot {
+            background: #f59e0b;
+        }
+
+        .status-unknown {
+            color: #92400e;
+            background: #fffbeb;
+        }
+
+        .status-unknown .status-dot {
+            background: #f59e0b;
+        }
+
+        .api-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .edit-btn {
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #dbeafe;
+        }
+
+        .edit-btn:hover {
+            background: #dbeafe;
+        }
+
+        .delete-btn {
+            background: #fff1f2;
+            color: #e11d48;
+            border: 1px solid #ffe4e6;
+        }
+
+        .delete-btn:hover {
+            background: #ffe4e6;
+        }
+
+        /* =========================
+           EMPTY / LOADING
+        ========================= */
+
+        .state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .state-icon {
+            width: 55px;
+            height: 55px;
+            margin: 0 auto 15px;
+            border-radius: 15px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .state h3 {
+            color: var(--text);
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .state p {
+            font-size: 13px;
+        }
+
+        .loader {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e2e8f0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* =========================
+           MODAL
+        ========================= */
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 25px 70px rgba(15, 23, 42, 0.20);
+            animation: modalIn 0.2s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 22px;
+        }
+
+        .modal-header h2 {
+            font-size: 19px;
+            font-weight: 800;
+        }
+
+        .modal-header p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 9px;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 17px;
+        }
+
+        .close-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .form-input {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            padding: 12px 13px;
+            border-radius: 10px;
+            outline: none;
+            font-size: 13px;
+            color: var(--text);
+            transition: 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
+        }
+
+        .form-select {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            padding: 12px 13px;
+            border-radius: 10px;
+            outline: none;
+            font-size: 13px;
+            color: var(--text);
+            transition: 0.2s;
+        }
+
+        .form-select:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
+        }
+
+        .key-input-wrap {
+            position: relative;
+        }
+
+        .key-input-wrap .form-input {
+            padding-right: 82px;
+        }
+
+        .key-toggle {
+            position: absolute;
+            right: 7px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 6px 7px;
+            border-radius: 7px;
+        }
+
+        .key-toggle:hover {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .form-help {
+            display: block;
+            margin-top: 6px;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+
+        .security-note {
+            margin-top: 7px;
+            padding: 10px 11px;
+            border-radius: 9px;
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            color: #1d4ed8;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+
+        .remove-key-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .remove-key-row input {
+            accent-color: var(--primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 9px;
+            margin-top: 22px;
+        }
+
+        .btn-cancel {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 1050px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 800px) {
+            .sidebar {
+                width: 70px;
+                padding: 20px 10px;
+            }
+
+            .brand-text,
+            .nav-title,
+            .nav a span {
+                display: none;
+            }
+
+            .brand {
+                justify-content: center;
+                padding: 0;
+            }
+
+            .nav a {
+                justify-content: center;
+                padding: 12px;
+            }
+
+            .main {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+                padding: 22px 18px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .top-actions {
+                width: 100%;
+            }
+
+            .top-actions .btn {
+                flex: 1;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 23px;
+            }
+
+            .api-card {
+                grid-template-columns: 1fr;
+            }
+
+            .api-actions {
+                justify-content: flex-end;
+            }
+
+            .api-url {
+                max-width: 100%;
+            }
+
+            .api-details {
+                gap: 6px;
+            }
+
+            .api-detail {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* =========================
+           DASHBOARD SCROLL FIX
+        ========================= */
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            overflow-x: hidden !important;
+        }
+
+        body {
+            min-height: 100vh;
+            overflow-y: auto !important;
+        }
+
+        .app {
+            min-height: 100vh;
+            height: auto !important;
+            display: flex;
+            overflow: visible !important;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .main {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            min-height: 100vh;
+            height: 100vh !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            padding-bottom: 100px !important;
+        }
+
+        .panel {
+            overflow: visible !important;
+        }
+
+        #apiList {
+            display: block !important;
+            width: 100%;
+            height: auto !important;
+            max-height: none !important;
+            min-height: 0;
+            overflow: visible !important;
+            padding-bottom: 30px;
+        }
+
+        .api-card {
+            min-height: 80px;
+        }
+
+        @media (max-width: 800px) {
+            .main {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+                height: 100vh !important;
+                overflow-y: auto !important;
+            }
+        }
+
+    
+        /* =========================================
+           FINAL DASHBOARD SCROLL OVERRIDE
+           ========================================= */
+
+        html {
+            min-height: 100%;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+
+        body {
+            min-height: 100vh !important;
+            height: auto !important;
+            margin: 0 !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+        }
+
+        .app {
+            min-height: 100vh !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+
+        .main {
+            min-height: 100vh !important;
+            height: auto !important;
+            overflow: visible !important;
+            padding-bottom: 100px !important;
+        }
+
+        #apiList {
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        .api-card {
+            flex-shrink: 0 !important;
+        }
+
+        @media (max-width: 900px) {
+            .main {
+                min-height: 100vh !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+        }
+
+    </style>
+    <link rel="stylesheet" href="theme.css">
+
+<style id="dashboard-light-theme-final">
+html, body { background:#f6f8fc !important; color:#172033 !important; }
+body { overflow-y:auto !important; overflow-x:hidden !important; }
+.app { background:transparent !important; min-height:100vh !important; overflow:visible !important; }
+.sidebar { background:#ffffff !important; border-right:1px solid #e6eaf0 !important; box-shadow:8px 0 35px rgba(15,23,42,.04) !important; }
+.brand-text h2,.page-title h1,.panel-title h2,.api-name,.stat-value,.modal-header h2 { color:#172033 !important; }
+.brand-text span,.page-title p,.panel-title p,.api-url,.stat-label,.api-detail,.form-help,.modal-header p { color:#718096 !important; }
+.nav a { color:#64748b !important; }
+.nav a:hover { background:#f1f5ff !important; color:#4f46e5 !important; }
+.nav a.active { background:#eef2ff !important; color:#4f46e5 !important; }
+.panel,.stat-card,.api-card,.modal { background:#ffffff !important; border-color:#e6eaf0 !important; box-shadow:0 10px 30px rgba(15,23,42,.06) !important; }
+.panel-header { border-bottom-color:#e6eaf0 !important; }
+.api-card:hover { border-color:#c7d2fe !important; }
+.btn-refresh,.btn-cancel { background:#ffffff !important; color:#475569 !important; border-color:#dfe5ee !important; }
+.btn-primary { background:linear-gradient(135deg,#6366f1,#7c3aed) !important; color:#fff !important; border-color:transparent !important; }
+.form-input,.form-select { background:#f8fafc !important; color:#172033 !important; border-color:#dfe5ee !important; }
+.form-input:focus,.form-select:focus { background:#fff !important; border-color:#6366f1 !important; box-shadow:0 0 0 3px rgba(99,102,241,.10) !important; }
+.api-detail { background:#f8fafc !important; border-color:#e2e8f0 !important; }
+.api-detail-success { background:#ecfdf5 !important; border-color:#d1fae5 !important; color:#047857 !important; }
+.api-detail-error { background:#fff1f2 !important; border-color:#ffe4e6 !important; color:#b91c1c !important; }
+.api-detail-warning { background:#fffbeb !important; border-color:#fef3c7 !important; color:#92400e !important; }
+.edit-btn { background:#eef2ff !important; color:#4f46e5 !important; border-color:#c7d2fe !important; }
+.delete-btn { background:#fff1f2 !important; color:#e11d48 !important; border-color:#ffe4e6 !important; }
+.close-btn { background:#f1f5f9 !important; color:#64748b !important; }
+.modal-overlay { background:rgba(15,23,42,.42) !important; }
+html, body { scrollbar-color:#cbd5e1 #f6f8fc !important; }
+::-webkit-scrollbar { width:9px; height:9px; }
+::-webkit-scrollbar-track { background:#f6f8fc; }
+::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:10px; border:2px solid #f6f8fc; }
+::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
+</style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">A</div>
+
+            <div class="brand-text">
+                <h2>API Monitor</h2>
+                <span>Monitoring Platform</span>
+            </div>
+        </div>
+
+        <div class="nav-title">Menu</div>
+
+        <nav class="nav">
+
+            <a href="dashboard.html" class="active">
+                <span class="nav-icon">▦</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="analytics.html">
+                <span class="nav-icon">◈</span>
+                <span>Analytics</span>
+            </a>
+
+            <a href="/app/logs.html">☷ <span>Logs</span></a>
+
+            <a href="incidents.html">
+                <span class="nav-icon">!</span>
+                <span>Incidents</span>
+            </a>
+
+            <a href="settings.html">
+                <span class="nav-icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
+    <main class="main">
+
+        <!-- Topbar -->
+
+        <div class="topbar">
+
+            <div class="page-title">
+                <h1>Dashboard</h1>
+                <p>Monitor your APIs and track their health in real time.</p>
+            </div>
+
+            <div class="top-actions">
+
+                <button
+                    class="btn btn-refresh"
+                    onclick="loadAPIs()"
+                >
+                    ↻ Refresh
+                </button>
+
+                <button
+                    class="btn btn-primary"
+                    onclick="showAdd()"
+                >
+                    + Add API
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             STATISTICS
+        ========================== -->
+
+        <section class="stats">
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+                    <span class="stat-label">Total APIs</span>
+
+                    <div class="stat-icon icon-purple">
+                        ◉
+                    </div>
+                </div>
+
+                <div
+                    id="totalApis"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+                    <span class="stat-label">Healthy APIs</span>
+
+                    <div class="stat-icon icon-green">
+                        ✓
+                    </div>
+                </div>
+
+                <div
+                    id="healthyApis"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+                    <span class="stat-label">Down APIs</span>
+
+                    <div class="stat-icon icon-red">
+                        !
+                    </div>
+                </div>
+
+                <div
+                    id="downApis"
+                    class="stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Slow APIs</span>
+
+                    <div class="stat-icon icon-yellow">
+                        ⚠
+                    </div>
+                </div>
+
+                <div
+                    id="slowApis"
+                    class="stat-value"
+                >
+                    0
+                </div>
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+                    <span class="stat-label">Availability</span>
+
+                    <div class="stat-icon icon-orange">
+                        %
+                    </div>
+                </div>
+
+                <div
+                    id="availability"
+                    class="stat-value"
+                >
+                    0%
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             API PANEL
+        ========================== -->
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div class="panel-title">
+
+                    <h2>Monitored APIs</h2>
+
+                    <p>
+                        APIs currently connected to your monitoring system
+                    </p>
+
+                </div>
+
+                <div
+                    id="apiCount"
+                    class="api-count"
+                >
+                    0 APIs
+                </div>
+
+            </div>
+
+
+            <div id="apiList">
+
+                <div class="state">
+
+                    <div class="loader"></div>
+
+                    <h3>Loading APIs</h3>
+
+                    <p>
+                        Fetching your monitored APIs...
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- =========================
+     ADD API MODAL
+========================== -->
+
+<div
+    id="addModal"
+    class="modal-overlay"
+    onclick="handleOverlayClick(event)"
+>
+
+    <div
+        class="modal"
+        onclick="event.stopPropagation()"
+    >
+
+        <div class="modal-header">
+
+            <div>
+                <h2>Add API Monitor</h2>
+
+                <p>
+                    Add an API endpoint that you want to monitor.
+                </p>
+            </div>
+
+            <button
+                class="close-btn"
+                onclick="closeAdd()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="name">
+                API Name
+            </label>
+
+            <input
+                id="name"
+                class="form-input"
+                type="text"
+                placeholder="Example: Production API"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="url">
+                API URL
+            </label>
+
+            <input
+                id="url"
+                class="form-input"
+                type="url"
+                placeholder="https://api.example.com/health"
+            >
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="authType">
+                Authentication
+            </label>
+
+            <select id="authType" class="form-select" onchange="updateAddAuthUI()">
+                <option value="none">No Authentication</option>
+                <option value="bearer">Bearer API Key</option>
+                <option value="x_api_key">X-API-Key</option>
+            </select>
+
+        </div>
+
+        <div
+            id="addApiKeyGroup"
+            class="form-group"
+            style="display:none;"
+        >
+
+            <label for="apiKey">
+                API Key / Bearer Token
+            </label>
+
+            <div class="key-input-wrap">
+                <input
+                    id="apiKey"
+                    class="form-input"
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder="Paste your API key or bearer token"
+                >
+
+                <button
+                    type="button"
+                    class="key-toggle"
+                    onclick="toggleSecret('apiKey', this)"
+                >
+                    Show
+                </button>
+            </div>
+
+            <small class="form-help">
+                The monitor sends:
+                <strong id="addAuthHelp">Authorization: Bearer &lt;your-key&gt;</strong>
+            </small>
+
+            <div class="security-note">
+                The key is stored with the monitor and used by the backend
+                when performing health checks. Do not put API keys in the URL.
+            </div>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="btn btn-cancel"
+                onclick="closeAdd()"
+            >
+                Cancel
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="addAPI()"
+            >
+                Add API
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     EDIT API MODAL
+========================== -->
+
+<div
+    id="editModal"
+    class="modal-overlay"
+    onclick="handleEditOverlayClick(event)"
+>
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div>
+                <h2>Edit API Monitor</h2>
+                <p>Update the name or URL of this monitored API.</p>
+            </div>
+            <button class="close-btn" onclick="closeEdit()">×</button>
+        </div>
+
+        <div class="form-group">
+            <label for="editName">API Name</label>
+            <input id="editName" class="form-input" type="text" placeholder="Example: Production API">
+        </div>
+
+        <div class="form-group">
+            <label for="editUrl">API URL</label>
+            <input id="editUrl" class="form-input" type="url" placeholder="https://api.example.com/health">
+        </div>
+        <div class="form-group">
+    <label for="editThreshold">Slow Response Threshold (ms)</label>
+    <input
+        id="editThreshold"
+        class="form-input"
+        type="number"
+        min="100"
+        step="100"
+        value="1000"
+        placeholder="1000"
+    >
+    <small class="form-help">
+        Alert when the API response takes longer than this value.
+    </small>
+</div>
+
+        <div class="form-group">
+
+            <label for="editAuthType">
+                Authentication
+            </label>
+
+            <select id="editAuthType" class="form-select" onchange="updateEditAuthUI()">
+                <option value="none">No Authentication</option>
+                <option value="bearer">Bearer API Key</option>
+                <option value="x_api_key">X-API-Key</option>
+            </select>
+
+        </div>
+
+        <div
+            id="editApiKeyGroup"
+            class="form-group"
+            style="display:none;"
+        >
+
+            <label for="editApiKey">
+                API Key / Bearer Token
+            </label>
+
+            <div class="key-input-wrap">
+                <input
+                    id="editApiKey"
+                    class="form-input"
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder="Enter a new key to replace the current key"
+                >
+
+                <button
+                    type="button"
+                    class="key-toggle"
+                    onclick="toggleSecret('editApiKey', this)"
+                >
+                    Show
+                </button>
+            </div>
+
+            <small class="form-help">
+                Leave blank to keep the existing key.
+            </small>
+
+            <label class="remove-key-row">
+                <input
+                    id="removeApiKey"
+                    type="checkbox"
+                >
+                Remove the existing API key
+            </label>
+
+            <div class="security-note">
+                Monitoring sends the stored key as:
+                <strong id="editAuthHelp">Authorization: Bearer &lt;your-key&gt;</strong>
+            </div>
+
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="closeEdit()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    /*
+     * ================================
+     * AUTHENTICATION
+     * ================================
+     */
+
+    /*
+     * Read the login credential safely.
+     * The login page may store either a JWT access token directly,
+     * or an object containing an access/access_token/token property.
+     * Some browsers/apps also accidentally store the token as a JSON
+     * string, so we normalize that here.
+     */
+    function getStoredCredential() {
+        const raw = localStorage.getItem("access_token");
+
+        if (!raw) {
+            return null;
+        }
+
+        let value = raw.trim();
+
+        try {
+            const parsed = JSON.parse(value);
+
+            if (typeof parsed === "string") {
+                value = parsed.trim();
+            } else if (parsed && typeof parsed === "object") {
+                value = String(
+                    parsed.access ||
+                    parsed.access_token ||
+                    parsed.token ||
+                    ""
+                ).trim();
+            }
+        } catch (_) {
+            // The stored value is already a plain token.
+        }
+
+        // Remove accidental surrounding quotes.
+        value = value.replace(/^['"]|['"]$/g, "").trim();
+
+        // Remove an accidental duplicated auth scheme.
+        value = value.replace(/^(Bearer|Api-Key)\s+/i, "").trim();
+
+        return value || null;
+    }
+
+    function isJWT(value) {
+        return typeof value === "string" && value.split(".").length === 3;
+    }
+
+    function getAuthHeaders(extraHeaders = {}) {
+        const credential = getStoredCredential();
+        const headers = { ...extraHeaders };
+
+        if (credential) {
+            if (isJWT(credential)) {
+                headers["Authorization"] = "Bearer " + credential;
+            } else {
+                // The backend also supports its custom Api-Key authentication.
+                headers["Authorization"] = "Api-Key " + credential;
+            }
+        }
+
+        return headers;
+    }
+
+    async function apiFetch(url, options = {}) {
+        const requestOptions = {
+            ...options,
+            credentials: "same-origin",
+            headers: getAuthHeaders(options.headers || {})
+        };
+
+        return fetch(url, requestOptions);
+    }
+
+    const token = getStoredCredential();
+
+    if (!token) {
+        window.location.href = "/app/user_login.html";
+    }
+
+
+    /*
+     * ================================
+     * LOAD APIs
+     * ================================
+     */
+
+    async function loadAPIs() {
+
+        const list = document.getElementById("apiList");
+
+        list.innerHTML = `
+            <div class="state">
+                <div class="loader"></div>
+                <h3>Loading APIs</h3>
+                <p>Fetching your monitored APIs...</p>
+            </div>
+        `;
+
+
+        try {
+
+            const res = await apiFetch(
+                "/api/monitoring/",
+                {
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                }
+            );
+
+
+            if (!res.ok) {
+
+                throw new Error(
+                    "Unable to load APIs. Status: " + res.status
+                );
+
+            }
+
+
+            const data = await res.json();
+
+
+            renderAPIs(data);
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            list.innerHTML = `
+                <div class="state">
+
+                    <div class="state-icon">
+                        ⚠
+                    </div>
+
+                    <h3>Unable to load APIs</h3>
+
+                    <p>
+                        Please check your login session and backend server.
+                    </p>
+
+                </div>
+            `;
+
+        }
+
+    }
+
+
+    /*
+     * ================================
+     * RENDER APIs
+     * ================================
+     */
+
+    function renderAPIs(data) {
+
+        const list = document.getElementById("apiList");
+
+        const total = data.length;
+
+
+        /*
+         * Calculate statuses
+         */
+
+        const slow = data.filter(
+            api => isSlow(api)
+        ).length;
+
+
+        const healthy = data.filter(
+            api => isHealthy(api.status) && !isSlow(api)
+        ).length;
+
+
+        const down = data.filter(
+            api => isDown(api.status)
+        ).length;
+
+
+        const operational = healthy + slow;
+
+
+        const unknown = Math.max(
+            0,
+            total - operational - down
+        );
+
+
+        /*
+         * Update statistics
+         */
+
+        document.getElementById("totalApis").textContent =
+            total;
+
+
+        document.getElementById("healthyApis").textContent =
+            healthy;
+
+
+        document.getElementById("downApis").textContent =
+            down;
+
+
+        document.getElementById("slowApis").textContent =
+            slow;
+
+
+        document.getElementById("apiCount").textContent =
+            total + (total === 1 ? " API" : " APIs");
+
+
+        /*
+         * Availability
+         */
+
+        let availability = 0;
+
+        if (total > 0) {
+
+            // Slow APIs are still available because they returned a
+            // successful HTTP response.
+            availability =
+                Math.round((operational / total) * 100);
+
+        }
+
+        document.getElementById("availability").textContent =
+            availability + "%";
+
+
+        /*
+         * Empty state
+         */
+
+        if (total === 0) {
+
+            list.innerHTML = `
+                <div class="state">
+
+                    <div class="state-icon">
+                        +
+                    </div>
+
+                    <h3>No APIs monitored yet</h3>
+
+                    <p>
+                        Add your first API to start monitoring it.
+                    </p>
+
+                    <br>
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="showAdd()"
+                    >
+                        + Add Your First API
+                    </button>
+
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        /*
+         * Render cards
+         */
+
+        list.innerHTML = "";
+
+
+        data.forEach(api => {
+
+            const statusInfo =
+                getStatusInfo(api);
+
+
+            list.innerHTML += `
+
+                <div class="api-card">
+
+                    <div class="api-main">
+
+                        <div class="api-name-row">
+
+                            <div class="api-name">
+                                ${escapeHTML(api.name)}
+                            </div>
+
+                            <span
+                                class="status ${statusInfo.className}"
+                            >
+
+                                <span class="status-dot"></span>
+
+                                ${statusInfo.label}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="api-url">
+                            ${escapeHTML(api.url)}
+                        </div>
+
+                        <div class="api-details">
+                            <div class="api-detail">
+                                <strong>Response:</strong>
+                                ${formatResponseTime(api.response_time)}
+                            </div>
+
+                            <div class="api-detail">
+                                <strong>Last checked:</strong>
+                                ${formatLastChecked(api.last_checked_at)}
+                            </div>
+
+                            ${
+                                api.last_error
+                                    ? `
+                                        <div class="api-detail api-detail-error">
+                                            <strong>Last error:</strong>
+                                            ${escapeHTML(api.last_error)}
+                                        </div>
+                                      `
+                                    : `
+                                        <div class="api-detail api-detail-success">
+                                            <strong>Last error:</strong>
+                                            None
+                                        </div>
+                                      `
+                            }
+                        </div>
+
+                    </div>
+
+
+                    <div class="api-actions">
+
+                        <button
+                            class="btn edit-btn"
+                            onclick="editAPI(${api.id})"
+                        >
+                            Edit
+                        </button>
+
+                        <button
+                            class="btn delete-btn"
+                            onclick="deleteAPI(${api.id})"
+                        >
+                            Delete
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        });
+
+    }
+
+
+    /*
+     * ================================
+     * API MONITORING DETAILS
+     * ================================
+     */
+
+    function formatResponseTime(value) {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === "" ||
+            !Number.isFinite(Number(value))
+        ) {
+            return "Not checked";
+        }
+
+        const milliseconds = Number(value);
+
+        if (milliseconds < 1000) {
+            return `${Math.round(milliseconds)} ms`;
+        }
+
+        return `${(milliseconds / 1000).toFixed(2)} s`;
+    }
+
+
+    function formatLastChecked(value) {
+
+        if (!value) {
+            return "Never";
+        }
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return "Unknown";
+        }
+
+        const now = new Date();
+        const seconds = Math.max(
+            0,
+            Math.floor((now.getTime() - date.getTime()) / 1000)
+        );
+
+        if (seconds < 10) {
+            return "Just now";
+        }
+
+        if (seconds < 60) {
+            return `${seconds}s ago`;
+        }
+
+        const minutes = Math.floor(seconds / 60);
+
+        if (minutes < 60) {
+            return `${minutes}m ago`;
+        }
+
+        const hours = Math.floor(minutes / 60);
+
+        if (hours < 24) {
+            return `${hours}h ago`;
+        }
+
+        const days = Math.floor(hours / 24);
+
+        if (days < 7) {
+            return `${days}d ago`;
+        }
+
+        return date.toLocaleString();
+    }
+
+
+    /*
+     * ================================
+     * STATUS HELPERS
+     * ================================
+     */
+
+    function normalizeStatus(status) {
+
+        if (status === null || status === undefined) {
+            return "";
+        }
+
+        return String(status).trim().toLowerCase();
+
+    }
+
+
+    function isHealthy(status) {
+
+        const value =
+            normalizeStatus(status);
+
+        return [
+            "up",
+            "healthy",
+            "online",
+            "success",
+            "operational"
+        ].includes(value);
+
+    }
+
+
+    function isDown(status) {
+
+        const value =
+            normalizeStatus(status);
+
+        return [
+            "down",
+            "unhealthy",
+            "offline",
+            "failed",
+            "failure"
+        ].includes(value);
+
+    }
+
+
+    function isSlow(api) {
+
+        if (!api || !isHealthy(api.status)) {
+            return false;
+        }
+
+        if (typeof api.last_error === "string" &&
+            api.last_error.toLowerCase().startsWith("slow response:")) {
+            return true;
+        }
+
+        const responseTime = Number(api.response_time);
+        const threshold = Number(
+            api.response_time_threshold_ms ?? 1000
+        );
+
+        return Number.isFinite(responseTime) &&
+            Number.isFinite(threshold) &&
+            responseTime > threshold;
+    }
+
+
+    function getStatusInfo(api) {
+
+        const status = api?.status;
+
+        if (isSlow(api)) {
+
+            return {
+                label: "SLOW",
+                className: "status-slow"
+            };
+
+        }
+
+        if (isHealthy(status)) {
+
+            return {
+                label: "UP",
+                className: "status-up"
+            };
+
+        }
+
+
+        if (isDown(status)) {
+
+            return {
+                label: "DOWN",
+                className: "status-down"
+            };
+
+        }
+
+
+        return {
+            label: status || "UNKNOWN",
+            className: "status-unknown"
+        };
+
+    }
+
+
+    /*
+     * ================================
+     * ADD API
+     * ================================
+     */
+
+    async function addAPI() {
+
+        const name =
+            document.getElementById("name").value.trim();
+
+        const url =
+            document.getElementById("url").value.trim();
+
+        const authType =
+            document.getElementById("authType").value;
+
+        const threshold = 1000;
+
+        const apiKey =
+            document.getElementById("apiKey").value.trim();
+
+        if (!name || !url) {
+            alert("Please enter both API name and URL.");
+            return;
+        }
+
+        if (!Number.isFinite(threshold) || threshold < 100) {
+            alert("Please enter a valid threshold of at least 100 ms.");
+            return;
+        }
+
+        if ((authType === "bearer" || authType === "x_api_key") && !apiKey) {
+            alert("Please enter an API key or bearer token.");
+            return;
+        }
+
+        const payload = {
+            name: name,
+            url: url,
+            auth_type: authType,
+            response_time_threshold_ms: threshold
+        };
+
+        if (authType === "bearer" || authType === "x_api_key") {
+            payload.api_key = apiKey;
+        }
+
+        try {
+
+            const response = await apiFetch(
+                "/api/monitoring/",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            if (!response.ok) {
+
+                const errorData =
+                    await response.json().catch(() => null);
+
+                console.error(errorData);
+
+                const message =
+                    errorData?.api_key?.[0] ||
+                    errorData?.detail ||
+                    "Unable to add API. Please check the details.";
+
+                alert(message);
+                return;
+            }
+
+            document.getElementById("name").value = "";
+            document.getElementById("url").value = "";
+            /* Add-form threshold is not shown in the current modal; use the default. */
+            document.getElementById("authType").value = "none";
+            document.getElementById("apiKey").value = "";
+            document.getElementById("apiKey").type = "password";
+
+            const button =
+                document.querySelector("#addApiKeyGroup .key-toggle");
+
+            if (button) {
+                button.textContent = "Show";
+            }
+
+            updateAddAuthUI();
+            closeAdd();
+
+            await loadAPIs();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Something went wrong while adding the API."
+            );
+
+        }
+
+    }
+
+    /*
+     * ================================
+     * EDIT API
+     * ================================
+     */
+
+    let editingAPIId = null;
+
+    async function editAPI(id) {
+
+        try {
+
+            const response = await apiFetch(
+                "/api/monitoring/",
+                {
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Unable to load API details.");
+            }
+
+            const data = await response.json();
+
+            const api =
+                data.find(
+                    item => String(item.id) === String(id)
+                );
+
+            if (!api) {
+                alert("API monitor not found.");
+                return;
+            }
+
+            editingAPIId = id;
+
+            document.getElementById("editName").value =
+                api.name || "";
+
+            document.getElementById("editUrl").value =
+                api.url || "";
+
+            document.getElementById("editThreshold").value =
+                api.response_time_threshold_ms ||
+                api.owner_response_time_threshold_ms ||
+                1000;
+
+            document.getElementById("editApiKey").value = "";
+            document.getElementById("removeApiKey").checked = false;
+
+            /*
+             * Never display an existing secret.
+             * If the API response exposes only a configured flag,
+             * the editor will show Bearer authentication without
+             * revealing the actual key.
+             */
+            document.getElementById("editAuthType").value =
+                api.auth_type ||
+                (api.has_api_key || api.api_key_configured ? "bearer" : "none");
+
+            updateEditAuthUI();
+
+            document.getElementById("editModal")
+                .classList.add("show");
+
+            document.getElementById("editName").focus();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Unable to open the API editor.");
+
+        }
+
+    }
+
+
+    async function saveEdit() {
+
+        if (!editingAPIId) return;
+
+        const name =
+            document.getElementById("editName")
+                .value
+                .trim();
+
+        const url =
+            document.getElementById("editUrl")
+                .value
+                .trim();
+
+        const threshold =
+            Number(
+                document.getElementById("editThreshold")
+                    .value
+            );
+
+        const authType =
+            document.getElementById("editAuthType").value;
+
+        const apiKey =
+            document.getElementById("editApiKey")
+                .value
+                .trim();
+
+        const removeApiKey =
+            document.getElementById("removeApiKey")
+                .checked;
+
+        if (!name || !url) {
+            alert("Please enter both API name and URL.");
+            return;
+        }
+
+        if (
+            !Number.isFinite(threshold) ||
+            threshold < 100
+        ) {
+            alert("Please enter a valid threshold of at least 100 ms.");
+            return;
+        }
+
+        const payload = {
+            name: name,
+            url: url,
+            response_time_threshold_ms: threshold,
+            auth_type: authType
+        };
+
+        /*
+         * Blank key = keep existing key.
+         * Explicit "No Authentication" or "Remove" = clear key.
+         * New key = replace the existing key.
+         */
+        if (removeApiKey || authType === "none") {
+            payload.api_key = "";
+        } else if (apiKey) {
+            payload.api_key = apiKey;
+        }
+
+        try {
+
+            const response = await apiFetch(
+                `/api/monitoring/${editingAPIId}/`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            if (!response.ok) {
+
+                const errorData =
+                    await response.json().catch(() => null);
+
+                console.error(errorData);
+
+                const message =
+                    errorData?.api_key?.[0] ||
+                    errorData?.detail ||
+                    "Unable to update the API. Status: " +
+                    response.status;
+
+                alert(message);
+                return;
+            }
+
+            closeEdit();
+            await loadAPIs();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Something went wrong while updating the API."
+            );
+
+        }
+
+    }
+
+    function closeEdit() {
+        editingAPIId = null;
+        document.getElementById("editModal").classList.remove("show");
+    }
+
+    function handleEditOverlayClick(event) {
+        if (event.target === document.getElementById("editModal")) {
+            closeEdit();
+        }
+    }
+
+
+    function updateAddAuthUI() {
+
+        const authType =
+            document.getElementById("authType").value;
+
+        const group =
+            document.getElementById("addApiKeyGroup");
+
+        if (authType === "bearer" || authType === "x_api_key") {
+            group.style.display = "block";
+            const help = document.getElementById("addAuthHelp");
+            if (help) {
+                help.textContent = authType === "x_api_key"
+                    ? "X-API-Key: <your-key>"
+                    : "Authorization: Bearer <your-key>";
+            }
+        } else {
+            group.style.display = "none";
+            document.getElementById("apiKey").value = "";
+        }
+
+    }
+
+
+    function updateEditAuthUI() {
+
+        const authType =
+            document.getElementById("editAuthType").value;
+
+        const group =
+            document.getElementById("editApiKeyGroup");
+
+        if (authType === "bearer" || authType === "x_api_key") {
+            group.style.display = "block";
+            const help = document.getElementById("editAuthHelp");
+            if (help) {
+                help.textContent = authType === "x_api_key"
+                    ? "X-API-Key: <your-key>"
+                    : "Authorization: Bearer <your-key>";
+            }
+        } else {
+            group.style.display = "none";
+            document.getElementById("editApiKey").value = "";
+            document.getElementById("removeApiKey").checked = false;
+        }
+
+    }
+
+
+    function toggleSecret(inputId, button) {
+
+        const input =
+            document.getElementById(inputId);
+
+        if (!input) return;
+
+        if (input.type === "password") {
+            input.type = "text";
+            button.textContent = "Hide";
+        } else {
+            input.type = "password";
+            button.textContent = "Show";
+        }
+
+    }
+
+
+    /*
+     * ================================
+     * DELETE API
+     * ================================
+     */
+
+    async function deleteAPI(id) {
+
+        const confirmed =
+            confirm(
+                "Are you sure you want to delete this API monitor?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        try {
+
+            const response = await apiFetch(
+                `/api/monitoring/${id}/`,
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                }
+            );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Delete request failed."
+                );
+
+            }
+
+
+            await loadAPIs();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Unable to delete the API."
+            );
+
+        }
+
+    }
+
+
+    /*
+     * ================================
+     * MODAL
+     * ================================
+     */
+
+    function showAdd() {
+
+        document.getElementById("authType").value = "none";
+        /* Add-form threshold is not shown in the current modal; use the default. */
+        document.getElementById("apiKey").value = "";
+        document.getElementById("apiKey").type = "password";
+
+        const button =
+            document.querySelector("#addApiKeyGroup .key-toggle");
+
+        if (button) {
+            button.textContent = "Show";
+        }
+
+        updateAddAuthUI();
+
+        document
+            .getElementById("addModal")
+            .classList.add("show");
+
+        document
+            .getElementById("name")
+            .focus();
+
+    }
+
+
+    function closeAdd() {
+
+        document
+            .getElementById("addModal")
+            .classList.remove("show");
+
+    }
+
+
+    function handleOverlayClick(event) {
+
+        if (
+            event.target ===
+            document.getElementById("addModal")
+        ) {
+
+            closeAdd();
+
+        }
+
+    }
+
+
+    /*
+     * ================================
+     * HTML SECURITY
+     * ================================
+     */
+
+    function escapeHTML(value) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            value ?? "";
+
+        return div.innerHTML;
+
+    }
+
+
+    /*
+     * ================================
+     * KEYBOARD
+     * ================================
+     */
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                closeAdd();
+
+            }
+
+        }
+    );
+
+
+    /*
+     * ================================
+     * INITIAL LOAD
+     * ================================
+     */
+
+    loadAPIs();
+
+</script>
+
+</body>
+</html>
