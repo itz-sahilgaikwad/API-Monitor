@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>API Monitoring Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body class="bg-gray-100">
+
+<div class="max-w-6xl mx-auto p-6">
+
+<h1 class="text-3xl font-bold mb-6">API Monitoring Dashboard</h1>
+
+<div id="systemStatus" class="p-4 mb-6 rounded text-white bg-green-500">
+Loading system status...
+</div>
+
+<div class="bg-white p-4 rounded shadow mb-6">
+<h2 class="text-xl font-semibold mb-4">Monitors</h2>
+
+<table class="w-full border">
+
+<thead class="bg-gray-200">
+<tr>
+<th class="p-2">Name</th>
+<th>Status</th>
+<th>Uptime</th>
+<th>Total Checks</th>
+</tr>
+</thead>
+
+<tbody id="monitorTable"></tbody>
+
+</table>
+</div>
+
+<div class="bg-white p-4 rounded shadow">
+
+<h2 class="text-xl font-semibold mb-4">Uptime History</h2>
+
+<canvas id="uptimeChart"></canvas>
+
+</div>
+
+</div>
+
+<script>
+
+async function loadStatus(){
+
+const res = await fetch("http://127.0.0.1:8000/api/monitoring/status/");
+const data = await res.json();
+
+const statusBox = document.getElementById("systemStatus");
+
+statusBox.innerText = "System Status: " + data.overall_status;
+
+if(data.overall_status === "OPERATIONAL"){
+statusBox.className = "p-4 mb-6 rounded text-white bg-green-500";
+}else{
+statusBox.className = "p-4 mb-6 rounded text-white bg-red-500";
+}
+
+}
+
+async function loadMonitors(){
+
+const res = await fetch("http://127.0.0.1:8000/api/monitoring/analytics/");
+const monitors = await res.json();
+
+const table = document.getElementById("monitorTable");
+
+monitors.forEach(m => {
+
+const row = `
+<tr class="border">
+<td class="p-2">${m.name}</td>
+<td class="p-2">${m.status}</td>
+<td class="p-2">${m.uptime_percentage.toFixed(2)}%</td>
+<td class="p-2">${m.total_checks}</td>
+</tr>
+`;
+
+table.innerHTML += row;
+
+});
+
+}
+
+async function loadChart(){
+
+const res = await fetch("http://127.0.0.1:8000/api/monitoring/analytics/1/");
+const data = await res.json();
+
+const labels = [];
+const values = [];
+
+data.recent_history.forEach(h => {
+
+labels.push(h.checked_at);
+values.push(h.status === "UP" ? 1 : 0);
+
+});
+
+new Chart(document.getElementById("uptimeChart"), {
+
+type: "line",
+
+data:{
+labels: labels,
+datasets:[{
+label:"Uptime History",
+data: values,
+fill:false,
+tension:0.3
+}]
+}
+
+});
+
+}
+
+loadStatus();
+loadMonitors();
+loadChart();
+
+</script>
+
+</body>
+</html>

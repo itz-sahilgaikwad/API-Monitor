@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email — API Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0f1e;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: #111827;
+            border: 1px solid rgba(99, 102, 241, .18);
+            border-radius: 18px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            animation: fadeIn .4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+        }
+
+        .icon-loading {
+            background: rgba(99, 102, 241, .15);
+        }
+
+        .icon-ok {
+            background: rgba(74, 222, 128, .15);
+        }
+
+        .icon-err {
+            background: rgba(248, 113, 113, .15);
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #64748b;
+            font-size: .875rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            padding: 11px 24px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            font-size: .875rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity .2s;
+        }
+
+        .btn:hover {
+            opacity: .9;
+        }
+    </style>
+    <link rel="stylesheet" href="theme.css">
+</head>
+
+<body>
+    <div class="card" id="card">
+        <div class="icon icon-loading" id="icon">⏳</div>
+        <h1 id="title">Verifying your email…</h1>
+        <p id="desc">Please wait while we verify your email address.</p>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:8000/api';
+        const token = new URLSearchParams(location.search).get('token') || '';
+
+        async function verify() {
+            if (!token) {
+                setResult(false, '❌', 'Missing Token', 'No verification token was found in the URL. Please use the link from your email.');
+                return;
+            }
+            try {
+                const r = await fetch(`${API}/users/verify-email/?token=${encodeURIComponent(token)}`);
+                const d = await r.json();
+                if (r.ok) {
+                    setResult(true, '✅', 'Email Verified!', d.message || 'Your email address has been successfully verified. You can now log in.');
+                } else {
+                    setResult(false, '❌', 'Verification Failed', d.error || 'This link may have expired or already been used. Please register again or contact support.');
+                }
+            } catch {
+                setResult(false, '⚠️', 'Server Unreachable', 'Could not connect to the API Monitor server. Please try again later.');
+            }
+        }
+
+        function setResult(ok, emoji, title, desc) {
+            document.getElementById('icon').textContent = emoji;
+            document.getElementById('icon').className = 'icon ' + (ok ? 'icon-ok' : 'icon-err');
+            document.getElementById('title').textContent = title;
+            document.getElementById('desc').textContent = desc;
+
+            const btn = document.createElement('a');
+            btn.href = ok ? 'user_login.html' : 'user_register.html';
+            btn.className = 'btn';
+            btn.textContent = ok ? 'Go to Login' : 'Back to Register';
+            document.getElementById('card').appendChild(btn);
+        }
+
+        verify();
+    </script>
+</body>
+
+</html>

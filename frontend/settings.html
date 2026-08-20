@@ -1,0 +1,2448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Settings — API Monitor</title>
+
+    <meta
+        name="description"
+        content="Manage your API Monitor account and dashboard preferences."
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <!-- Professional font combination -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <style>
+
+        /* =========================================================
+           RESET
+        ========================================================= */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "DM Sans", Arial, sans-serif;
+            background:
+                radial-gradient(
+                    circle at 75% 5%,
+                    rgba(91, 75, 190, 0.18),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 100% 75%,
+                    rgba(67, 91, 180, 0.12),
+                    transparent 28%
+                ),
+                #080f20;
+            color: #e8edf8;
+            overflow-x: hidden;
+        }
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* =========================================================
+           APP LAYOUT
+        ========================================================= */
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
+        .sidebar {
+            width: 250px;
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #0b1428 0%,
+                    #080f20 100%
+                );
+
+            border-right: 1px solid #1c2942;
+
+            display: flex;
+            flex-direction: column;
+
+            z-index: 20;
+        }
+
+        .brand {
+            padding: 30px 24px 26px;
+            border-bottom: 1px solid #17233a;
+        }
+
+        .brand-row {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .brand-icon {
+            width: 43px;
+            height: 43px;
+            border-radius: 11px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #6d5dfc,
+                    #4f46c8
+                );
+
+            color: white;
+
+            font-family: "Libre Baskerville", Georgia, serif;
+            font-size: 22px;
+            font-weight: 700;
+
+            box-shadow:
+                0 8px 25px rgba(91, 75, 190, 0.35);
+        }
+
+        .brand-name {
+            font-family: "Libre Baskerville", Georgia, serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: #f5f7ff;
+            letter-spacing: -0.3px;
+        }
+
+        .brand-subtitle {
+            margin-top: 3px;
+            font-size: 10px;
+            color: #7e8ca8;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-title {
+            padding: 28px 25px 12px;
+
+            font-size: 10px;
+            font-weight: 700;
+
+            color: #687792;
+
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .navigation {
+            padding: 0 12px;
+        }
+
+        .nav-item {
+            height: 45px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+
+            padding: 0 15px;
+            margin-bottom: 5px;
+
+            border-radius: 9px;
+
+            color: #a8b3c9;
+
+            font-size: 13px;
+            font-weight: 500;
+
+            transition:
+                background 160ms ease,
+                color 160ms ease;
+        }
+
+        .nav-item:hover {
+            background: #111d34;
+            color: #ffffff;
+        }
+
+        .nav-item.active {
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(104, 87, 220, 0.34),
+                    rgba(77, 65, 169, 0.22)
+                );
+
+            color: #ffffff;
+
+            border-left: 2px solid #8071ff;
+            padding-left: 13px;
+        }
+
+        .nav-icon {
+            width: 18px;
+            text-align: center;
+
+            font-size: 15px;
+            color: #7f8dfd;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px;
+        }
+
+        .system-card {
+            padding: 17px;
+
+            border-radius: 12px;
+
+            background: #101b30;
+            border: 1px solid #1d2c47;
+        }
+
+        .system-top {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            color: #e6edf9;
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: #4ade80;
+
+            box-shadow:
+                0 0 0 4px rgba(74, 222, 128, 0.09);
+        }
+
+        .system-description {
+            margin-top: 7px;
+            margin-left: 17px;
+
+            color: #74829d;
+            font-size: 10px;
+        }
+
+        /* =========================================================
+           MAIN
+        ========================================================= */
+
+        .main {
+            width: calc(100% - 250px);
+            margin-left: 250px;
+            min-height: 100vh;
+
+            padding: 38px 44px 60px;
+
+            position: relative;
+        }
+
+        .main::before {
+            content: "";
+            position: absolute;
+
+            width: 700px;
+            height: 260px;
+
+            right: 5%;
+            top: -80px;
+
+            background:
+                radial-gradient(
+                    ellipse,
+                    rgba(92, 76, 220, 0.18),
+                    transparent 70%
+                );
+
+            pointer-events: none;
+        }
+
+        /* =========================================================
+           HEADER
+        ========================================================= */
+
+        .page-header {
+            position: relative;
+            z-index: 1;
+
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            color: #8d7dff;
+
+            font-size: 10px;
+            font-weight: 700;
+
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+
+            margin-bottom: 7px;
+        }
+
+        .page-title {
+            font-family: "Libre Baskerville", Georgia, serif;
+
+            font-size: 38px;
+            line-height: 1.15;
+
+            color: #ffffff;
+
+            letter-spacing: -1px;
+        }
+
+        .page-description {
+            margin-top: 8px;
+
+            color: #8290aa;
+            font-size: 13px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            min-height: 40px;
+
+            padding: 0 17px;
+
+            border-radius: 8px;
+
+            border: 1px solid #293754;
+
+            background: #101a2d;
+
+            color: #dce4f4;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            transition:
+                transform 150ms ease,
+                background 150ms ease,
+                border-color 150ms ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            background: #16223a;
+            border-color: #3a4c6d;
+        }
+
+        .btn-primary {
+            border-color: transparent;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #7364f4,
+                    #5b4fd1
+                );
+
+            color: #ffffff;
+
+            box-shadow:
+                0 8px 20px rgba(91, 79, 209, 0.22);
+        }
+
+        .btn-primary:hover {
+            background:
+                linear-gradient(
+                    135deg,
+                    #8174ff,
+                    #6659df
+                );
+        }
+
+        /* =========================================================
+           GRID
+        ========================================================= */
+
+        .settings-grid {
+            position: relative;
+            z-index: 1;
+
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1.65fr)
+                minmax(320px, 1fr);
+
+            gap: 18px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* =========================================================
+           CARDS
+        ========================================================= */
+
+        .card {
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(18, 29, 49, 0.98),
+                    rgba(13, 23, 40, 0.98)
+                );
+
+            border: 1px solid #1e2d47;
+
+            border-radius: 13px;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.14);
+        }
+
+        .card-header {
+            padding: 20px 22px;
+
+            border-bottom: 1px solid #1d2a41;
+        }
+
+        .card-title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-icon {
+            width: 32px;
+            height: 32px;
+
+            border-radius: 8px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(111, 95, 236, 0.12);
+
+            color: #8f82ff;
+
+            font-size: 15px;
+        }
+
+        .card-title {
+            font-family: "Libre Baskerville", Georgia, serif;
+
+            font-size: 17px;
+            font-weight: 700;
+
+            color: #f5f7ff;
+        }
+
+        .card-subtitle {
+            margin-top: 4px;
+
+            color: #73829d;
+            font-size: 11px;
+        }
+
+        .card-body {
+            padding: 21px 22px;
+        }
+
+        /* =========================================================
+           ACCOUNT
+        ========================================================= */
+
+        .account-profile {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 56px;
+            height: 56px;
+
+            border-radius: 13px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #6d5dfc,
+                    #4939b8
+                );
+
+            color: #ffffff;
+
+            font-family: "Libre Baskerville", Georgia, serif;
+            font-size: 24px;
+            font-weight: 700;
+
+            box-shadow:
+                0 8px 22px rgba(78, 63, 191, 0.28);
+        }
+
+        .username {
+            color: #f1f5ff;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .email {
+            margin-top: 4px;
+
+            color: #8290a9;
+            font-size: 11px;
+        }
+
+        .account-badge {
+            display: inline-block;
+
+            margin-top: 6px;
+            padding: 3px 7px;
+
+            border-radius: 5px;
+
+            background: rgba(113, 97, 245, 0.12);
+            border: 1px solid rgba(113, 97, 245, 0.24);
+
+            color: #9b8fff;
+
+            font-size: 8px;
+            font-weight: 700;
+
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-table {
+            border: 1px solid #202f48;
+            border-radius: 9px;
+            overflow: hidden;
+        }
+
+        .info-row {
+            min-height: 43px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 13px;
+
+            border-bottom: 1px solid #202f48;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #7787a3;
+            font-size: 11px;
+        }
+
+        .info-value {
+            color: #dce5f4;
+            font-size: 11px;
+            font-weight: 600;
+
+            text-align: right;
+        }
+
+        .active-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .active-status::before {
+            content: "";
+
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #4ade80;
+        }
+
+        /* =========================================================
+           SYSTEM STATUS
+        ========================================================= */
+
+        .connected-box {
+            padding: 15px;
+
+            border-radius: 9px;
+
+            background:
+                rgba(22, 163, 74, 0.08);
+
+            border: 1px solid rgba(74, 222, 128, 0.32);
+
+            margin-bottom: 14px;
+        }
+
+        .connected-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            color: #6ee7a0;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .connected-icon {
+            width: 22px;
+            height: 22px;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #4ade80;
+            color: #062412;
+
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .connected-text {
+            margin-top: 5px;
+            margin-left: 31px;
+
+            color: #789b87;
+            font-size: 10px;
+        }
+
+        /* =========================================================
+           PREFERENCES
+        ========================================================= */
+
+        .preference-row {
+            min-height: 66px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            border-bottom: 1px solid #1d2b43;
+        }
+
+        .preference-row:last-child {
+            border-bottom: none;
+        }
+
+        .preference-name {
+            color: #dce5f3;
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .preference-description {
+            margin-top: 4px;
+
+            color: #71819d;
+            font-size: 10px;
+        }
+
+        /* =========================================================
+           TOGGLE
+        ========================================================= */
+
+        .toggle {
+            width: 45px;
+            height: 25px;
+
+            border: none;
+            border-radius: 20px;
+
+            background: #344258;
+
+            position: relative;
+
+            flex-shrink: 0;
+
+            transition: background 160ms ease;
+        }
+
+        .toggle::after {
+            content: "";
+
+            position: absolute;
+
+            width: 19px;
+            height: 19px;
+
+            top: 3px;
+            left: 3px;
+
+            border-radius: 50%;
+
+            background: #d9e0eb;
+
+            transition: transform 160ms ease;
+        }
+
+        .toggle.active {
+            background: #6658df;
+        }
+
+        .toggle.active::after {
+            transform: translateX(20px);
+            background: #ffffff;
+        }
+
+        /* =========================================================
+           SELECT
+        ========================================================= */
+
+        .select {
+            min-width: 150px;
+
+            padding: 10px 12px;
+
+            border-radius: 8px;
+
+            background: #0c172a;
+
+            border: 1px solid #293a56;
+
+            color: #dce5f4;
+
+            font-size: 11px;
+
+            outline: none;
+        }
+
+        .select:focus {
+            border-color: #6d5dfc;
+        }
+
+        /* =========================================================
+           LOCAL PREFERENCES
+        ========================================================= */
+
+        .local-text {
+            color: #8a98ae;
+            font-size: 11px;
+            line-height: 1.7;
+
+            margin-bottom: 20px;
+        }
+
+        .local-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 9px;
+        }
+
+        /* =========================================================
+           SIGN OUT
+        ========================================================= */
+
+        .danger-box {
+            padding: 15px;
+
+            border-radius: 9px;
+
+            background:
+                rgba(127, 29, 29, 0.13);
+
+            border: 1px solid rgba(248, 113, 113, 0.28);
+        }
+
+        .danger-title {
+            color: #fca5a5;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .danger-text {
+            margin-top: 5px;
+
+            color: #9d7373;
+
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        .btn-danger {
+            margin-top: 13px;
+
+            background: #8f2733;
+            border-color: #a63340;
+
+            color: #ffffff;
+        }
+
+        .btn-danger:hover {
+            background: #a72f3c;
+        }
+
+        /* =========================================================
+           NOTIFICATION
+        ========================================================= */
+
+        .notification {
+            position: fixed;
+
+            right: 25px;
+            bottom: 25px;
+
+            min-width: 280px;
+
+            padding: 14px 17px;
+
+            border-radius: 9px;
+
+            background: #16233a;
+            border: 1px solid #304361;
+
+            color: #e8eef9;
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.35);
+
+            font-size: 12px;
+
+            transform: translateY(120px);
+            opacity: 0;
+
+            transition:
+                transform 220ms ease,
+                opacity 220ms ease;
+
+            z-index: 100;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification.success {
+            border-color: rgba(74, 222, 128, 0.35);
+        }
+
+        .notification.error {
+            border-color: rgba(248, 113, 113, 0.4);
+        }
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1050px) {
+
+            .sidebar {
+                width: 210px;
+            }
+
+            .main {
+                width: calc(100% - 210px);
+                margin-left: 210px;
+                padding: 30px;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .sidebar {
+                position: relative;
+                width: 100%;
+                min-height: auto;
+            }
+
+            .app {
+                display: block;
+            }
+
+            .navigation {
+                display: flex;
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+
+            .nav-item {
+                flex-shrink: 0;
+            }
+
+            .nav-title,
+            .sidebar-bottom {
+                display: none;
+            }
+
+            .main {
+                width: 100%;
+                margin-left: 0;
+                padding: 25px 16px 40px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 18px;
+            }
+
+            .page-title {
+                font-size: 30px;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-actions .btn {
+                flex: 1;
+            }
+
+            .preference-row {
+                gap: 15px;
+            }
+
+            .select {
+                min-width: 120px;
+            }
+        }
+
+    </style>
+
+    <style id="light-theme-override">
+        /* Light theme: colors only. Existing layout, scrolling and JavaScript unchanged. */
+        html { background: #f6f8fc !important; }
+
+        body {
+            background:
+                radial-gradient(circle at 75% 5%, rgba(99,102,241,.08), transparent 30%),
+                radial-gradient(circle at 100% 75%, rgba(99,102,241,.05), transparent 28%),
+                #f6f8fc !important;
+            color: #172033 !important;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #ffffff 0%, #f9faff 100%) !important;
+            border-right: 1px solid #e6eaf0 !important;
+            box-shadow: 8px 0 35px rgba(15,23,42,.04) !important;
+        }
+
+        .brand { border-bottom-color: #e6eaf0 !important; }
+        .brand-name { color: #172033 !important; }
+        .brand-subtitle, .nav-title { color: #718096 !important; }
+        .nav-item { color: #64748b !important; }
+        .nav-item:hover { background: #f1f3ff !important; color: #4f46e5 !important; }
+        .nav-item.active {
+            background: linear-gradient(90deg, #eef2ff, #f4f2ff) !important;
+            color: #4f46e5 !important;
+            border-left-color: #7c5cff !important;
+        }
+        .nav-icon { color: #6366f1 !important; }
+
+        .system-card {
+            background: #ffffff !important;
+            border-color: #e1e6ef !important;
+        }
+        .system-top { color: #172033 !important; }
+        .system-description { color: #718096 !important; }
+
+        .main { background: transparent !important; }
+        .main::before {
+            background: radial-gradient(ellipse, rgba(99,102,241,.07), transparent 70%) !important;
+        }
+
+        .eyebrow { color: #6366f1 !important; }
+        .page-title { color: #172033 !important; }
+        .page-description { color: #718096 !important; }
+
+        .card {
+            background: #ffffff !important;
+            border-color: #e3e7ee !important;
+            box-shadow: 0 15px 35px rgba(15,23,42,.06) !important;
+        }
+        .card-header { border-bottom-color: #e7ebf0 !important; }
+        .card-icon {
+            background: #eef2ff !important;
+            color: #6366f1 !important;
+        }
+        .card-title { color: #172033 !important; }
+        .card-subtitle { color: #718096 !important; }
+
+        .account-profile { border-bottom-color: #edf0f4 !important; }
+        .username { color: #172033 !important; }
+        .email { color: #64748b !important; }
+        .account-badge {
+            background: #eef2ff !important;
+            color: #5b4fd1 !important;
+            border-color: #ddd6fe !important;
+        }
+
+        .info-table { border-color: #e1e6ef !important; }
+        .info-row { border-bottom-color: #e7ebf0 !important; }
+        .info-label { color: #64748b !important; }
+        .info-value { color: #172033 !important; }
+
+        .connected-box {
+            background: #ecfdf5 !important;
+            border-color: #a7f3d0 !important;
+        }
+        .connected-title { color: #059669 !important; }
+        .connected-text { color: #4b8f77 !important; }
+        .connected-icon { color: #059669 !important; }
+
+        .preference-row { border-bottom-color: #e7ebf0 !important; }
+        .preference-name { color: #334155 !important; }
+        .preference-description { color: #718096 !important; }
+
+        .toggle { background: #cbd5e1 !important; }
+        .toggle.active { background: #6366f1 !important; }
+
+        .select {
+            background: #ffffff !important;
+            border-color: #dbe1ea !important;
+            color: #172033 !important;
+        }
+        .select:focus { border-color: #6366f1 !important; }
+
+        .local-text { color: #64748b !important; }
+
+        .btn {
+            background: #ffffff !important;
+            border-color: #dbe1ea !important;
+            color: #334155 !important;
+        }
+        .btn:hover {
+            background: #f8faff !important;
+            border-color: #a5b4fc !important;
+            color: #4f46e5 !important;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #7364f4, #5b4fd1) !important;
+            border-color: transparent !important;
+            color: #ffffff !important;
+        }
+
+        .danger-box {
+            background: #fef2f2 !important;
+            border-color: #fecaca !important;
+        }
+        .danger-title { color: #dc2626 !important; }
+        .danger-text { color: #9f6b6b !important; }
+        .btn-danger {
+            background: #ffffff !important;
+            border-color: #fecaca !important;
+            color: #dc2626 !important;
+        }
+        .btn-danger:hover {
+            background: #fef2f2 !important;
+            border-color: #fca5a5 !important;
+        }
+
+        .notification {
+            background: #ffffff !important;
+            border-color: #dbe1ea !important;
+            color: #172033 !important;
+            box-shadow: 0 15px 35px rgba(15,23,42,.12) !important;
+        }
+        .notification.success { border-color: #86efac !important; }
+        .notification.error { border-color: #fca5a5 !important; }
+    </style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =========================================================
+         SIDEBAR
+    ========================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-row">
+
+                <div class="brand-icon">
+                    A
+                </div>
+
+                <div>
+                    <div class="brand-name">
+                        API Monitor
+                    </div>
+
+                    <div class="brand-subtitle">
+                        Monitoring Platform
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="nav-title">
+            Workspace
+        </div>
+
+
+        <nav class="navigation">
+
+            <a
+                class="nav-item"
+                href="/app/dashboard.html"
+            >
+                <span class="nav-icon">▣</span>
+                <span>Dashboard</span>
+            </a>
+
+
+            <a
+                class="nav-item"
+                href="/app/analytics.html"
+            >
+                <span class="nav-icon">⌁</span>
+                <span>Analytics</span>
+            </a>
+
+
+            <a
+                class="nav-item"
+                href="/app/incidents.html"
+            >
+                <span class="nav-icon">!</span>
+                <span>Incidents</span>
+            </a>
+
+
+                        <a
+                class="nav-item"
+                href="/app/logs.html"
+            >
+                <span class="nav-icon">☷</span>
+                <span>Logs</span>
+            </a>
+
+
+<a
+                class="nav-item active"
+                href="/app/settings.html"
+            >
+                <span class="nav-icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="system-card">
+
+                <div class="system-top">
+
+                    <span class="online-dot"></span>
+
+                    <span>
+                        System Online
+                    </span>
+
+                </div>
+
+                <div class="system-description">
+                    All systems operational
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================================================
+         MAIN CONTENT
+    ========================================================== -->
+
+    <main class="main">
+
+        <header class="page-header">
+
+            <div>
+
+                <div class="eyebrow">
+                    Workspace
+                </div>
+
+                <h1 class="page-title">
+                    Settings
+                </h1>
+
+                <p class="page-description">
+                    Manage your account and dashboard preferences.
+                </p>
+
+            </div>
+
+
+            <div class="header-actions">
+
+                <button
+                    type="button"
+                    class="btn"
+                    onclick="goDashboard()"
+                >
+                    ← Dashboard
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="savePreferences()"
+                >
+                    Save Changes
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <section class="settings-grid">
+
+
+            <!-- =================================================
+                 LEFT COLUMN
+            ================================================== -->
+
+            <div class="column">
+
+
+                <!-- ACCOUNT -->
+
+                <section class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title-row">
+
+                            <div class="card-icon">
+                                ♙
+                            </div>
+
+                            <div>
+
+                                <h2 class="card-title">
+                                    Account
+                                </h2>
+
+                                <p class="card-subtitle">
+                                    Information from your current login session.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="account-profile">
+
+                            <div
+                                class="avatar"
+                                id="avatar"
+                            >
+                                S
+                            </div>
+
+
+                            <div>
+
+                                <div
+                                    class="username"
+                                    id="username"
+                                >
+                                    Loading...
+                                </div>
+
+                                <div
+                                    class="email"
+                                    id="email"
+                                >
+                                    Loading...
+                                </div>
+
+                                <span class="account-badge">
+                                    Personal Account
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-table">
+
+                            <div class="info-row">
+
+                                <span class="info-label">
+                                    Email
+                                </span>
+
+                                <span
+                                    class="info-value"
+                                    id="account-email"
+                                >
+                                    —
+                                </span>
+
+                            </div>
+
+
+                            <div class="info-row">
+
+                                <span class="info-label">
+                                    Authentication
+                                </span>
+
+                                <span class="info-value">
+                                    JWT
+                                </span>
+
+                            </div>
+
+
+                            <div class="info-row">
+
+                                <span class="info-label">
+                                    Session
+                                </span>
+
+                                <span class="info-value active-status">
+                                    Active
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- MONITORING PREFERENCES -->
+
+                <section class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title-row">
+
+                            <div class="card-icon">
+                                ↻
+                            </div>
+
+                            <div>
+
+                                <h2 class="card-title">
+                                    Monitoring Preferences
+                                </h2>
+
+                                <p class="card-subtitle">
+                                    Control how this dashboard behaves in your browser.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="preference-row">
+
+                            <div>
+
+                                <div class="preference-name">
+                                    Auto refresh dashboard
+                                </div>
+
+                                <div class="preference-description">
+                                    Automatically refresh monitored API data.
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="toggle"
+                                id="auto-refresh-toggle"
+                                onclick="toggleAutoRefresh()"
+                                aria-label="Toggle auto refresh"
+                            ></button>
+
+                        </div>
+
+
+                        <div class="preference-row">
+
+                            <div>
+
+                                <div class="preference-name">
+                                    Refresh interval
+                                </div>
+
+                                <div class="preference-description">
+                                    How frequently the dashboard requests new API data.
+                                </div>
+
+                            </div>
+
+
+                            <select
+                                class="select"
+                                id="refresh-interval"
+                            >
+
+                                <option value="15">
+                                    15 seconds
+                                </option>
+
+                                <option value="30">
+                                    30 seconds
+                                </option>
+
+                                <option value="60">
+                                    1 minute
+                                </option>
+
+                                <option value="120">
+                                    2 minutes
+                                </option>
+
+                                <option value="300">
+                                    5 minutes
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ALERT PREFERENCES -->
+
+                <section class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title-row">
+
+                            <div class="card-icon">
+                                ♧
+                            </div>
+
+                            <div>
+
+                                <h2 class="card-title">
+                                    Alert Preferences
+                                </h2>
+
+                                <p class="card-subtitle">
+                                    Choose which alert indicators are enabled.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="preference-row">
+
+                            <div>
+
+                                <div class="preference-name">
+                                    Email alerts
+                                </div>
+
+                                <div class="preference-description">
+                                    Backend email alerts can notify you about API downtime and recovery.
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="toggle active"
+                                id="email-alert-toggle"
+                                onclick="toggleEmailAlerts()"
+                                aria-label="Toggle email alerts"
+                            ></button>
+
+                        </div>
+
+
+                        <div class="preference-row">
+
+                            <div>
+
+                                <div class="preference-name">
+                                    SMS alerts
+                                </div>
+
+                                <div class="preference-description">
+                                    SMS delivery depends on your Twilio configuration.
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="toggle"
+                                id="sms-alert-toggle"
+                                onclick="toggleSmsAlerts()"
+                                aria-label="Toggle SMS alerts"
+                            ></button>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+
+            <!-- =================================================
+                 RIGHT COLUMN
+            ================================================== -->
+
+            <div class="column">
+
+
+                <!-- SYSTEM STATUS -->
+
+                <section class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title-row">
+
+                            <div class="card-icon">
+                                〽
+                            </div>
+
+                            <div>
+
+                                <h2 class="card-title">
+                                    System Status
+                                </h2>
+
+                                <p class="card-subtitle">
+                                    Local dashboard connection status.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="connected-box">
+
+                            <div class="connected-title">
+
+                                <span class="connected-icon">
+                                    ✓
+                                </span>
+
+                                <span>
+                                    Dashboard connected
+                                </span>
+
+                            </div>
+
+                            <div class="connected-text">
+                                Your browser has an active authentication token.
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-table">
+
+                            <div class="info-row">
+
+                                <span class="info-label">
+                                    Backend
+                                </span>
+
+                                <span class="info-value">
+                                    127.0.0.1:8000
+                                </span>
+
+                            </div>
+
+
+                            <div class="info-row">
+
+                                <span class="info-label">
+                                    API
+                                </span>
+
+                                <span class="info-value">
+                                    Django REST Framework
+                                </span>
+
+                            </div>
+
+
+                            <div class="info-row">
+
+                                <span class="info-label">
+                                    Authentication
+                                </span>
+
+                                <span class="info-value">
+                                    Bearer JWT
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- LOCAL PREFERENCES -->
+
+                <section class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title-row">
+
+                            <div class="card-icon">
+                                ▣
+                            </div>
+
+                            <div>
+
+                                <h2 class="card-title">
+                                    Local Preferences
+                                </h2>
+
+                                <p class="card-subtitle">
+                                    Browser-only dashboard settings.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <p class="local-text">
+                            Dashboard preferences are stored locally in your browser.
+                            They do not modify your monitored API records.
+                        </p>
+
+
+                        <div class="local-actions">
+
+                            <button
+                                type="button"
+                                class="btn"
+                                onclick="resetPreferences()"
+                            >
+                                Reset
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-primary"
+                                onclick="savePreferences()"
+                            >
+                                Save Changes
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- SIGN OUT -->
+
+                <section class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title-row">
+
+                            <div class="card-icon">
+                                ↪
+                            </div>
+
+                            <div>
+
+                                <h2 class="card-title">
+                                    Sign Out
+                                </h2>
+
+                                <p class="card-subtitle">
+                                    End your current browser authentication session.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="danger-box">
+
+                            <div class="danger-title">
+                                Sign out of API Monitor
+                            </div>
+
+                            <div class="danger-text">
+                                This removes the stored access and refresh tokens
+                                from this browser. Your monitored APIs are not deleted.
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="btn btn-danger"
+                                onclick="signOut()"
+                            >
+                                Sign Out
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- =============================================================
+     NOTIFICATION
+============================================================= -->
+
+<div
+    id="notification"
+    class="notification"
+></div>
+
+
+<script>
+
+    /* =========================================================
+       API CONFIGURATION
+    ========================================================= */
+
+    const API_BASE = "/api/users";
+
+
+    /* =========================================================
+       ELEMENTS
+    ========================================================= */
+
+    const usernameElement =
+        document.getElementById("username");
+
+    const emailElement =
+        document.getElementById("email");
+
+    const accountEmailElement =
+        document.getElementById("account-email");
+
+    const avatarElement =
+        document.getElementById("avatar");
+
+
+    /* =========================================================
+       AUTH TOKEN
+    ========================================================= */
+
+    function getAccessToken() {
+
+        return (
+            localStorage.getItem("access_token") ||
+            localStorage.getItem("access") ||
+            ""
+        );
+
+    }
+
+
+    /* =========================================================
+       AUTH HEADER
+    ========================================================= */
+
+    function authHeaders() {
+
+        const token = getAccessToken();
+
+        return {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        };
+
+    }
+
+
+    /* =========================================================
+       NOTIFICATION
+    ========================================================= */
+
+    let notificationTimer = null;
+
+
+    function showNotification(message, type = "success") {
+
+        const notification =
+            document.getElementById("notification");
+
+        notification.textContent = message;
+
+        notification.className =
+            "notification show " + type;
+
+        if (notificationTimer) {
+            clearTimeout(notificationTimer);
+        }
+
+        notificationTimer = setTimeout(
+            function () {
+
+                notification.classList.remove("show");
+
+            },
+            3000
+        );
+
+    }
+
+
+    /* =========================================================
+       LOAD PROFILE
+    ========================================================= */
+
+    async function loadProfile() {
+
+        const token = getAccessToken();
+
+        if (!token) {
+
+            window.location.href =
+                "/app/user_login.html";
+
+            return;
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    API_BASE + "/profile/",
+                    {
+                        method: "GET",
+                        headers: authHeaders()
+                    }
+                );
+
+
+            if (response.status === 401) {
+
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
+                localStorage.removeItem("access");
+                localStorage.removeItem("refresh");
+
+                window.location.href =
+                    "/app/user_login.html";
+
+                return;
+
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to load profile."
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            const username =
+                data.username ||
+                data.full_name ||
+                data.name ||
+                data.email ||
+                "User";
+
+
+            const email =
+                data.email ||
+                localStorage.getItem("user_email") ||
+                "—";
+
+
+            usernameElement.textContent =
+                username;
+
+            emailElement.textContent =
+                email;
+
+            accountEmailElement.textContent =
+                email;
+
+
+            avatarElement.textContent =
+                username
+                    .charAt(0)
+                    .toUpperCase();
+
+            if (typeof data.email_alerts_enabled === "boolean") {
+                document.getElementById("email-alert-toggle").classList.toggle("active", data.email_alerts_enabled);
+                localStorage.setItem("api_monitor_email_alerts", data.email_alerts_enabled ? "true" : "false");
+            }
+
+            if (typeof data.sms_alerts_enabled === "boolean") {
+                document.getElementById("sms-alert-toggle").classList.toggle("active", data.sms_alerts_enabled);
+                localStorage.setItem("api_monitor_sms_alerts", data.sms_alerts_enabled ? "true" : "false");
+            }
+
+
+        }
+        catch (error) {
+
+            const storedEmail =
+                localStorage.getItem("user_email");
+
+
+            if (storedEmail) {
+
+                usernameElement.textContent =
+                    storedEmail.split("@")[0];
+
+                emailElement.textContent =
+                    storedEmail;
+
+                accountEmailElement.textContent =
+                    storedEmail;
+
+                avatarElement.textContent =
+                    storedEmail
+                        .charAt(0)
+                        .toUpperCase();
+
+            }
+            else {
+
+                usernameElement.textContent =
+                    "User";
+
+                emailElement.textContent =
+                    "Unable to load profile";
+
+                accountEmailElement.textContent =
+                    "Unable to load profile";
+
+            }
+
+        }
+
+    }
+
+
+    /* =========================================================
+       AUTO REFRESH
+    ========================================================= */
+
+    function toggleAutoRefresh() {
+
+        const button =
+            document.getElementById(
+                "auto-refresh-toggle"
+            );
+
+        button.classList.toggle("active");
+
+    }
+
+
+    /* =========================================================
+       EMAIL ALERTS
+    ========================================================= */
+
+    function toggleEmailAlerts() {
+
+        const button =
+            document.getElementById(
+                "email-alert-toggle"
+            );
+
+        button.classList.toggle("active");
+
+    }
+
+
+    /* =========================================================
+       SMS ALERTS
+    ========================================================= */
+
+    function toggleSmsAlerts() {
+
+        const button =
+            document.getElementById(
+                "sms-alert-toggle"
+            );
+
+        button.classList.toggle("active");
+
+    }
+
+
+    /* =========================================================
+       SAVE LOCAL PREFERENCES
+    ========================================================= */
+
+    function savePreferences() {
+
+        const autoRefresh =
+            document
+                .getElementById(
+                    "auto-refresh-toggle"
+                )
+                .classList.contains("active");
+
+
+        const emailAlerts =
+            document
+                .getElementById(
+                    "email-alert-toggle"
+                )
+                .classList.contains("active");
+
+
+        const smsAlerts =
+            document
+                .getElementById(
+                    "sms-alert-toggle"
+                )
+                .classList.contains("active");
+
+
+        const refreshInterval =
+            document
+                .getElementById(
+                    "refresh-interval"
+                )
+                .value;
+
+
+        localStorage.setItem(
+            "api_monitor_auto_refresh",
+            autoRefresh ? "true" : "false"
+        );
+
+
+        localStorage.setItem(
+            "api_monitor_email_alerts",
+            emailAlerts ? "true" : "false"
+        );
+
+
+        localStorage.setItem(
+            "api_monitor_sms_alerts",
+            smsAlerts ? "true" : "false"
+        );
+
+
+        localStorage.setItem(
+            "api_monitor_refresh_interval",
+            refreshInterval
+        );
+
+        updateNotificationPreferences(emailAlerts, smsAlerts);
+
+    }
+
+
+    /* =========================================================
+       LOAD LOCAL PREFERENCES
+    ========================================================= */
+
+    function loadPreferences() {
+
+        const autoRefresh =
+            localStorage.getItem(
+                "api_monitor_auto_refresh"
+            );
+
+
+        const emailAlerts =
+            localStorage.getItem(
+                "api_monitor_email_alerts"
+            );
+
+
+        const smsAlerts =
+            localStorage.getItem(
+                "api_monitor_sms_alerts"
+            );
+
+
+        const refreshInterval =
+            localStorage.getItem(
+                "api_monitor_refresh_interval"
+            );
+
+
+        if (autoRefresh === "true") {
+
+            document
+                .getElementById(
+                    "auto-refresh-toggle"
+                )
+                .classList.add("active");
+
+        }
+
+
+        if (emailAlerts === "false") {
+
+            document
+                .getElementById(
+                    "email-alert-toggle"
+                )
+                .classList.remove("active");
+
+        }
+
+
+        if (smsAlerts === "true") {
+
+            document
+                .getElementById(
+                    "sms-alert-toggle"
+                )
+                .classList.add("active");
+
+        }
+
+
+        if (refreshInterval) {
+
+            document
+                .getElementById(
+                    "refresh-interval"
+                )
+                .value =
+                refreshInterval;
+
+        }
+
+    }
+
+
+    /* =========================================================
+       SAVE BACKEND NOTIFICATION PREFERENCES
+    ========================================================= */
+
+    async function updateNotificationPreferences(emailAlerts, smsAlerts) {
+        try {
+            const response = await fetch(
+                API_BASE + "/profile/",
+                {
+                    method: "PATCH",
+                    headers: authHeaders(),
+                    body: JSON.stringify({
+                        email_alerts_enabled: emailAlerts,
+                        sms_alerts_enabled: smsAlerts
+                    })
+                }
+            );
+
+            if (response.status === 401) {
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
+                localStorage.removeItem("access");
+                localStorage.removeItem("refresh");
+                window.location.href = "/app/user_login.html";
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Unable to save notification preferences.");
+            }
+
+            showNotification("Settings saved successfully.");
+        } catch (error) {
+            console.error("Notification preference update failed:", error);
+            showNotification(
+                error.message || "Unable to save notification preferences.",
+                "error"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       RESET PREFERENCES
+    ========================================================= */
+
+    function resetPreferences() {
+
+        localStorage.removeItem(
+            "api_monitor_auto_refresh"
+        );
+
+        localStorage.removeItem(
+            "api_monitor_email_alerts"
+        );
+
+        localStorage.removeItem(
+            "api_monitor_sms_alerts"
+        );
+
+        localStorage.removeItem(
+            "api_monitor_refresh_interval"
+        );
+
+
+        document
+            .getElementById(
+                "auto-refresh-toggle"
+            )
+            .classList.remove("active");
+
+
+        document
+            .getElementById(
+                "email-alert-toggle"
+            )
+            .classList.add("active");
+
+
+        document
+            .getElementById(
+                "sms-alert-toggle"
+            )
+            .classList.remove("active");
+
+
+        document
+            .getElementById(
+                "refresh-interval"
+            )
+            .value = "30";
+
+
+        showNotification(
+            "Preferences reset."
+        );
+
+    }
+
+
+    /* =========================================================
+       SIGN OUT
+    ========================================================= */
+
+    function signOut() {
+
+        const confirmed =
+            window.confirm(
+                "Are you sure you want to sign out?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        localStorage.removeItem(
+            "access_token"
+        );
+
+        localStorage.removeItem(
+            "refresh_token"
+        );
+
+        localStorage.removeItem(
+            "access"
+        );
+
+        localStorage.removeItem(
+            "refresh"
+        );
+
+        localStorage.removeItem(
+            "user_role"
+        );
+
+        localStorage.removeItem(
+            "user_email"
+        );
+
+
+        window.location.href =
+            "/app/user_login.html";
+
+    }
+
+
+    /* =========================================================
+       DASHBOARD
+    ========================================================= */
+
+    function goDashboard() {
+
+        window.location.href =
+            "/app/dashboard.html";
+
+    }
+
+
+    /* =========================================================
+       INITIALIZATION
+    ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            loadPreferences();
+
+            loadProfile();
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
