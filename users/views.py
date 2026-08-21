@@ -121,12 +121,11 @@ class UserLoginView(APIView):
 
     def post(self, request):
 
-        # Support both names:
-        #
+        # Support:
         # identifier
         # email_or_mobile
-        #
-        # This keeps the existing frontend and backend compatible.
+        # email
+        # mobile
 
         identifier = (
             request.data.get("identifier")
@@ -138,7 +137,6 @@ class UserLoginView(APIView):
         password = request.data.get("password")
 
         if not identifier or not password:
-
             return Response(
                 {
                     "error": "Email/mobile and password are required"
@@ -148,13 +146,37 @@ class UserLoginView(APIView):
 
         identifier = identifier.strip()
 
-        user = authenticate(
-            request,
-            username=identifier,
-            password=password
-        )
+        # ------------------------------------------------------------
+        # FIND USER
+        # ------------------------------------------------------------
 
-        if not user:
+        user = None
+
+        # First try email.
+        if "@" in identifier:
+
+            email = identifier.lower()
+
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                user = None
+
+        # Otherwise try mobile number.
+        else:
+
+            try:
+                user = User.objects.get(
+                    mobile_number=identifier
+                )
+            except User.DoesNotExist:
+                user = None
+
+        # ------------------------------------------------------------
+        # CHECK PASSWORD
+        # ------------------------------------------------------------
+
+        if not user or not user.check_password(password):
 
             return Response(
                 {
@@ -163,7 +185,15 @@ class UserLoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
+        # ------------------------------------------------------------
+        # GENERATE JWT TOKENS
+        # ------------------------------------------------------------
+
         tokens = get_tokens(user)
+
+        # ------------------------------------------------------------
+        # UPDATE LAST LOGIN
+        # ------------------------------------------------------------
 
         user.last_login_at = timezone.now()
 
@@ -173,11 +203,19 @@ class UserLoginView(APIView):
             ]
         )
 
+        # ------------------------------------------------------------
+        # ACTIVITY LOG
+        # ------------------------------------------------------------
+
         _log(
             user,
             "LOGIN",
             request=request
         )
+
+        # ------------------------------------------------------------
+        # RESPONSE
+        # ------------------------------------------------------------
 
         return Response(
             {
@@ -410,7 +448,7 @@ class ForgotPasswordView(APIView):
 
         frontend_base_url = os.getenv(
             "FRONTEND_BASE_URL",
-            "http://127.0.0.1:8000"
+            "https://api-monitor-production-9679.up.railway.app"
         )
 
         reset_url = (
