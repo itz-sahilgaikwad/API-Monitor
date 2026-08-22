@@ -141,6 +141,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'   # needed for collectstatic in Docker
 # CORS
 # Keep this allow-list explicit instead of permitting every origin.
 _default_cors_origins = "http://localhost:8000,http://127.0.0.1:8000,http://localhost:80,http://127.0.0.1:80"
+
 CORS_ALLOWED_ORIGINS = [
     origin.strip().rstrip("/")
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", _default_cors_origins).split(",")
