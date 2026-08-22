@@ -5,7 +5,8 @@ import requests
 import time
 import smtplib
 from email.message import EmailMessage
-
+from django.core.cache import cache
+from django.conf import settings
 from .models import APIMonitor, Incident
 from logs.models import APILog
 
@@ -98,10 +99,24 @@ def _send_email(
     # -------------------------------------------------------------------------
     # SMTP / Gmail
     # -------------------------------------------------------------------------
-    smtp_host = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("EMAIL_PORT", "587"))
-    smtp_user = os.getenv("EMAIL_HOST_USER", "")
-    smtp_password = os.getenv("EMAIL_HOST_PASSWORD", "")
+    smtp_host = os.getenv(
+        "EMAIL_HOST",
+        getattr(settings, "EMAIL_HOST", "smtp.gmail.com"),
+    )
+    smtp_port = int(
+        os.getenv(
+            "EMAIL_PORT",
+            getattr(settings, "EMAIL_PORT", 587),
+        )
+    )
+    smtp_user = os.getenv(
+        "EMAIL_HOST_USER",
+        getattr(settings, "EMAIL_HOST_USER", ""),
+    )
+    smtp_password = os.getenv(
+        "EMAIL_HOST_PASSWORD",
+        getattr(settings, "EMAIL_HOST_PASSWORD", ""),
+    )
     use_tls = os.getenv("EMAIL_USE_TLS", "True").lower() in (
         "true",
         "1",
@@ -434,7 +449,7 @@ def _send_down_alert(
     # The UP -> DOWN transition below prevents repeated
     # DOWN emails while the API remains DOWN.
 
-    _send_email(
+    return _send_email(
         monitor,
         f"🔴 {monitor.name} is DOWN",
         body,
@@ -682,6 +697,13 @@ def check_api_health():
 
         monitor.save()
 
+        print(
+            f"Monitor {monitor.name}: "
+            f"status={new_status}, "
+            f"failures={monitor.failure_count}, "
+            f"email_target={getattr(monitor.owner, 'email', '')}"
+        )
+
         # ---------------------------------------------------------------------
         # CREATE API LOG
         # ---------------------------------------------------------------------
@@ -722,12 +744,18 @@ def check_api_health():
             # ---------------------------------------------------------------
             # DOWN INCIDENT + EMAIL
             # ---------------------------------------------------------------
-            # Create exactly one ONGOING incident for a downtime event.
-            # Send the DOWN email only when a NEW incident is created.
+            # Keep exactly one ONGOING incident for the current downtime.
             #
-            # This is safer than checking previous_status alone because the
-            # database status can already be DOWN while the incident record
-            # is missing (for example after a manual test/reset).
+            # IMPORTANT:
+            # The email is NOT tied only to Incident.objects.create().
+            # If the incident was created but SMTP failed, the next Celery
+            # check must be able to retry the email.
+            #
+            # Redis/Django cache remembers a successfully sent DOWN alert.
+            # Therefore:
+            #   - failed email -> retry on the next check
+            #   - successful email -> no duplicate DOWN emails
+            #   - new downtime -> cache is cleared during recovery
 
             ongoing_incident = (
                 Incident.objects
@@ -735,12 +763,13 @@ def check_api_health():
                     monitor=monitor,
                     status="ONGOING",
                 )
+                .order_by("-started_at")
                 .first()
             )
 
             if not ongoing_incident:
 
-                Incident.objects.create(
+                ongoing_incident = Incident.objects.create(
                     monitor=monitor,
                     started_at=timezone.now(),
                     status="ONGOING",
@@ -763,13 +792,39 @@ def check_api_health():
                         ]
                     )
 
-                # NEW INCIDENT = SEND DOWN EMAIL.
-                # _send_email() uses fail_silently=False, so any SMTP
-                # problem is printed in the Celery worker log.
-                _send_down_alert(
+            # ---------------------------------------------------------------
+            # DOWN EMAIL RETRY / DEDUPLICATION
+            # ---------------------------------------------------------------
+            # This key is stored in Redis when available. It prevents
+            # repeated DOWN emails while the same incident remains open.
+            # If sending fails, the key is NOT stored, so the next check
+            # can retry automatically.
+            down_email_cache_key = (
+                f"api_monitor:down_alert_sent:{monitor.id}"
+            )
+
+            if not cache.get(down_email_cache_key):
+
+                email_sent = _send_down_alert(
                     monitor,
                     log_error,
                 )
+
+                if email_sent:
+                    cache.set(
+                        down_email_cache_key,
+                        True,
+                        timeout=7 * 24 * 60 * 60,
+                    )
+                    print(
+                        f"DOWN email delivery confirmed for "
+                        f"{monitor.name}"
+                    )
+                else:
+                    print(
+                        f"DOWN email delivery failed for "
+                        f"{monitor.name}; will retry on the next check"
+                    )
 
         # =====================================================================
         # RECOVERY LOGIC
@@ -844,6 +899,11 @@ def check_api_health():
             _send_recovery_alert(
                 monitor,
                 downtime_text,
+            )
+
+            # Allow a future DOWN event to send a new DOWN email.
+            cache.delete(
+                f"api_monitor:down_alert_sent:{monitor.id}"
             )
 
         # =====================================================================
