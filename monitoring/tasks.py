@@ -3,6 +3,8 @@ from django.utils import timezone
 import os
 import requests
 import time
+import smtplib
+from email.message import EmailMessage
 
 from .models import APIMonitor, Incident
 from logs.models import APILog
@@ -67,7 +69,10 @@ def _send_email(
     use_cooldown=True,
 ):
     """
-    Send an email alert.
+    Send the alert to the email address of the user who owns the API.
+
+    SMTP/Gmail is used first so alerts can be delivered to any user email
+    address. Resend is kept as a fallback when SMTP is not configured.
 
     use_cooldown=True:
         Used for SLOW alerts.
@@ -90,16 +95,80 @@ def _send_email(
         )
         return False
 
-    try:
-        resend_api_key = os.getenv("RESEND_API_KEY")
+    # -------------------------------------------------------------------------
+    # SMTP / Gmail
+    # -------------------------------------------------------------------------
+    smtp_host = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+    smtp_port = int(os.getenv("EMAIL_PORT", "587"))
+    smtp_user = os.getenv("EMAIL_HOST_USER", "")
+    smtp_password = os.getenv("EMAIL_HOST_PASSWORD", "")
+    use_tls = os.getenv("EMAIL_USE_TLS", "True").lower() in (
+        "true",
+        "1",
+        "yes",
+        "on",
+    )
 
-        if not resend_api_key:
+    if smtp_user and smtp_password:
+        try:
+            from_email = os.getenv(
+                "DEFAULT_FROM_EMAIL",
+                smtp_user,
+            )
+
+            message = EmailMessage()
+            message["Subject"] = subject
+            message["From"] = from_email
+            message["To"] = ", ".join(emails)
+            message.set_content(body)
+
+            with smtplib.SMTP(
+                smtp_host,
+                smtp_port,
+                timeout=20,
+            ) as server:
+                server.ehlo()
+
+                if use_tls:
+                    server.starttls()
+                    server.ehlo()
+
+                server.login(
+                    smtp_user,
+                    smtp_password,
+                )
+
+                server.send_message(message)
+
             print(
-                f"Email alert failed for {monitor.name}: "
-                "RESEND_API_KEY is not configured"
+                f"Email alert sent for {monitor.name} "
+                f"to {', '.join(emails)} via SMTP"
+            )
+
+            if use_cooldown:
+                _mark_alerted(monitor)
+
+            return True
+
+        except Exception as exc:
+            print(
+                f"SMTP email alert failed for {monitor.name}: {exc}"
             )
             return False
 
+    # -------------------------------------------------------------------------
+    # Resend fallback
+    # -------------------------------------------------------------------------
+    resend_api_key = os.getenv("RESEND_API_KEY")
+
+    if not resend_api_key:
+        print(
+            f"Email alert failed for {monitor.name}: "
+            "SMTP credentials and RESEND_API_KEY are not configured"
+        )
+        return False
+
+    try:
         from_email = os.getenv(
             "RESEND_FROM_EMAIL",
             "onboarding@resend.dev",
@@ -137,7 +206,9 @@ def _send_email(
             f"to {', '.join(emails)} via Resend"
         )
 
-        print(f"Resend response: {response.text[:500]}")
+        print(
+            f"Resend response: {response.text[:500]}"
+        )
 
         if use_cooldown:
             _mark_alerted(monitor)
@@ -146,7 +217,7 @@ def _send_email(
 
     except Exception as exc:
         print(
-            f"Email alert failed for {monitor.name}: {exc}"
+            f"Resend email alert failed for {monitor.name}: {exc}"
         )
 
         return False
