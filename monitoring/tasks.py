@@ -1,7 +1,6 @@
 from celery import shared_task
-from django.core.mail import send_mail
-from django.conf import settings
 from django.utils import timezone
+import os
 import requests
 import time
 
@@ -92,18 +91,53 @@ def _send_email(
         return False
 
     try:
-        send_mail(
-            subject,
-            body,
-            settings.DEFAULT_FROM_EMAIL,
-            emails,
-            fail_silently=False,
+        resend_api_key = os.getenv("RESEND_API_KEY")
+
+        if not resend_api_key:
+            print(
+                f"Email alert failed for {monitor.name}: "
+                "RESEND_API_KEY is not configured"
+            )
+            return False
+
+        from_email = os.getenv(
+            "RESEND_FROM_EMAIL",
+            "onboarding@resend.dev",
         )
+
+        payload = {
+            "from": from_email,
+            "to": emails,
+            "subject": subject,
+            "text": body,
+        }
+
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {resend_api_key}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=15,
+        )
+
+        if not response.ok:
+            try:
+                error_details = response.json()
+            except ValueError:
+                error_details = response.text[:500]
+
+            raise RuntimeError(
+                f"Resend HTTP {response.status_code}: {error_details}"
+            )
 
         print(
             f"Email alert sent for {monitor.name} "
-            f"to {', '.join(emails)}"
+            f"to {', '.join(emails)} via Resend"
         )
+
+        print(f"Resend response: {response.text[:500]}")
 
         if use_cooldown:
             _mark_alerted(monitor)
