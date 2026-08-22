@@ -759,3 +759,41 @@ def check_api_health():
                     response_time,
                     threshold,
                 )
+        # ---------------------------------------------------------------------
+        # UPDATE MONITOR
+        # ---------------------------------------------------------------------
+
+        monitor.status = new_status
+
+        monitor.response_time = response_time
+
+        monitor.last_checked_at = timezone.now()
+
+        if request_succeeded:
+
+            # Successful check clears the previous error.
+            monitor.last_error = (
+                f"Slow response: "
+                f"{response_time:.0f} ms"
+                if is_slow
+                else None
+            )
+
+            monitor.failure_count = 0
+
+        else:
+
+            # Only show an error on the dashboard when the API is
+            # actually confirmed DOWN.
+            #
+            # If this is only a temporary failed check and the API
+            # has not reached the DOWN threshold yet, keep the
+            # dashboard status clean.
+            if new_status == "DOWN":
+                monitor.last_error = log_error
+            else:
+                monitor.last_error = None
+
+            monitor.failure_count = current_failure_count
+
+        monitor.save()
