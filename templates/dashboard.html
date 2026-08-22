@@ -52,7 +52,7 @@ Loading system status...
 
 async function loadStatus(){
 
-const res = await fetch("http://127.0.0.1:8000/api/monitoring/status/");
+const res = await fetch("/api/monitoring/status/");
 const data = await res.json();
 
 const statusBox = document.getElementById("systemStatus");
@@ -69,7 +69,7 @@ statusBox.className = "p-4 mb-6 rounded text-white bg-red-500";
 
 async function loadMonitors(){
 
-const res = await fetch("http://127.0.0.1:8000/api/monitoring/analytics/");
+const res = await fetch("/api/monitoring/analytics/");
 const monitors = await res.json();
 
 const table = document.getElementById("monitorTable");
@@ -93,7 +93,7 @@ table.innerHTML += row;
 
 async function loadChart(){
 
-const res = await fetch("http://127.0.0.1:8000/api/monitoring/analytics/1/");
+const res = await fetch("/api/monitoring/analytics/");
 const data = await res.json();
 
 const labels = [];
