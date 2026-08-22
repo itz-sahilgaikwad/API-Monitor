@@ -3,8 +3,6 @@ from django.utils import timezone
 import os
 import requests
 import time
-import smtplib
-from email.message import EmailMessage
 from django.core.cache import cache
 from django.conf import settings
 from .models import APIMonitor, Incident
@@ -70,10 +68,13 @@ def _send_email(
     use_cooldown=True,
 ):
     """
-    Send the alert to the email address of the user who owns the API.
+    Send an alert to the email address of the user who owns the API monitor.
 
-    SMTP/Gmail is used first so alerts can be delivered to any user email
-    address. Resend is kept as a fallback when SMTP is not configured.
+    Brevo is used as the transactional email provider.
+    The recipient is always taken from monitor.owner.email.
+
+    The sender is the verified Brevo sender configured in
+    DEFAULT_FROM_EMAIL or BREVO_FROM_EMAIL.
 
     use_cooldown=True:
         Used for SLOW alerts.
@@ -97,113 +98,62 @@ def _send_email(
         return False
 
     # -------------------------------------------------------------------------
-    # SMTP / Gmail
+    # Brevo API
     # -------------------------------------------------------------------------
-    smtp_host = os.getenv(
-        "EMAIL_HOST",
-        getattr(settings, "EMAIL_HOST", "smtp.gmail.com"),
-    )
-    smtp_port = int(
-        os.getenv(
-            "EMAIL_PORT",
-            getattr(settings, "EMAIL_PORT", 587),
-        )
-    )
-    smtp_user = os.getenv(
-        "EMAIL_HOST_USER",
-        getattr(settings, "EMAIL_HOST_USER", ""),
-    )
-    smtp_password = os.getenv(
-        "EMAIL_HOST_PASSWORD",
-        getattr(settings, "EMAIL_HOST_PASSWORD", ""),
-    )
-    use_tls = os.getenv("EMAIL_USE_TLS", "True").lower() in (
-        "true",
-        "1",
-        "yes",
-        "on",
-    )
+    brevo_api_key = os.getenv("BREVO_API_KEY", "").strip()
 
-    if smtp_user and smtp_password:
-        try:
-            from_email = os.getenv(
-                "DEFAULT_FROM_EMAIL",
-                smtp_user,
-            )
-
-            message = EmailMessage()
-            message["Subject"] = subject
-            message["From"] = from_email
-            message["To"] = ", ".join(emails)
-            message.set_content(body)
-
-            with smtplib.SMTP(
-                smtp_host,
-                smtp_port,
-                timeout=20,
-            ) as server:
-                server.ehlo()
-
-                if use_tls:
-                    server.starttls()
-                    server.ehlo()
-
-                server.login(
-                    smtp_user,
-                    smtp_password,
-                )
-
-                server.send_message(message)
-
-            print(
-                f"Email alert sent for {monitor.name} "
-                f"to {', '.join(emails)} via SMTP"
-            )
-
-            if use_cooldown:
-                _mark_alerted(monitor)
-
-            return True
-
-        except Exception as exc:
-            print(
-                f"SMTP email alert failed for {monitor.name}: {exc}"
-            )
-            return False
-
-    # -------------------------------------------------------------------------
-    # Resend fallback
-    # -------------------------------------------------------------------------
-    resend_api_key = os.getenv("RESEND_API_KEY")
-
-    if not resend_api_key:
+    if not brevo_api_key:
         print(
             f"Email alert failed for {monitor.name}: "
-            "SMTP credentials and RESEND_API_KEY are not configured"
+            "BREVO_API_KEY is not configured"
         )
         return False
 
-    try:
-        from_email = os.getenv(
-            "RESEND_FROM_EMAIL",
-            "onboarding@resend.dev",
+    from_email = os.getenv(
+        "BREVO_FROM_EMAIL",
+        os.getenv(
+            "DEFAULT_FROM_EMAIL",
+            getattr(settings, "DEFAULT_FROM_EMAIL", ""),
+        ),
+    ).strip()
+
+    if not from_email:
+        print(
+            f"Email alert failed for {monitor.name}: "
+            "BREVO_FROM_EMAIL or DEFAULT_FROM_EMAIL is not configured"
         )
+        return False
 
-        payload = {
-            "from": from_email,
-            "to": emails,
-            "subject": subject,
-            "text": body,
-        }
+    from_name = os.getenv(
+        "BREVO_FROM_NAME",
+        "API Monitor",
+    ).strip() or "API Monitor"
 
+    payload = {
+        "sender": {
+            "name": from_name,
+            "email": from_email,
+        },
+        "to": [
+            {
+                "email": email,
+            }
+            for email in emails
+        ],
+        "subject": subject,
+        "textContent": body,
+    }
+
+    try:
         response = requests.post(
-            "https://api.resend.com/emails",
+            "https://api.brevo.com/v3/smtp/email",
             headers={
-                "Authorization": f"Bearer {resend_api_key}",
-                "Content-Type": "application/json",
+                "accept": "application/json",
+                "api-key": brevo_api_key,
+                "content-type": "application/json",
             },
             json=payload,
-            timeout=15,
+            timeout=20,
         )
 
         if not response.ok:
@@ -213,16 +163,12 @@ def _send_email(
                 error_details = response.text[:500]
 
             raise RuntimeError(
-                f"Resend HTTP {response.status_code}: {error_details}"
+                f"Brevo HTTP {response.status_code}: {error_details}"
             )
 
         print(
             f"Email alert sent for {monitor.name} "
-            f"to {', '.join(emails)} via Resend"
-        )
-
-        print(
-            f"Resend response: {response.text[:500]}"
+            f"to {', '.join(emails)} via Brevo"
         )
 
         if use_cooldown:
@@ -232,9 +178,8 @@ def _send_email(
 
     except Exception as exc:
         print(
-            f"Resend email alert failed for {monitor.name}: {exc}"
+            f"Brevo email alert failed for {monitor.name}: {exc}"
         )
-
         return False
 
 
