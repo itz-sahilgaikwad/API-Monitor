@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.utils.crypto import get_random_string
 
 from rest_framework.views import APIView
@@ -72,12 +73,55 @@ class RegisterUserView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        user = User.objects.create_user(
-            email=email,
-            password=password,
-            name=name,
-            mobile_number=mobile
-        )
+        # Mobile numbers are unique in the database.
+        # Check before creating the user so the frontend receives
+        # a proper 400 response instead of a database 500 error.
+        if mobile and User.objects.filter(mobile_number=mobile).exists():
+
+            return Response(
+                {
+                    "error": "Mobile number already exists"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+
+            user = User.objects.create_user(
+                email=email,
+                password=password,
+                name=name,
+                mobile_number=mobile
+            )
+
+        except IntegrityError:
+
+            # Protect against a duplicate being created between the
+            # validation check above and the database insert.
+            if mobile and User.objects.filter(mobile_number=mobile).exists():
+
+                return Response(
+                    {
+                        "error": "Mobile number already exists"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if User.objects.filter(email=email).exists():
+
+                return Response(
+                    {
+                        "error": "Email already exists"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            return Response(
+                {
+                    "error": "Unable to create account. Please try again."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         _log(
             user,
