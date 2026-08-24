@@ -6,7 +6,7 @@
 
     <title>API Monitor Dashboard</title>
 
-    <link rel="stylesheet" href="css/styles.css">
+    <!-- Shared external stylesheet intentionally disabled: dashboard uses the canonical layout below. -->
    
 
     <style>
@@ -167,7 +167,8 @@
         }
 
         .page-title h1 {
-            font-size: 28px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 34px;
             font-weight: 800;
             letter-spacing: -0.03em;
         }
@@ -299,6 +300,7 @@
         }
 
         .stat-value {
+            font-family: Georgia, "Times New Roman", serif;
             font-size: 29px;
             font-weight: 800;
             letter-spacing: -0.03em;
@@ -325,6 +327,7 @@
         }
 
         .panel-title h2 {
+            font-family: Georgia, "Times New Roman", serif;
             font-size: 17px;
             font-weight: 800;
         }
@@ -987,39 +990,9 @@
         }
 
     </style>
-    <link rel="stylesheet" href="theme.css">
+    <!-- Page-specific theme stylesheet intentionally disabled to prevent cross-page layout/color drift. -->
 
-<style id="dashboard-light-theme-final">
-html, body { background:#f6f8fc !important; color:#172033 !important; }
-body { overflow-y:auto !important; overflow-x:hidden !important; }
-.app { background:transparent !important; min-height:100vh !important; overflow:visible !important; }
-.sidebar { background:#ffffff !important; border-right:1px solid #e6eaf0 !important; box-shadow:8px 0 35px rgba(15,23,42,.04) !important; }
-.brand-text h2,.page-title h1,.panel-title h2,.api-name,.stat-value,.modal-header h2 { color:#172033 !important; }
-.brand-text span,.page-title p,.panel-title p,.api-url,.stat-label,.api-detail,.form-help,.modal-header p { color:#718096 !important; }
-.nav a { color:#64748b !important; }
-.nav a:hover { background:#f1f5ff !important; color:#4f46e5 !important; }
-.nav a.active { background:#eef2ff !important; color:#4f46e5 !important; }
-.panel,.stat-card,.api-card,.modal { background:#ffffff !important; border-color:#e6eaf0 !important; box-shadow:0 10px 30px rgba(15,23,42,.06) !important; }
-.panel-header { border-bottom-color:#e6eaf0 !important; }
-.api-card:hover { border-color:#c7d2fe !important; }
-.btn-refresh,.btn-cancel { background:#ffffff !important; color:#475569 !important; border-color:#dfe5ee !important; }
-.btn-primary { background:linear-gradient(135deg,#6366f1,#7c3aed) !important; color:#fff !important; border-color:transparent !important; }
-.form-input,.form-select { background:#f8fafc !important; color:#172033 !important; border-color:#dfe5ee !important; }
-.form-input:focus,.form-select:focus { background:#fff !important; border-color:#6366f1 !important; box-shadow:0 0 0 3px rgba(99,102,241,.10) !important; }
-.api-detail { background:#f8fafc !important; border-color:#e2e8f0 !important; }
-.api-detail-success { background:#ecfdf5 !important; border-color:#d1fae5 !important; color:#047857 !important; }
-.api-detail-error { background:#fff1f2 !important; border-color:#ffe4e6 !important; color:#b91c1c !important; }
-.api-detail-warning { background:#fffbeb !important; border-color:#fef3c7 !important; color:#92400e !important; }
-.edit-btn { background:#eef2ff !important; color:#4f46e5 !important; border-color:#c7d2fe !important; }
-.delete-btn { background:#fff1f2 !important; color:#e11d48 !important; border-color:#ffe4e6 !important; }
-.close-btn { background:#f1f5f9 !important; color:#64748b !important; }
-.modal-overlay { background:rgba(15,23,42,.42) !important; }
-html, body { scrollbar-color:#cbd5e1 #f6f8fc !important; }
-::-webkit-scrollbar { width:9px; height:9px; }
-::-webkit-scrollbar-track { background:#f6f8fc; }
-::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:10px; border:2px solid #f6f8fc; }
-::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
-</style>
+
 
 </head>
 
@@ -1056,7 +1029,10 @@ html, body { scrollbar-color:#cbd5e1 #f6f8fc !important; }
                 <span>Analytics</span>
             </a>
 
-            <a href="/app/logs.html">☷ <span>Logs</span></a>
+            <a href="logs.html">
+                <span class="nav-icon">☷</span>
+                <span>Logs</span>
+            </a>
 
             <a href="incidents.html">
                 <span class="nav-icon">!</span>
