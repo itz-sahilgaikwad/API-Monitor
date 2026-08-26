@@ -1,132 +1,269 @@
 <!DOCTYPE html>
+
 <html>
 <head>
+    <title>API Monitoring Dashboard</title>
 
-<title>API Monitoring Dashboard</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="bg-gray-100">
 
 <div class="max-w-6xl mx-auto p-6">
 
-<h1 class="text-3xl font-bold mb-6">API Monitoring Dashboard</h1>
+    <h1 class="text-3xl font-bold mb-6">
+        API Monitoring Dashboard
+    </h1>
 
-<div id="systemStatus" class="p-4 mb-6 rounded text-white bg-green-500">
-Loading system status...
-</div>
+    <div
+        id="systemStatus"
+        class="p-4 mb-6 rounded text-white bg-green-500"
+    >
+        Loading system status...
+    </div>
 
-<div class="bg-white p-4 rounded shadow mb-6">
-<h2 class="text-xl font-semibold mb-4">Monitors</h2>
+    <div class="bg-white p-4 rounded shadow mb-6">
 
-<table class="w-full border">
+        <h2 class="text-xl font-semibold mb-4">
+            Monitors
+        </h2>
 
-<thead class="bg-gray-200">
-<tr>
-<th class="p-2">Name</th>
-<th>Status</th>
-<th>Uptime</th>
-<th>Total Checks</th>
-</tr>
-</thead>
+        <table class="w-full border">
 
-<tbody id="monitorTable"></tbody>
+            <thead class="bg-gray-200">
+                <tr>
+                    <th class="p-2">Name</th>
+                    <th>Status</th>
+                    <th>Uptime</th>
+                    <th>Total Checks</th>
+                </tr>
+            </thead>
 
-</table>
-</div>
+            <tbody id="monitorTable"></tbody>
 
-<div class="bg-white p-4 rounded shadow">
+        </table>
 
-<h2 class="text-xl font-semibold mb-4">Uptime History</h2>
+    </div>
 
-<canvas id="uptimeChart"></canvas>
+    <div class="bg-white p-4 rounded shadow">
 
-</div>
+        <h2 class="text-xl font-semibold mb-4">
+            Uptime History
+        </h2>
+
+        <canvas id="uptimeChart"></canvas>
+
+    </div>
 
 </div>
 
 <script>
 
-async function loadStatus(){
+let uptimeChart = null;
 
-const res = await fetch("/api/monitoring/status/");
-const data = await res.json();
 
-const statusBox = document.getElementById("systemStatus");
+/* ---------------------------------------
+   Load system status
+--------------------------------------- */
 
-statusBox.innerText = "System Status: " + data.overall_status;
+async function loadStatus() {
 
-if(data.overall_status === "OPERATIONAL"){
-statusBox.className = "p-4 mb-6 rounded text-white bg-green-500";
-}else{
-statusBox.className = "p-4 mb-6 rounded text-white bg-red-500";
+    const res = await fetch("/api/monitoring/status/");
+
+    const data = await res.json();
+
+    const statusBox = document.getElementById("systemStatus");
+
+    statusBox.innerText =
+        "System Status: " + data.overall_status;
+
+    if (data.overall_status === "OPERATIONAL") {
+
+        statusBox.className =
+            "p-4 mb-6 rounded text-white bg-green-500";
+
+    } else {
+
+        statusBox.className =
+            "p-4 mb-6 rounded text-white bg-red-500";
+
+    }
 }
 
+
+/* ---------------------------------------
+   Load monitors
+--------------------------------------- */
+
+async function loadMonitors() {
+
+    const res =
+        await fetch("/api/monitoring/analytics/");
+
+    const monitors = await res.json();
+
+    const table =
+        document.getElementById("monitorTable");
+
+    /*
+       Clear the old rows before adding
+       the newly fetched data.
+    */
+
+    table.innerHTML = "";
+
+    monitors.forEach(m => {
+
+        const row = `
+
+            <tr class="border">
+
+                <td class="p-2">
+                    ${m.name}
+                </td>
+
+                <td class="p-2">
+                    ${m.status}
+                </td>
+
+                <td class="p-2">
+                    ${m.uptime_percentage.toFixed(2)}%
+                </td>
+
+                <td class="p-2">
+                    ${m.total_checks}
+                </td>
+
+            </tr>
+
+        `;
+
+        table.innerHTML += row;
+
+    });
 }
 
-async function loadMonitors(){
 
-const res = await fetch("/api/monitoring/analytics/");
-const monitors = await res.json();
+/* ---------------------------------------
+   Load uptime chart
+--------------------------------------- */
 
-const table = document.getElementById("monitorTable");
+async function loadChart() {
 
-monitors.forEach(m => {
+    const res =
+        await fetch("/api/monitoring/analytics/");
 
-const row = `
-<tr class="border">
-<td class="p-2">${m.name}</td>
-<td class="p-2">${m.status}</td>
-<td class="p-2">${m.uptime_percentage.toFixed(2)}%</td>
-<td class="p-2">${m.total_checks}</td>
-</tr>
-`;
+    const data = await res.json();
 
-table.innerHTML += row;
+    const labels = [];
+    const values = [];
 
-});
+    data.recent_history.forEach(h => {
+
+        labels.push(h.checked_at);
+
+        values.push(
+            h.status === "UP" ? 1 : 0
+        );
+
+    });
+
+
+    /*
+       Destroy the previous chart before
+       creating a new one.
+
+       This is necessary because the
+       Dashboard now refreshes automatically.
+    */
+
+    if (uptimeChart !== null) {
+
+        uptimeChart.destroy();
+
+        uptimeChart = null;
+    }
+
+
+    uptimeChart = new Chart(
+        document.getElementById("uptimeChart"),
+        {
+            type: "line",
+
+            data: {
+
+                labels: labels,
+
+                datasets: [{
+
+                    label: "Uptime History",
+
+                    data: values,
+
+                    fill: false,
+
+                    tension: 0.3
+
+                }]
+
+            }
+        }
+    );
+}
+
+
+/* ---------------------------------------
+   Refresh entire Dashboard
+--------------------------------------- */
+
+async function refreshDashboard() {
+
+    try {
+
+        await loadStatus();
+
+        await loadMonitors();
+
+        await loadChart();
+
+        console.log(
+            "Dashboard refreshed:",
+            new Date().toLocaleTimeString()
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Dashboard refresh failed:",
+            error
+        );
+
+    }
 
 }
 
-async function loadChart(){
 
-const res = await fetch("/api/monitoring/analytics/");
-const data = await res.json();
+/* ---------------------------------------
+   Initial Dashboard load
+--------------------------------------- */
 
-const labels = [];
-const values = [];
+refreshDashboard();
 
-data.recent_history.forEach(h => {
 
-labels.push(h.checked_at);
-values.push(h.status === "UP" ? 1 : 0);
+/* ---------------------------------------
+   Automatic refresh
+---------------------------------------
 
-});
+   Settings currently tested at
+   30 seconds, so refresh every
+   30,000 milliseconds.
+--------------------------------------- */
 
-new Chart(document.getElementById("uptimeChart"), {
-
-type: "line",
-
-data:{
-labels: labels,
-datasets:[{
-label:"Uptime History",
-data: values,
-fill:false,
-tension:0.3
-}]
-}
-
-});
-
-}
-
-loadStatus();
-loadMonitors();
-loadChart();
+setInterval(
+    refreshDashboard,
+    30000
+);
 
 </script>
 
