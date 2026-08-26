@@ -1119,6 +1119,153 @@
         .notification.error { border-color: #fca5a5 !important; }
     </style>
 
+
+<style id="dashboard-matched-settings">
+/* =========================================================
+   SHARED DASHBOARD LAYOUT
+   Keep Settings aligned with Dashboard / Analytics / Logs /
+   Incidents. Do not add page-specific sidebar offsets.
+   ========================================================= */
+
+.sidebar {
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    flex: 0 0 250px !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+}
+
+/* Same brand position and height as the other app pages */
+.brand {
+    padding: 26px 18px 24px !important;
+    border-bottom: none !important;
+}
+
+.main {
+    width: calc(100% - 250px) !important;
+    margin-left: 250px !important;
+    padding: 30px 35px 60px !important;
+}
+
+.page-header {
+    max-width: 1160px !important;
+    margin: 0 auto 30px !important;
+}
+
+.page-title {
+    font-size: 28px !important;
+    line-height: 1.1 !important;
+    margin: 7px 0 5px !important;
+}
+
+.page-description {
+    font-size: 14px !important;
+}
+
+.header-actions .btn {
+    height: 42px !important;
+    padding: 0 16px !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+}
+
+.settings-grid {
+    max-width: 1160px !important;
+    margin: 0 auto !important;
+    gap: 20px !important;
+}
+
+.card {
+    border-radius: 18px !important;
+}
+
+.card-header {
+    padding: 18px 22px !important;
+    min-height: 68px !important;
+}
+
+.card-title {
+    font-size: 17px !important;
+}
+
+.card-subtitle {
+    font-size: 12px !important;
+}
+
+.card-body {
+    padding: 20px 22px !important;
+}
+
+.brand-name {
+    font-size: 17px !important;
+}
+
+.brand-subtitle {
+    font-size: 11px !important;
+}
+
+.nav-title {
+    font-size: 11px !important;
+}
+
+.nav-item {
+    padding: 0 13px !important;
+    height: 45px !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+}
+
+.sidebar-bottom {
+    padding: 16px 18px 26px !important;
+}
+
+.system-card {
+    border-radius: 10px !important;
+}
+
+/* Keep the common desktop sidebar width */
+@media (max-width: 1050px) and (min-width: 701px) {
+    .sidebar {
+        width: 250px !important;
+        min-width: 250px !important;
+        max-width: 250px !important;
+    }
+
+    .main {
+        width: calc(100% - 250px) !important;
+        margin-left: 250px !important;
+    }
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+    .sidebar {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .brand {
+        padding: 22px 18px 20px !important;
+    }
+
+    .main {
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding: 24px 16px 45px !important;
+    }
+
+    .page-header {
+        margin-bottom: 22px !important;
+    }
+
+    .sidebar-bottom {
+        padding: 16px !important;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -1670,7 +1817,7 @@
                                 </span>
 
                                 <span class="info-value">
-                                   api-monitor-production-9679.up.railway.app
+                                    127.0.0.1:8000
                                 </span>
 
                             </div>
