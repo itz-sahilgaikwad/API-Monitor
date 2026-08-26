@@ -428,7 +428,7 @@ class ForgotPasswordView(APIView):
 
     def post(self, request):
 
-        email = request.data.get("email")
+        email = (request.data.get("email") or "").strip().lower()
 
         if not email:
 
@@ -439,17 +439,21 @@ class ForgotPasswordView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        email = email.strip().lower()
-
+        # Use a case-insensitive lookup so the reset request still
+        # works if the address was stored with different capitalization.
         try:
 
             user = User.objects.get(
-                email=email
+                email__iexact=email
             )
 
         except User.DoesNotExist:
 
-            # Don't reveal whether the email exists.
+            # Do not reveal whether an email address is registered.
+            print(
+                f"PASSWORD RESET: no user found for {email}"
+            )
+
             return Response(
                 {
                     "message":
@@ -459,7 +463,6 @@ class ForgotPasswordView(APIView):
                 status=status.HTTP_200_OK
             )
 
-
         # ========================================================
         # GENERATE SECURE RESET TOKEN
         # ========================================================
@@ -467,7 +470,6 @@ class ForgotPasswordView(APIView):
         reset_token = get_random_string(
             length=64
         )
-
 
         user.password_reset_token = reset_token
 
@@ -485,15 +487,16 @@ class ForgotPasswordView(APIView):
             ]
         )
 
-
         # ========================================================
         # RESET URL
         # ========================================================
 
+        # On the local development server, use the local frontend.
+        # FRONTEND_BASE_URL can still override this through .env.
         frontend_base_url = os.getenv(
             "FRONTEND_BASE_URL",
-            "https://api-monitor-production-9679.up.railway.app"
-        )
+            "http://127.0.0.1:8000"
+        ).rstrip("/")
 
         reset_url = (
             f"{frontend_base_url}"
@@ -501,18 +504,13 @@ class ForgotPasswordView(APIView):
             f"?token={reset_token}"
         )
 
-
         # ========================================================
         # EMAIL
         # ========================================================
 
-        subject = (
-            "Reset your API Monitor password"
-        )
+        subject = "Reset your API Monitor password"
 
-
-        message = f"""
-Hello {user.name or "there"},
+        message = f"""Hello {user.name or "there"},
 
 We received a request to reset your API Monitor password.
 
@@ -528,32 +526,57 @@ Regards,
 API Monitor
 """
 
+        from_email = getattr(
+            settings,
+            "DEFAULT_FROM_EMAIL",
+            None
+        ) or getattr(
+            settings,
+            "EMAIL_HOST_USER",
+            None
+        )
+
+        recipient_email = user.email
+
+        print(
+            "PASSWORD RESET: sending email "
+            f"from={from_email!r} to={recipient_email!r}"
+        )
 
         try:
 
-            send_mail(
+            sent_count = send_mail(
                 subject=subject,
-
                 message=message,
-
-                from_email=getattr(
-                    settings,
-                    "DEFAULT_FROM_EMAIL",
-                    settings.EMAIL_HOST_USER
-                ),
-
-                recipient_list=[
-                    user.email
-                ],
-
+                from_email=from_email,
+                recipient_list=[recipient_email],
                 fail_silently=False
             )
+
+            print(
+                "PASSWORD RESET: send_mail returned "
+                f"{sent_count}"
+            )
+
+            if sent_count != 1:
+                print(
+                    "PASSWORD RESET: email backend reported "
+                    "that the message was not sent."
+                )
+
+                return Response(
+                    {
+                        "error":
+                            "Unable to send password reset email."
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
         except Exception as error:
 
             print(
                 "PASSWORD RESET EMAIL ERROR:",
-                error
+                repr(error)
             )
 
             return Response(
@@ -563,7 +586,6 @@ API Monitor
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
         return Response(
             {
