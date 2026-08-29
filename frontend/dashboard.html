@@ -112,14 +112,13 @@
         .nav {
             display: flex;
             flex-direction: column;
-    gap: 5px;
+            gap: 6px;
         }
 
         .nav a {
-    padding: 0 13px;
-    height: 45px;
             text-decoration: none;
             color: #64748b;
+            padding: 12px 13px;
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -168,8 +167,7 @@
         }
 
         .page-title h1 {
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: 34px;
+            font-size: 28px;
             font-weight: 800;
             letter-spacing: -0.03em;
         }
@@ -301,7 +299,6 @@
         }
 
         .stat-value {
-            font-family: Georgia, "Times New Roman", serif;
             font-size: 29px;
             font-weight: 800;
             letter-spacing: -0.03em;
@@ -328,7 +325,6 @@
         }
 
         .panel-title h2 {
-            font-family: Georgia, "Times New Roman", serif;
             font-size: 17px;
             font-weight: 800;
         }
@@ -661,6 +657,13 @@
             margin-bottom: 17px;
         }
 
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+
         .form-group label {
             display: block;
             margin-bottom: 7px;
@@ -805,8 +808,6 @@
             }
 
             .nav a {
-    padding: 0 13px;
-    height: 45px;
                 justify-content: center;
                 padding: 12px;
             }
@@ -819,6 +820,10 @@
         }
 
         @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
             .topbar {
                 align-items: flex-start;
                 flex-direction: column;
@@ -1023,17 +1028,17 @@
         <nav class="nav">
 
             <a href="dashboard.html" class="active">
-                <span class="nav-icon">▦</span>
+                <span class="nav-icon">&#9638;</span>
                 <span>Dashboard</span>
             </a>
 
             <a href="analytics.html">
-                <span class="nav-icon">◈</span>
+                <span class="nav-icon">&#9672;</span>
                 <span>Analytics</span>
             </a>
 
             <a href="logs.html">
-                <span class="nav-icon">☷</span>
+                <span class="nav-icon">&#9775;</span>
                 <span>Logs</span>
             </a>
 
@@ -1043,7 +1048,7 @@
             </a>
 
             <a href="settings.html">
-                <span class="nav-icon">⚙</span>
+                <span class="nav-icon">&#9881;</span>
                 <span>Settings</span>
             </a>
 
@@ -1073,7 +1078,7 @@
                     class="btn btn-refresh"
                     onclick="loadAPIs()"
                 >
-                    ↻ Refresh
+                    &#8635; Refresh
                 </button>
 
                 <button
@@ -1100,7 +1105,7 @@
                     <span class="stat-label">Total APIs</span>
 
                     <div class="stat-icon icon-purple">
-                        ◉
+                        &#9673;
                     </div>
                 </div>
 
@@ -1120,7 +1125,7 @@
                     <span class="stat-label">Healthy APIs</span>
 
                     <div class="stat-icon icon-green">
-                        ✓
+                        &#10003;
                     </div>
                 </div>
 
@@ -1159,7 +1164,7 @@
                     <span class="stat-label">Slow APIs</span>
 
                     <div class="stat-icon icon-yellow">
-                        ⚠
+                        &#9888;
                     </div>
                 </div>
 
@@ -1254,101 +1259,91 @@
     class="modal-overlay"
     onclick="handleOverlayClick(event)"
 >
-
-    <div
-        class="modal"
-        onclick="event.stopPropagation()"
-    >
+    <div class="modal" onclick="event.stopPropagation()">
 
         <div class="modal-header">
-
             <div>
                 <h2>Add API Monitor</h2>
+                <p>Configure the endpoint and how it should be monitored.</p>
+            </div>
+            <button class="close-btn" onclick="closeAdd()">×</button>
+        </div>
 
-                <p>
-                    Add an API endpoint that you want to monitor.
-                </p>
+        <div class="form-group">
+            <label for="name">API Name</label>
+            <input id="name" class="form-input" type="text"
+                   placeholder="Example: Production API">
+        </div>
+
+        <div class="form-group">
+            <label for="url">API URL</label>
+            <input id="url" class="form-input" type="url"
+                   placeholder="https://api.example.com/health">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="method">HTTP Method</label>
+                <select id="method" class="form-select">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="PATCH">PATCH</option>
+                    <option value="DELETE">DELETE</option>
+                </select>
             </div>
 
-            <button
-                class="close-btn"
-                onclick="closeAdd()"
-            >
-                ×
-            </button>
-
+            <div class="form-group">
+                <label for="expectedStatus">Expected Status Code</label>
+                <input id="expectedStatus" class="form-input" type="number"
+                       min="100" max="599" step="1" value="200">
+            </div>
         </div>
 
+        <div class="form-row">
+            <div class="form-group">
+                <label for="checkInterval">Check Interval</label>
+                <select id="checkInterval" class="form-select">
+                    <option value="10">Every 10 seconds</option>
+                    <option value="30">Every 30 seconds</option>
+                    <option value="60" selected>Every 1 minute</option>
+                    <option value="300">Every 5 minutes</option>
+                    <option value="600">Every 10 minutes</option>
+                </select>
+                <small class="form-help">
+                    Minimum supported interval is 10 seconds.
+                </small>
+            </div>
 
-        <div class="form-group">
-
-            <label for="name">
-                API Name
-            </label>
-
-            <input
-                id="name"
-                class="form-input"
-                type="text"
-                placeholder="Example: Production API"
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label for="url">
-                API URL
-            </label>
-
-            <input
-                id="url"
-                class="form-input"
-                type="url"
-                placeholder="https://api.example.com/health"
-            >
-
+            <div class="form-group">
+                <label for="threshold">Slow Response Threshold (ms)</label>
+                <input id="threshold" class="form-input" type="number"
+                       min="100" step="100" value="1000">
+                <small class="form-help">
+                    Mark the API as slow above this response time.
+                </small>
+            </div>
         </div>
 
         <div class="form-group">
-
-            <label for="authType">
-                Authentication
-            </label>
-
+            <label for="authType">Authentication</label>
             <select id="authType" class="form-select" onchange="updateAddAuthUI()">
                 <option value="none">No Authentication</option>
                 <option value="bearer">Bearer API Key</option>
                 <option value="x_api_key">X-API-Key</option>
             </select>
-
         </div>
 
-        <div
-            id="addApiKeyGroup"
-            class="form-group"
-            style="display:none;"
-        >
-
-            <label for="apiKey">
-                API Key / Bearer Token
-            </label>
+        <div id="addApiKeyGroup" class="form-group" style="display:none;">
+            <label for="apiKey">API Key / Bearer Token</label>
 
             <div class="key-input-wrap">
-                <input
-                    id="apiKey"
-                    class="form-input"
-                    type="password"
-                    autocomplete="new-password"
-                    placeholder="Paste your API key or bearer token"
-                >
+                <input id="apiKey" class="form-input" type="password"
+                       autocomplete="new-password"
+                       placeholder="Paste your API key or bearer token">
 
-                <button
-                    type="button"
-                    class="key-toggle"
-                    onclick="toggleSecret('apiKey', this)"
-                >
+                <button type="button" class="key-toggle"
+                        onclick="toggleSecret('apiKey', this)">
                     Show
                 </button>
             </div>
@@ -1359,33 +1354,17 @@
             </small>
 
             <div class="security-note">
-                The key is stored with the monitor and used by the backend
-                when performing health checks. Do not put API keys in the URL.
+                The key is stored by the backend and is never returned
+                to the dashboard as plaintext.
             </div>
-
         </div>
 
-
         <div class="modal-actions">
-
-            <button
-                class="btn btn-cancel"
-                onclick="closeAdd()"
-            >
-                Cancel
-            </button>
-
-            <button
-                class="btn btn-primary"
-                onclick="addAPI()"
-            >
-                Add API
-            </button>
-
+            <button class="btn btn-cancel" onclick="closeAdd()">Cancel</button>
+            <button class="btn btn-primary" onclick="addAPI()">Add API</button>
         </div>
 
     </div>
-
 </div>
 
 
@@ -1399,77 +1378,88 @@
     onclick="handleEditOverlayClick(event)"
 >
     <div class="modal" onclick="event.stopPropagation()">
+
         <div class="modal-header">
             <div>
                 <h2>Edit API Monitor</h2>
-                <p>Update the name or URL of this monitored API.</p>
+                <p>Update the monitoring configuration for this API.</p>
             </div>
             <button class="close-btn" onclick="closeEdit()">×</button>
         </div>
 
         <div class="form-group">
             <label for="editName">API Name</label>
-            <input id="editName" class="form-input" type="text" placeholder="Example: Production API">
+            <input id="editName" class="form-input" type="text"
+                   placeholder="Example: Production API">
         </div>
 
         <div class="form-group">
             <label for="editUrl">API URL</label>
-            <input id="editUrl" class="form-input" type="url" placeholder="https://api.example.com/health">
+            <input id="editUrl" class="form-input" type="url"
+                   placeholder="https://api.example.com/health">
         </div>
-        <div class="form-group">
-    <label for="editThreshold">Slow Response Threshold (ms)</label>
-    <input
-        id="editThreshold"
-        class="form-input"
-        type="number"
-        min="100"
-        step="100"
-        value="1000"
-        placeholder="1000"
-    >
-    <small class="form-help">
-        Alert when the API response takes longer than this value.
-    </small>
-</div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="editMethod">HTTP Method</label>
+                <select id="editMethod" class="form-select">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="PATCH">PATCH</option>
+                    <option value="DELETE">DELETE</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="editExpectedStatus">Expected Status Code</label>
+                <input id="editExpectedStatus" class="form-input" type="number"
+                       min="100" max="599" step="1" value="200">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="editCheckInterval">Check Interval</label>
+                <select id="editCheckInterval" class="form-select">
+                    <option value="10">Every 10 seconds</option>
+                    <option value="30">Every 30 seconds</option>
+                    <option value="60">Every 1 minute</option>
+                    <option value="300">Every 5 minutes</option>
+                    <option value="600">Every 10 minutes</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="editThreshold">Slow Response Threshold (ms)</label>
+                <input id="editThreshold" class="form-input" type="number"
+                       min="100" step="100" value="1000">
+                <small class="form-help">
+                    Mark the API as slow above this response time.
+                </small>
+            </div>
+        </div>
 
         <div class="form-group">
-
-            <label for="editAuthType">
-                Authentication
-            </label>
-
-            <select id="editAuthType" class="form-select" onchange="updateEditAuthUI()">
+            <label for="editAuthType">Authentication</label>
+            <select id="editAuthType" class="form-select"
+                    onchange="updateEditAuthUI()">
                 <option value="none">No Authentication</option>
                 <option value="bearer">Bearer API Key</option>
                 <option value="x_api_key">X-API-Key</option>
             </select>
-
         </div>
 
-        <div
-            id="editApiKeyGroup"
-            class="form-group"
-            style="display:none;"
-        >
-
-            <label for="editApiKey">
-                API Key / Bearer Token
-            </label>
+        <div id="editApiKeyGroup" class="form-group" style="display:none;">
+            <label for="editApiKey">API Key / Bearer Token</label>
 
             <div class="key-input-wrap">
-                <input
-                    id="editApiKey"
-                    class="form-input"
-                    type="password"
-                    autocomplete="new-password"
-                    placeholder="Enter a new key to replace the current key"
-                >
+                <input id="editApiKey" class="form-input" type="password"
+                       autocomplete="new-password"
+                       placeholder="Enter a new key to replace the current key">
 
-                <button
-                    type="button"
-                    class="key-toggle"
-                    onclick="toggleSecret('editApiKey', this)"
-                >
+                <button type="button" class="key-toggle"
+                        onclick="toggleSecret('editApiKey', this)">
                     Show
                 </button>
             </div>
@@ -1479,26 +1469,26 @@
             </small>
 
             <label class="remove-key-row">
-                <input
-                    id="removeApiKey"
-                    type="checkbox"
-                >
+                <input id="removeApiKey" type="checkbox">
                 Remove the existing API key
             </label>
 
             <div class="security-note">
-                Monitoring sends the stored key as:
-                <strong id="editAuthHelp">Authorization: Bearer &lt;your-key&gt;</strong>
+                The existing secret is never displayed.
+                <strong id="editAuthHelp">
+                    Authorization: Bearer &lt;your-key&gt;
+                </strong>
             </div>
-
         </div>
 
         <div class="modal-actions">
             <button class="btn btn-cancel" onclick="closeEdit()">Cancel</button>
             <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
         </div>
+
     </div>
 </div>
+
 
 <script>
 
@@ -1642,7 +1632,7 @@
                 <div class="state">
 
                     <div class="state-icon">
-                        ⚠
+                        &#9888;
                     </div>
 
                     <h3>Unable to load APIs</h3>
@@ -1823,6 +1813,21 @@
 
                         <div class="api-details">
                             <div class="api-detail">
+                                <strong>Method:</strong>
+                                ${escapeHTML(api.method || "GET")}
+                            </div>
+
+                            <div class="api-detail">
+                                <strong>Expected:</strong>
+                                HTTP ${Number(api.expected_status || 200)}
+                            </div>
+
+                            <div class="api-detail">
+                                <strong>Interval:</strong>
+                                ${formatInterval(api.check_interval)}
+                            </div>
+
+                            <div class="api-detail">
                                 <strong>Response:</strong>
                                 ${formatResponseTime(api.response_time)}
                             </div>
@@ -1884,6 +1889,25 @@
      * API MONITORING DETAILS
      * ================================
      */
+
+    function formatInterval(value) {
+        const seconds = Number(value);
+
+        if (!Number.isFinite(seconds) || seconds <= 0) {
+            return "1m";
+        }
+
+        if (seconds < 60) {
+            return `${Math.round(seconds)}s`;
+        }
+
+        if (seconds % 3600 === 0) {
+            return `${Math.round(seconds / 3600)}h`;
+        }
+
+        return `${Math.round(seconds / 60)}m`;
+    }
+
 
     function formatResponseTime(value) {
 
@@ -2074,22 +2098,31 @@
 
     async function addAPI() {
 
-        const name =
-            document.getElementById("name").value.trim();
-
-        const url =
-            document.getElementById("url").value.trim();
-
-        const authType =
-            document.getElementById("authType").value;
-
-        const threshold = 1000;
-
-        const apiKey =
-            document.getElementById("apiKey").value.trim();
+        const name = document.getElementById("name").value.trim();
+        const url = document.getElementById("url").value.trim();
+        const method = document.getElementById("method").value;
+        const expectedStatus =
+            Number(document.getElementById("expectedStatus").value);
+        const checkInterval =
+            Number(document.getElementById("checkInterval").value);
+        const threshold =
+            Number(document.getElementById("threshold").value);
+        const authType = document.getElementById("authType").value;
+        const apiKey = document.getElementById("apiKey").value.trim();
 
         if (!name || !url) {
             alert("Please enter both API name and URL.");
+            return;
+        }
+
+        if (!Number.isInteger(expectedStatus) ||
+            expectedStatus < 100 || expectedStatus > 599) {
+            alert("Please enter a valid HTTP status code between 100 and 599.");
+            return;
+        }
+
+        if (!Number.isInteger(checkInterval) || checkInterval < 10) {
+            alert("Check interval must be at least 10 seconds.");
             return;
         }
 
@@ -2106,6 +2139,9 @@
         const payload = {
             name: name,
             url: url,
+            method: method,
+            expected_status: expectedStatus,
+            check_interval: checkInterval,
             auth_type: authType,
             response_time_threshold_ms: threshold
         };
@@ -2115,7 +2151,6 @@
         }
 
         try {
-
             const response = await apiFetch(
                 "/api/monitoring/",
                 {
@@ -2129,13 +2164,16 @@
             );
 
             if (!response.ok) {
-
                 const errorData =
                     await response.json().catch(() => null);
 
                 console.error(errorData);
 
                 const message =
+                    errorData?.url?.[0] ||
+                    errorData?.check_interval?.[0] ||
+                    errorData?.expected_status?.[0] ||
+                    errorData?.method?.[0] ||
                     errorData?.api_key?.[0] ||
                     errorData?.detail ||
                     "Unable to add API. Please check the details.";
@@ -2146,7 +2184,10 @@
 
             document.getElementById("name").value = "";
             document.getElementById("url").value = "";
-            /* Add-form threshold is not shown in the current modal; use the default. */
+            document.getElementById("method").value = "GET";
+            document.getElementById("expectedStatus").value = "200";
+            document.getElementById("checkInterval").value = "60";
+            document.getElementById("threshold").value = "1000";
             document.getElementById("authType").value = "none";
             document.getElementById("apiKey").value = "";
             document.getElementById("apiKey").type = "password";
@@ -2160,19 +2201,12 @@
 
             updateAddAuthUI();
             closeAdd();
-
             await loadAPIs();
 
         } catch (error) {
-
             console.error(error);
-
-            alert(
-                "Something went wrong while adding the API."
-            );
-
+            alert("Something went wrong while adding the API.");
         }
-
     }
 
     /*
@@ -2186,7 +2220,6 @@
     async function editAPI(id) {
 
         try {
-
             const response = await apiFetch(
                 "/api/monitoring/",
                 {
@@ -2202,10 +2235,9 @@
 
             const data = await response.json();
 
-            const api =
-                data.find(
-                    item => String(item.id) === String(id)
-                );
+            const api = data.find(
+                item => String(item.id) === String(id)
+            );
 
             if (!api) {
                 alert("API monitor not found.");
@@ -2220,6 +2252,15 @@
             document.getElementById("editUrl").value =
                 api.url || "";
 
+            document.getElementById("editMethod").value =
+                String(api.method || "GET").toUpperCase();
+
+            document.getElementById("editExpectedStatus").value =
+                api.expected_status || 200;
+
+            document.getElementById("editCheckInterval").value =
+                String(api.check_interval || 60);
+
             document.getElementById("editThreshold").value =
                 api.response_time_threshold_ms ||
                 api.owner_response_time_threshold_ms ||
@@ -2228,15 +2269,11 @@
             document.getElementById("editApiKey").value = "";
             document.getElementById("removeApiKey").checked = false;
 
-            /*
-             * Never display an existing secret.
-             * If the API response exposes only a configured flag,
-             * the editor will show Bearer authentication without
-             * revealing the actual key.
-             */
             document.getElementById("editAuthType").value =
                 api.auth_type ||
-                (api.has_api_key || api.api_key_configured ? "bearer" : "none");
+                (api.has_api_key || api.api_key_configured
+                    ? "bearer"
+                    : "none");
 
             updateEditAuthUI();
 
@@ -2246,14 +2283,11 @@
             document.getElementById("editName").focus();
 
         } catch (error) {
-
             console.error(error);
-
             alert("Unable to open the API editor.");
-
         }
-
     }
+
 
 
     async function saveEdit() {
@@ -2261,42 +2295,55 @@
         if (!editingAPIId) return;
 
         const name =
-            document.getElementById("editName")
-                .value
-                .trim();
+            document.getElementById("editName").value.trim();
 
         const url =
-            document.getElementById("editUrl")
-                .value
-                .trim();
+            document.getElementById("editUrl").value.trim();
+
+        const method =
+            document.getElementById("editMethod").value;
+
+        const expectedStatus =
+            Number(
+                document.getElementById("editExpectedStatus").value
+            );
+
+        const checkInterval =
+            Number(
+                document.getElementById("editCheckInterval").value
+            );
 
         const threshold =
             Number(
-                document.getElementById("editThreshold")
-                    .value
+                document.getElementById("editThreshold").value
             );
 
         const authType =
             document.getElementById("editAuthType").value;
 
         const apiKey =
-            document.getElementById("editApiKey")
-                .value
-                .trim();
+            document.getElementById("editApiKey").value.trim();
 
         const removeApiKey =
-            document.getElementById("removeApiKey")
-                .checked;
+            document.getElementById("removeApiKey").checked;
 
         if (!name || !url) {
             alert("Please enter both API name and URL.");
             return;
         }
 
-        if (
-            !Number.isFinite(threshold) ||
-            threshold < 100
-        ) {
+        if (!Number.isInteger(expectedStatus) ||
+            expectedStatus < 100 || expectedStatus > 599) {
+            alert("Please enter a valid HTTP status code between 100 and 599.");
+            return;
+        }
+
+        if (!Number.isInteger(checkInterval) || checkInterval < 10) {
+            alert("Check interval must be at least 10 seconds.");
+            return;
+        }
+
+        if (!Number.isFinite(threshold) || threshold < 100) {
             alert("Please enter a valid threshold of at least 100 ms.");
             return;
         }
@@ -2304,15 +2351,13 @@
         const payload = {
             name: name,
             url: url,
+            method: method,
+            expected_status: expectedStatus,
+            check_interval: checkInterval,
             response_time_threshold_ms: threshold,
             auth_type: authType
         };
 
-        /*
-         * Blank key = keep existing key.
-         * Explicit "No Authentication" or "Remove" = clear key.
-         * New key = replace the existing key.
-         */
         if (removeApiKey || authType === "none") {
             payload.api_key = "";
         } else if (apiKey) {
@@ -2320,7 +2365,6 @@
         }
 
         try {
-
             const response = await apiFetch(
                 `/api/monitoring/${editingAPIId}/`,
                 {
@@ -2334,13 +2378,16 @@
             );
 
             if (!response.ok) {
-
                 const errorData =
                     await response.json().catch(() => null);
 
                 console.error(errorData);
 
                 const message =
+                    errorData?.url?.[0] ||
+                    errorData?.method?.[0] ||
+                    errorData?.expected_status?.[0] ||
+                    errorData?.check_interval?.[0] ||
                     errorData?.api_key?.[0] ||
                     errorData?.detail ||
                     "Unable to update the API. Status: " +
@@ -2354,16 +2401,11 @@
             await loadAPIs();
 
         } catch (error) {
-
             console.error(error);
-
-            alert(
-                "Something went wrong while updating the API."
-            );
-
+            alert("Something went wrong while updating the API.");
         }
-
     }
+
 
     function closeEdit() {
         editingAPIId = null;
@@ -2510,8 +2552,12 @@
 
     function showAdd() {
 
+        document.getElementById("method").value = "GET";
+        document.getElementById("expectedStatus").value = "200";
+        document.getElementById("checkInterval").value = "60";
+        document.getElementById("threshold").value = "1000";
+
         document.getElementById("authType").value = "none";
-        /* Add-form threshold is not shown in the current modal; use the default. */
         document.getElementById("apiKey").value = "";
         document.getElementById("apiKey").type = "password";
 
@@ -2592,6 +2638,7 @@
             ) {
 
                 closeAdd();
+                closeEdit();
 
             }
 
