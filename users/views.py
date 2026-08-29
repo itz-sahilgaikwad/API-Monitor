@@ -4,7 +4,6 @@ from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db import IntegrityError
 from django.utils.crypto import get_random_string
 
 from rest_framework.views import APIView
@@ -64,64 +63,14 @@ class RegisterUserView(APIView):
 
         email = email.strip().lower()
 
-        if User.objects.filter(email=email).exists():
-
-            return Response(
-                {
-                    "error": "Email already exists"
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Mobile numbers are unique in the database.
-        # Check before creating the user so the frontend receives
-        # a proper 400 response instead of a database 500 error.
-        if mobile and User.objects.filter(mobile_number=mobile).exists():
-
-            return Response(
-                {
-                    "error": "Mobile number already exists"
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-
-            user = User.objects.create_user(
-                email=email,
-                password=password,
-                name=name,
-                mobile_number=mobile
-            )
-
-        except IntegrityError:
-
-            # Protect against a duplicate being created between the
-            # validation check above and the database insert.
-            if mobile and User.objects.filter(mobile_number=mobile).exists():
-
-                return Response(
-                    {
-                        "error": "Mobile number already exists"
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            if User.objects.filter(email=email).exists():
-
-                return Response(
-                    {
-                        "error": "Email already exists"
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            return Response(
-                {
-                    "error": "Unable to create account. Please try again."
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # Duplicate email addresses and mobile numbers are allowed.
+        # A new account is created for every registration request.
+        user = User.objects.create_user(
+            email=email,
+            password=password,
+            name=name,
+            mobile_number=mobile
+        )
 
         _log(
             user,
@@ -194,34 +143,29 @@ class UserLoginView(APIView):
         # FIND USER
         # ------------------------------------------------------------
 
-        user = None
-
-        # First try email.
         if "@" in identifier:
-
-            email = identifier.lower()
-
-            try:
-                user = User.objects.get(email=email)
-            except User.DoesNotExist:
-                user = None
-
-        # Otherwise try mobile number.
+            candidates = User.objects.filter(
+                email=identifier.lower()
+            ).order_by("id")
         else:
-
-            try:
-                user = User.objects.get(
-                    mobile_number=identifier
-                )
-            except User.DoesNotExist:
-                user = None
+            candidates = User.objects.filter(
+                mobile_number=identifier
+            ).order_by("id")
 
         # ------------------------------------------------------------
         # CHECK PASSWORD
         # ------------------------------------------------------------
 
-        if not user or not user.check_password(password):
+        user = None
 
+        # Multiple accounts may share the same email/mobile.
+        # The password determines which account logs in.
+        for candidate in candidates:
+            if candidate.check_password(password):
+                user = candidate
+                break
+
+        if not user:
             return Response(
                 {
                     "error": "Invalid credentials"
