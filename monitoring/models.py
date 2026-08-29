@@ -49,9 +49,7 @@ class APIMonitor(models.Model):
         on_delete=models.CASCADE
     )
 
-    # ─────────────────────────────────────────────
     # Runtime state
-    # ─────────────────────────────────────────────
 
     status = models.CharField(
         max_length=10,
@@ -67,18 +65,14 @@ class APIMonitor(models.Model):
         blank=True
     )  # milliseconds
 
-    # ─────────────────────────────────────────────
     # Slow response threshold
-    # ─────────────────────────────────────────────
 
     response_time_threshold_ms = models.FloatField(
         default=1000,
         help_text='Response time threshold in milliseconds'
     )
 
-    # ─────────────────────────────────────────────
     # Contact / authentication
-    # ─────────────────────────────────────────────
 
     phone_number = models.CharField(
         max_length=20,
@@ -98,9 +92,14 @@ class APIMonitor(models.Model):
         null=True
     )
 
-    # ─────────────────────────────────────────────
+    # Custom request headers
+
+    request_headers = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
     # Downtime tracking
-    # ─────────────────────────────────────────────
 
     downtime_started_at = models.DateTimeField(
         null=True,
@@ -112,36 +111,28 @@ class APIMonitor(models.Model):
         blank=True
     )  # seconds
 
-    # ─────────────────────────────────────────────
     # Monitoring interval
-    # ─────────────────────────────────────────────
 
     check_interval = models.IntegerField(
         choices=INTERVAL_CHOICES,
         default=60
     )
 
-    # ─────────────────────────────────────────────
     # Last health check
-    # ─────────────────────────────────────────────
 
     last_checked_at = models.DateTimeField(
         null=True,
         blank=True
     )
 
-    # ─────────────────────────────────────────────
     # Last error
-    # ─────────────────────────────────────────────
 
     last_error = models.TextField(
         null=True,
         blank=True
     )
 
-    # ─────────────────────────────────────────────
     # Cached uptime
-    # ─────────────────────────────────────────────
 
     uptime_percentage = models.FloatField(
         null=True,

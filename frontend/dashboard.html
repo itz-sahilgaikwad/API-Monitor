@@ -591,6 +591,7 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            overflow-y: auto;
             z-index: 100;
         }
 
@@ -601,11 +602,31 @@
         .modal {
             width: 100%;
             max-width: 480px;
+            max-height: calc(100vh - 40px);
             background: white;
             border-radius: 20px;
             padding: 25px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
             box-shadow: 0 25px 70px rgba(15, 23, 42, 0.20);
             animation: modalIn 0.2s ease;
+        }
+
+        .modal::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .modal::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 20px;
+        }
+
+        .modal::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         @keyframes modalIn {
@@ -706,6 +727,15 @@
             border-color: var(--primary);
             background: white;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
+        }
+
+        .headers-textarea {
+            width: 100%;
+            min-height: 110px;
+            resize: vertical;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 12px;
+            line-height: 1.5;
         }
 
         .key-input-wrap {
@@ -820,6 +850,17 @@
         }
 
         @media (max-width: 600px) {
+            .modal-overlay {
+                align-items: flex-start;
+                padding: 12px;
+            }
+
+            .modal {
+                max-height: calc(100vh - 24px);
+                padding: 20px;
+                border-radius: 16px;
+            }
+
             .form-row {
                 grid-template-columns: 1fr;
                 gap: 0;
@@ -1359,6 +1400,19 @@
             </div>
         </div>
 
+        <div class="form-group">
+            <label for="requestHeaders">Custom Request Headers</label>
+            <textarea
+                id="requestHeaders"
+                class="form-input headers-textarea"
+                placeholder="Content-Type: application/json&#10;Accept: application/json&#10;X-Custom-Header: value"
+                spellcheck="false"
+            ></textarea>
+            <small class="form-help">
+                Optional. Enter one header per line using <strong>Header-Name: value</strong>.
+            </small>
+        </div>
+
         <div class="modal-actions">
             <button class="btn btn-cancel" onclick="closeAdd()">Cancel</button>
             <button class="btn btn-primary" onclick="addAPI()">Add API</button>
@@ -1479,6 +1533,19 @@
                     Authorization: Bearer &lt;your-key&gt;
                 </strong>
             </div>
+        </div>
+
+        <div class="form-group">
+            <label for="editRequestHeaders">Custom Request Headers</label>
+            <textarea
+                id="editRequestHeaders"
+                class="form-input headers-textarea"
+                placeholder="Content-Type: application/json&#10;Accept: application/json&#10;X-Custom-Header: value"
+                spellcheck="false"
+            ></textarea>
+            <small class="form-help">
+                Optional. Enter one header per line using <strong>Header-Name: value</strong>.
+            </small>
         </div>
 
         <div class="modal-actions">
@@ -2096,6 +2163,68 @@
      * ================================
      */
 
+    function parseRequestHeaders(text) {
+        const headers = {};
+
+        /*
+         * Accept both real line breaks and pasted "\\n" sequences.
+         * This prevents copied examples from becoming part of a single
+         * header value.
+         */
+        const normalizedText = String(text || "")
+            .replace(/\\\\n/g, "\n")
+            .replace(/\\n/g, "\n");
+
+        const lines = normalizedText.split(/\r?\n/);
+
+        for (const rawLine of lines) {
+            const line = rawLine.trim();
+            if (!line || line.startsWith("#")) continue;
+
+            const separator = line.indexOf(":");
+            if (separator <= 0) {
+                throw new Error(
+                    "Invalid request header. Use Header-Name: value on each line."
+                );
+            }
+
+            const name = line.slice(0, separator).trim();
+            const value = line.slice(separator + 1).trim();
+
+            if (!name || !value) {
+                throw new Error(
+                    "Invalid request header. Both header name and value are required."
+                );
+            }
+
+            if (!/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(name)) {
+                throw new Error(`Invalid request header name: ${name}`);
+            }
+
+            headers[name] = value;
+        }
+
+        return headers;
+    }
+
+    function formatRequestHeaders(headers) {
+        if (!headers || typeof headers !== "object" || Array.isArray(headers)) {
+            return "";
+        }
+
+        return Object.entries(headers)
+            .map(([name, value]) => {
+                const safeValue = String(value ?? "")
+                    .replace(/\\\\n/g, "\n")
+                    .replace(/\\n/g, "\n")
+                    .replace(/\r?\n/g, " ");
+
+                return `${name}: ${safeValue}`;
+            })
+            .join("\n");
+    }
+
+
     async function addAPI() {
 
         const name = document.getElementById("name").value.trim();
@@ -2109,6 +2238,16 @@
             Number(document.getElementById("threshold").value);
         const authType = document.getElementById("authType").value;
         const apiKey = document.getElementById("apiKey").value.trim();
+
+        let requestHeaders;
+        try {
+            requestHeaders = parseRequestHeaders(
+                document.getElementById("requestHeaders").value
+            );
+        } catch (error) {
+            alert(error.message);
+            return;
+        }
 
         if (!name || !url) {
             alert("Please enter both API name and URL.");
@@ -2143,7 +2282,8 @@
             expected_status: expectedStatus,
             check_interval: checkInterval,
             auth_type: authType,
-            response_time_threshold_ms: threshold
+            response_time_threshold_ms: threshold,
+            request_headers: requestHeaders
         };
 
         if (authType === "bearer" || authType === "x_api_key") {
@@ -2188,6 +2328,7 @@
             document.getElementById("expectedStatus").value = "200";
             document.getElementById("checkInterval").value = "60";
             document.getElementById("threshold").value = "1000";
+            document.getElementById("requestHeaders").value = "";
             document.getElementById("authType").value = "none";
             document.getElementById("apiKey").value = "";
             document.getElementById("apiKey").type = "password";
@@ -2266,6 +2407,9 @@
                 api.owner_response_time_threshold_ms ||
                 1000;
 
+            document.getElementById("editRequestHeaders").value =
+                formatRequestHeaders(api.request_headers);
+
             document.getElementById("editApiKey").value = "";
             document.getElementById("removeApiKey").checked = false;
 
@@ -2327,6 +2471,16 @@
         const removeApiKey =
             document.getElementById("removeApiKey").checked;
 
+        let requestHeaders;
+        try {
+            requestHeaders = parseRequestHeaders(
+                document.getElementById("editRequestHeaders").value
+            );
+        } catch (error) {
+            alert(error.message);
+            return;
+        }
+
         if (!name || !url) {
             alert("Please enter both API name and URL.");
             return;
@@ -2355,7 +2509,8 @@
             expected_status: expectedStatus,
             check_interval: checkInterval,
             response_time_threshold_ms: threshold,
-            auth_type: authType
+            auth_type: authType,
+            request_headers: requestHeaders
         };
 
         if (removeApiKey || authType === "none") {
@@ -2556,6 +2711,7 @@
         document.getElementById("expectedStatus").value = "200";
         document.getElementById("checkInterval").value = "60";
         document.getElementById("threshold").value = "1000";
+        document.getElementById("requestHeaders").value = "";
 
         document.getElementById("authType").value = "none";
         document.getElementById("apiKey").value = "";
