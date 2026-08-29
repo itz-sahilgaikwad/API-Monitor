@@ -5,30 +5,45 @@ from django.conf import settings
 class APIMonitor(models.Model):
 
     HTTP_METHODS = (
-        ('GET', 'GET'),
-        ('POST', 'POST'),
-        ('PUT', 'PUT'),
-        ('DELETE', 'DELETE'),
+        ("GET", "GET"),
+        ("POST", "POST"),
+        ("PUT", "PUT"),
+        ("PATCH", "PATCH"),
+        ("DELETE", "DELETE"),
     )
 
     INTERVAL_CHOICES = (
-        (30, 'Every 30 seconds'),
-        (60, 'Every 1 minute'),
-        (300, 'Every 5 minutes'),
-        (600, 'Every 10 minutes'),
+        (30, "Every 30 seconds"),
+        (60, "Every 1 minute"),
+        (300, "Every 5 minutes"),
+        (600, "Every 10 minutes"),
     )
 
     AUTH_TYPES = (
-        ('none', 'No Authentication'),
-        ('bearer', 'Bearer API Key'),
-        ('x_api_key', 'X-API-Key'),
+        ("none", "No Authentication"),
+        ("bearer", "Bearer API Key"),
+        ("x_api_key", "X-API-Key"),
     )
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(
+        max_length=100
+    )
+
     url = models.URLField()
-    method = models.CharField(max_length=10, choices=HTTP_METHODS, default='GET')
-    expected_status = models.IntegerField(default=200)
-    is_active = models.BooleanField(default=True)
+
+    method = models.CharField(
+        max_length=10,
+        choices=HTTP_METHODS,
+        default="GET"
+    )
+
+    expected_status = models.IntegerField(
+        default=200
+    )
+
+    is_active = models.BooleanField(
+        default=True
+    )
 
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -36,46 +51,92 @@ class APIMonitor(models.Model):
     )
 
     # Runtime state
-    status = models.CharField(max_length=10, default='UP')
-    failure_count = models.IntegerField(default=0)
-    response_time = models.FloatField(null=True, blank=True)  # milliseconds
+    status = models.CharField(
+        max_length=10,
+        default="UP"
+    )
+
+    failure_count = models.IntegerField(
+        default=0
+    )
+
+    response_time = models.FloatField(
+        null=True,
+        blank=True
+    )  # milliseconds
 
     # Slow response threshold
     response_time_threshold_ms = models.FloatField(
         default=1000,
-        help_text='Response time threshold in milliseconds'
+        help_text="Response time threshold in milliseconds"
     )
 
     # Contact / authentication
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
-    auth_type = models.CharField(max_length=20, choices=AUTH_TYPES, default='none')
-    api_key = models.CharField(max_length=255, blank=True, null=True)
+    phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True
+    )
+
+    auth_type = models.CharField(
+        max_length=20,
+        choices=AUTH_TYPES,
+        default="none"
+    )
+
+    api_key = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
 
     # Custom request headers
-    request_headers = models.JSONField(default=dict, blank=True)
+    request_headers = models.JSONField(
+        default=dict,
+        blank=True
+    )
 
-    # Request body for POST / PUT requests
+    # Request body for POST / PUT / PATCH requests
     request_body = models.TextField(
-        default='',
+        default="",
         blank=True,
-        help_text='Optional request body for POST and PUT requests.'
+        help_text="Optional request body for POST, PUT, and PATCH requests."
     )
 
     # Downtime tracking
-    downtime_started_at = models.DateTimeField(null=True, blank=True)
-    last_downtime_duration = models.FloatField(null=True, blank=True)  # seconds
+    downtime_started_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    last_downtime_duration = models.FloatField(
+        null=True,
+        blank=True
+    )  # seconds
 
     # Monitoring interval
-    check_interval = models.IntegerField(choices=INTERVAL_CHOICES, default=60)
+    check_interval = models.IntegerField(
+        choices=INTERVAL_CHOICES,
+        default=60
+    )
 
     # Last health check
-    last_checked_at = models.DateTimeField(null=True, blank=True)
+    last_checked_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     # Last error
-    last_error = models.TextField(null=True, blank=True)
+    last_error = models.TextField(
+        null=True,
+        blank=True
+    )
 
     # Cached uptime
-    uptime_percentage = models.FloatField(null=True, blank=True)
+    uptime_percentage = models.FloatField(
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return self.name
@@ -86,27 +147,39 @@ class Incident(models.Model):
     monitor = models.ForeignKey(
         APIMonitor,
         on_delete=models.CASCADE,
-        related_name='incidents'
+        related_name="incidents"
     )
 
     started_at = models.DateTimeField()
-    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    resolved_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     status = models.CharField(
         max_length=20,
         choices=[
-            ('ONGOING', 'ONGOING'),
-            ('RESOLVED', 'RESOLVED'),
+            ("ONGOING", "ONGOING"),
+            ("RESOLVED", "RESOLVED"),
         ],
-        default='ONGOING'
+        default="ONGOING"
     )
 
-    reason = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    reason = models.TextField(
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
 
     def duration_seconds(self):
         if self.resolved_at:
-            return (self.resolved_at - self.started_at).total_seconds()
+            return (
+                self.resolved_at - self.started_at
+            ).total_seconds()
+
         return None
 
     def __str__(self):

@@ -246,7 +246,7 @@ def _attempt_request(monitor, timeout=10):
     request_body = getattr(monitor, "request_body", "") or ""
     data = None
 
-    if monitor.method in ("POST", "PUT") and request_body:
+    if monitor.method in ("POST", "PUT", "PATCH") and request_body:
         data = request_body.encode("utf-8")
 
         # JSON is the supported request-body format. Add a content type only
