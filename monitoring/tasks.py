@@ -5,6 +5,7 @@ import requests
 import time
 from django.core.cache import cache
 from django.conf import settings
+
 from .models import APIMonitor, Incident
 from logs.models import APILog
 
@@ -15,7 +16,6 @@ from logs.models import APILog
 
 def _collect_alert_emails(monitor):
     emails = set()
-
     owner = monitor.owner
 
     if not owner:
@@ -31,13 +31,6 @@ def _collect_alert_emails(monitor):
 
 
 def _can_alert(monitor):
-    """
-    Check the user's normal alert cooldown.
-
-    Used for SLOW alerts.
-    DOWN and RECOVERY alerts do not use this cooldown.
-    """
-
     owner = monitor.owner
 
     if not owner:
@@ -61,45 +54,17 @@ def _mark_alerted(monitor):
         pass
 
 
-def _send_email(
-    monitor,
-    subject,
-    body,
-    use_cooldown=True,
-):
-    """
-    Send an alert to the email address of the user who owns the API monitor.
-
-    Brevo is used as the transactional email provider.
-    The recipient is always taken from monitor.owner.email.
-
-    The sender is the verified Brevo sender configured in
-    DEFAULT_FROM_EMAIL or BREVO_FROM_EMAIL.
-
-    use_cooldown=True:
-        Used for SLOW alerts.
-
-    use_cooldown=False:
-        Used for DOWN and RECOVERY alerts.
-    """
-
+def _send_email(monitor, subject, body, use_cooldown=True):
     emails = _collect_alert_emails(monitor)
 
     if not emails:
-        print(
-            f"No alert email configured for {monitor.name}"
-        )
+        print(f"No alert email configured for {monitor.name}")
         return False
 
     if use_cooldown and not _can_alert(monitor):
-        print(
-            f"Email cooldown active for {monitor.name}"
-        )
+        print(f"Email cooldown active for {monitor.name}")
         return False
 
-    # -------------------------------------------------------------------------
-    # Brevo API
-    # -------------------------------------------------------------------------
     brevo_api_key = os.getenv("BREVO_API_KEY", "").strip()
 
     if not brevo_api_key:
@@ -124,22 +89,17 @@ def _send_email(
         )
         return False
 
-    from_name = os.getenv(
-        "BREVO_FROM_NAME",
-        "API Monitor",
-    ).strip() or "API Monitor"
+    from_name = (
+        os.getenv("BREVO_FROM_NAME", "API Monitor").strip()
+        or "API Monitor"
+    )
 
     payload = {
         "sender": {
             "name": from_name,
             "email": from_email,
         },
-        "to": [
-            {
-                "email": email,
-            }
-            for email in emails
-        ],
+        "to": [{"email": email} for email in emails],
         "subject": subject,
         "textContent": body,
     }
@@ -177,9 +137,7 @@ def _send_email(
         return True
 
     except Exception as exc:
-        print(
-            f"Brevo email alert failed for {monitor.name}: {exc}"
-        )
+        print(f"Brevo email alert failed for {monitor.name}: {exc}")
         return False
 
 
@@ -196,10 +154,7 @@ def _classify_error(exc):
     if "connection refused" in message:
         return "Connection Refused"
 
-    if (
-        "connection error" in message
-        or "connectionerror" in message
-    ):
+    if "connection error" in message or "connectionerror" in message:
         return "Connection Error"
 
     if (
@@ -209,10 +164,7 @@ def _classify_error(exc):
     ):
         return "DNS Error"
 
-    if (
-        "ssl" in message
-        or "certificate" in message
-    ):
+    if "ssl" in message or "certificate" in message:
         return "SSL Error"
 
     return f"Request Error: {str(exc)[:100]}"
@@ -244,7 +196,12 @@ def _classify_http_error(status_code):
 
 def _attempt_request(monitor, timeout=10):
     """
-    Perform one HTTP request.
+    Perform one HTTP request using the monitor configuration.
+
+    Authentication:
+        none      -> no authentication header
+        bearer    -> Authorization: Bearer <key>
+        x_api_key -> X-API-Key: <key>
 
     Returns:
         response
@@ -255,9 +212,11 @@ def _attempt_request(monitor, timeout=10):
     headers = {}
 
     if monitor.api_key:
-        headers["Authorization"] = (
-            f"Bearer {monitor.api_key}"
-        )
+        if monitor.auth_type == "bearer":
+            headers["Authorization"] = f"Bearer {monitor.api_key}"
+
+        elif monitor.auth_type == "x_api_key":
+            headers["X-API-Key"] = monitor.api_key
 
     start = time.perf_counter()
 
@@ -270,33 +229,19 @@ def _attempt_request(monitor, timeout=10):
             allow_redirects=True,
         )
 
-        elapsed_ms = (
-            time.perf_counter() - start
-        ) * 1000
+        elapsed_ms = (time.perf_counter() - start) * 1000
 
         return response, elapsed_ms, None
 
     except requests.exceptions.Timeout:
-        elapsed_ms = (
-            time.perf_counter() - start
-        ) * 1000
+        elapsed_ms = (time.perf_counter() - start) * 1000
 
-        return (
-            None,
-            elapsed_ms,
-            "Timeout",
-        )
+        return None, elapsed_ms, "Timeout"
 
     except Exception as exc:
-        elapsed_ms = (
-            time.perf_counter() - start
-        ) * 1000
+        elapsed_ms = (time.perf_counter() - start) * 1000
 
-        return (
-            None,
-            elapsed_ms,
-            _classify_error(exc),
-        )
+        return None, elapsed_ms, _classify_error(exc)
 
 
 # =============================================================================
@@ -316,28 +261,21 @@ def _recalc_uptime(monitor):
         status="UP",
     ).count()
 
-    return round(
-        (successful / total) * 100,
-        2,
-    )
+    return round((successful / total) * 100, 2)
 
 
 # =============================================================================
-# SLOW RESPONSE ALERT
+# ALERTS
 # =============================================================================
 
-def _send_slow_alert(
-    monitor,
-    response_time_ms,
-    threshold,
-):
-    if not response_time_ms:
+def _send_slow_alert(monitor, response_time_ms, threshold):
+    if response_time_ms is None:
+        return
+
+    if threshold is None:
         return
 
     if response_time_ms <= threshold:
-        return
-
-    if not _can_alert(monitor):
         return
 
     timestamp = timezone.now().strftime(
@@ -353,8 +291,7 @@ def _send_slow_alert(
         f"Threshold    : {threshold:.0f} ms\n"
         f"Detected At  : {timestamp}\n\n"
         "The API is still responding successfully, "
-        "but its response time is above the configured "
-        "threshold.\n\n"
+        "but its response time is above the configured threshold.\n\n"
         "— API Monitor"
     )
 
@@ -366,14 +303,7 @@ def _send_slow_alert(
     )
 
 
-# =============================================================================
-# DOWN ALERT
-# =============================================================================
-
-def _send_down_alert(
-    monitor,
-    error_message,
-):
+def _send_down_alert(monitor, error_message):
     timestamp = timezone.now().strftime(
         "%d %b %Y, %H:%M UTC"
     )
@@ -384,15 +314,10 @@ def _send_down_alert(
         f"Monitor Name : {monitor.name}\n"
         f"URL          : {monitor.url}\n"
         f"Detected At  : {timestamp}\n"
-        f"Reason       : "
-        f"{error_message or 'Request failed'}\n\n"
+        f"Reason       : {error_message or 'Request failed'}\n\n"
         "The system will notify you when the API recovers.\n\n"
         "— API Monitor"
     )
-
-    # DOWN alerts do NOT use the normal email cooldown.
-    # The UP -> DOWN transition below prevents repeated
-    # DOWN emails while the API remains DOWN.
 
     return _send_email(
         monitor,
@@ -402,14 +327,7 @@ def _send_down_alert(
     )
 
 
-# =============================================================================
-# RECOVERY ALERT
-# =============================================================================
-
-def _send_recovery_alert(
-    monitor,
-    downtime_text="",
-):
+def _send_recovery_alert(monitor, downtime_text=""):
     timestamp = timezone.now().strftime(
         "%d %b %Y, %H:%M UTC"
     )
@@ -423,9 +341,7 @@ def _send_recovery_alert(
     )
 
     if downtime_text:
-        body += (
-            f"Downtime     : {downtime_text}\n"
-        )
+        body += f"Downtime     : {downtime_text}\n"
 
     body += (
         "\nThe API is responding normally again.\n\n"
@@ -438,6 +354,90 @@ def _send_recovery_alert(
         body,
         use_cooldown=False,
     )
+
+
+# =============================================================================
+# INCIDENT HELPERS
+# =============================================================================
+
+def _get_ongoing_incident(monitor):
+    return (
+        Incident.objects
+        .filter(
+            monitor=monitor,
+            status="ONGOING",
+        )
+        .order_by("-started_at")
+        .first()
+    )
+
+
+def _start_incident(monitor, reason):
+    incident = _get_ongoing_incident(monitor)
+
+    if incident:
+        return incident
+
+    incident = Incident.objects.create(
+        monitor=monitor,
+        started_at=timezone.now(),
+        status="ONGOING",
+        reason=reason or "API request failed",
+    )
+
+    if not monitor.downtime_started_at:
+        monitor.downtime_started_at = timezone.now()
+        monitor.save(
+            update_fields=["downtime_started_at"]
+        )
+
+    return incident
+
+
+def _resolve_incident(monitor):
+    incident = _get_ongoing_incident(monitor)
+
+    if not incident:
+        return
+
+    incident.resolved_at = timezone.now()
+    incident.status = "RESOLVED"
+    incident.save(
+        update_fields=[
+            "resolved_at",
+            "status",
+        ]
+    )
+
+
+def _calculate_downtime(monitor):
+    if not monitor.downtime_started_at:
+        return ""
+
+    downtime_seconds = (
+        timezone.now()
+        - monitor.downtime_started_at
+    ).total_seconds()
+
+    minutes = int(downtime_seconds // 60)
+    seconds = int(downtime_seconds % 60)
+
+    if minutes:
+        downtime_text = f"{minutes}m {seconds}s"
+    else:
+        downtime_text = f"{seconds}s"
+
+    monitor.last_downtime_duration = downtime_seconds
+    monitor.downtime_started_at = None
+
+    monitor.save(
+        update_fields=[
+            "last_downtime_duration",
+            "downtime_started_at",
+        ]
+    )
+
+    return downtime_text
 
 
 # =============================================================================
@@ -457,12 +457,11 @@ def check_api_health():
 
     for monitor in monitors:
 
-        # ---------------------------------------------------------------------
+        # =====================================================================
         # CHECK INTERVAL
-        # ---------------------------------------------------------------------
+        # =====================================================================
 
         if monitor.last_checked_at:
-
             elapsed = (
                 now - monitor.last_checked_at
             ).total_seconds()
@@ -470,29 +469,22 @@ def check_api_health():
             if elapsed < monitor.check_interval:
                 continue
 
-        # ---------------------------------------------------------------------
-        # SAVE PREVIOUS STATE
-        # ---------------------------------------------------------------------
+        # =====================================================================
+        # PREVIOUS STATE
+        # =====================================================================
 
         previous_status = monitor.status
+        previous_response_time = monitor.response_time
+        previous_failure_count = monitor.failure_count or 0
 
-        previous_response_time = (
-            monitor.response_time
+        threshold = (
+            monitor.response_time_threshold_ms
+            or 1000
         )
 
-        previous_failure_count = (
-            monitor.failure_count or 0
-        )
-
-        # ---------------------------------------------------------------------
-        # RESPONSE TIME THRESHOLD
-        # ---------------------------------------------------------------------
-
-        threshold = monitor.response_time_threshold_ms
-
-        # ---------------------------------------------------------------------
-        # REQUEST WITH RETRIES
-        # ---------------------------------------------------------------------
+        # =====================================================================
+        # REQUEST + RETRIES
+        # =====================================================================
 
         response = None
         response_time = None
@@ -509,50 +501,32 @@ def check_api_health():
 
             response_time = elapsed_ms
 
-            # ---------------------------------------------------------------
-            # SUCCESSFUL HTTP RESPONSE
-            # ---------------------------------------------------------------
-
             if response is not None:
 
-                if (
-                    200 <= response.status_code <= 399
-                ):
-
+                if response.status_code == monitor.expected_status:
                     error_message = None
                     break
 
-                # -----------------------------------------------------------
-                # HTTP ERROR
-                # -----------------------------------------------------------
-
                 error_message = (
-                    _classify_http_error(
-                        response.status_code
-                    )
+                    f"Expected HTTP "
+                    f"{monitor.expected_status}, "
+                    f"received HTTP "
+                    f"{response.status_code}"
                 )
 
-                if attempt < retries - 1:
-                    time.sleep(retry_delay)
-
-            # ----------------------------------------------------------------
-            # REQUEST ERROR / TIMEOUT
-            # ----------------------------------------------------------------
-
             else:
-
                 error_message = request_error
 
-                if attempt < retries - 1:
-                    time.sleep(retry_delay)
+            if attempt < retries - 1:
+                time.sleep(retry_delay)
 
-        # ---------------------------------------------------------------------
-        # DETERMINE ACTUAL CHECK RESULT
-        # ---------------------------------------------------------------------
+        # =====================================================================
+        # RESULT
+        # =====================================================================
 
         request_succeeded = (
             response is not None
-            and 200 <= response.status_code <= 399
+            and response.status_code == monitor.expected_status
         )
 
         status_code = (
@@ -570,9 +544,9 @@ def check_api_health():
             )
         )
 
-        # ---------------------------------------------------------------------
+        # =====================================================================
         # FAILURE COUNT
-        # ---------------------------------------------------------------------
+        # =====================================================================
 
         if request_succeeded:
             current_failure_count = 0
@@ -581,29 +555,27 @@ def check_api_health():
                 previous_failure_count + 1
             )
 
-        # ---------------------------------------------------------------------
-        # CONFIRMED UP / DOWN STATE
-        # ---------------------------------------------------------------------
+        # =====================================================================
+        # CONFIRMED STATUS
+        # =====================================================================
 
         if request_succeeded:
-
             new_status = "UP"
 
         elif previous_status == "DOWN":
-
             new_status = "DOWN"
 
         elif current_failure_count >= 3:
-
             new_status = "DOWN"
 
         else:
-
+            # First and second failures do not immediately
+            # mark the API as DOWN.
             new_status = "UP"
 
-        # ---------------------------------------------------------------------
-        # SLOW STATUS
-        # ---------------------------------------------------------------------
+        # =====================================================================
+        # SLOW RESPONSE
+        # =====================================================================
 
         is_slow = (
             request_succeeded
@@ -611,47 +583,44 @@ def check_api_health():
             and response_time > threshold
         )
 
-        # ---------------------------------------------------------------------
-        # UPDATE MONITOR
-        # ---------------------------------------------------------------------
+        # =====================================================================
+        # UPDATE MONITOR STATE
+        # =====================================================================
 
         monitor.status = new_status
-
         monitor.response_time = response_time
-
         monitor.last_checked_at = timezone.now()
 
         if request_succeeded:
 
-            monitor.last_error = (
-                f"Slow response: "
-                f"{response_time:.0f} ms"
-                if is_slow
-                else None
-            )
+            if is_slow:
+                monitor.last_error = (
+                    f"Slow response: "
+                    f"{response_time:.0f} ms"
+                )
+            else:
+                monitor.last_error = None
 
             monitor.failure_count = 0
 
         else:
 
-            monitor.last_error = log_error
-
             monitor.failure_count = (
                 current_failure_count
             )
 
+            # Do not display temporary failures
+            # as an actual error until DOWN.
+            if new_status == "DOWN":
+                monitor.last_error = log_error
+            else:
+                monitor.last_error = None
+
         monitor.save()
 
-        print(
-            f"Monitor {monitor.name}: "
-            f"status={new_status}, "
-            f"failures={monitor.failure_count}, "
-            f"email_target={getattr(monitor.owner, 'email', '')}"
-        )
-
-        # ---------------------------------------------------------------------
-        # CREATE API LOG
-        # ---------------------------------------------------------------------
+        # =====================================================================
+        # LOG
+        # =====================================================================
 
         APILog.objects.create(
             api_monitor=monitor,
@@ -666,18 +635,41 @@ def check_api_health():
             checked_at=timezone.now(),
         )
 
-        # ---------------------------------------------------------------------
-        # UPDATE UPTIME
-        # ---------------------------------------------------------------------
+        # =====================================================================
+        # UPTIME
+        # =====================================================================
 
-        uptime = _recalc_uptime(monitor)
-
-        monitor.uptime_percentage = uptime
+        monitor.uptime_percentage = (
+            _recalc_uptime(monitor)
+        )
 
         monitor.save(
             update_fields=[
-                "uptime_percentage",
+                "uptime_percentage"
             ]
+        )
+
+        # =====================================================================
+        # CONSOLE LOG
+        # =====================================================================
+
+        print(
+            f"Monitor {monitor.name}: "
+            f"status={new_status}, "
+            f"failures={monitor.failure_count}, "
+            f"expected_status="
+            f"{monitor.expected_status}, "
+            f"actual_status={status_code}, "
+            f"response_time="
+            f"{response_time:.0f}ms"
+            if response_time is not None
+            else
+            f"Monitor {monitor.name}: "
+            f"status={new_status}, "
+            f"failures={monitor.failure_count}, "
+            f"expected_status="
+            f"{monitor.expected_status}, "
+            f"actual_status={status_code}"
         )
 
         # =====================================================================
@@ -686,69 +678,23 @@ def check_api_health():
 
         if new_status == "DOWN":
 
-            # ---------------------------------------------------------------
-            # DOWN INCIDENT + EMAIL
-            # ---------------------------------------------------------------
-            # Keep exactly one ONGOING incident for the current downtime.
-            #
-            # IMPORTANT:
-            # The email is NOT tied only to Incident.objects.create().
-            # If the incident was created but SMTP failed, the next Celery
-            # check must be able to retry the email.
-            #
-            # Redis/Django cache remembers a successfully sent DOWN alert.
-            # Therefore:
-            #   - failed email -> retry on the next check
-            #   - successful email -> no duplicate DOWN emails
-            #   - new downtime -> cache is cleared during recovery
-
-            ongoing_incident = (
-                Incident.objects
-                .filter(
-                    monitor=monitor,
-                    status="ONGOING",
-                )
-                .order_by("-started_at")
-                .first()
+            incident = _get_ongoing_incident(
+                monitor
             )
 
-            if not ongoing_incident:
-
-                ongoing_incident = Incident.objects.create(
-                    monitor=monitor,
-                    started_at=timezone.now(),
-                    status="ONGOING",
-                    reason=(
-                        log_error
-                        or "API request failed"
-                    ),
+            if not incident:
+                _start_incident(
+                    monitor,
+                    log_error or "API request failed",
                 )
 
-                # Record the start of this downtime event.
-                if not monitor.downtime_started_at:
-
-                    monitor.downtime_started_at = (
-                        timezone.now()
-                    )
-
-                    monitor.save(
-                        update_fields=[
-                            "downtime_started_at",
-                        ]
-                    )
-
-            # ---------------------------------------------------------------
-            # DOWN EMAIL RETRY / DEDUPLICATION
-            # ---------------------------------------------------------------
-            # This key is stored in Redis when available. It prevents
-            # repeated DOWN emails while the same incident remains open.
-            # If sending fails, the key is NOT stored, so the next check
-            # can retry automatically.
-            down_email_cache_key = (
-                f"api_monitor:down_alert_sent:{monitor.id}"
+            down_cache_key = (
+                f"api_monitor:"
+                f"down_alert_sent:"
+                f"{monitor.id}"
             )
 
-            if not cache.get(down_email_cache_key):
+            if not cache.get(down_cache_key):
 
                 email_sent = _send_down_alert(
                     monitor,
@@ -756,19 +702,24 @@ def check_api_health():
                 )
 
                 if email_sent:
+
                     cache.set(
-                        down_email_cache_key,
+                        down_cache_key,
                         True,
                         timeout=7 * 24 * 60 * 60,
                     )
+
                     print(
-                        f"DOWN email delivery confirmed for "
-                        f"{monitor.name}"
+                        f"DOWN email delivery confirmed "
+                        f"for {monitor.name}"
                     )
+
                 else:
+
                     print(
-                        f"DOWN email delivery failed for "
-                        f"{monitor.name}; will retry on the next check"
+                        f"DOWN email delivery failed "
+                        f"for {monitor.name}; "
+                        f"will retry on the next check"
                     )
 
         # =====================================================================
@@ -780,75 +731,21 @@ def check_api_health():
             and new_status == "UP"
         ):
 
-            incident = (
-                Incident.objects
-                .filter(
-                    monitor=monitor,
-                    status="ONGOING",
-                )
-                .last()
+            _resolve_incident(monitor)
+
+            downtime_text = _calculate_downtime(
+                monitor
             )
-
-            if incident:
-
-                incident.resolved_at = (
-                    timezone.now()
-                )
-
-                incident.status = "RESOLVED"
-
-                incident.save()
-
-            downtime_text = ""
-
-            if monitor.downtime_started_at:
-
-                downtime_seconds = (
-                    timezone.now()
-                    - monitor.downtime_started_at
-                ).total_seconds()
-
-                minutes = int(
-                    downtime_seconds // 60
-                )
-
-                seconds = int(
-                    downtime_seconds % 60
-                )
-
-                if minutes:
-
-                    downtime_text = (
-                        f"{minutes}m {seconds}s"
-                    )
-
-                else:
-
-                    downtime_text = (
-                        f"{seconds}s"
-                    )
-
-                monitor.last_downtime_duration = (
-                    downtime_seconds
-                )
-
-                monitor.downtime_started_at = None
-
-                monitor.save(
-                    update_fields=[
-                        "last_downtime_duration",
-                        "downtime_started_at",
-                    ]
-                )
 
             _send_recovery_alert(
                 monitor,
                 downtime_text,
             )
 
-            # Allow a future DOWN event to send a new DOWN email.
             cache.delete(
-                f"api_monitor:down_alert_sent:{monitor.id}"
+                f"api_monitor:"
+                f"down_alert_sent:"
+                f"{monitor.id}"
             )
 
         # =====================================================================
@@ -869,41 +766,3 @@ def check_api_health():
                     response_time,
                     threshold,
                 )
-        # ---------------------------------------------------------------------
-        # UPDATE MONITOR
-        # ---------------------------------------------------------------------
-
-        monitor.status = new_status
-
-        monitor.response_time = response_time
-
-        monitor.last_checked_at = timezone.now()
-
-        if request_succeeded:
-
-            # Successful check clears the previous error.
-            monitor.last_error = (
-                f"Slow response: "
-                f"{response_time:.0f} ms"
-                if is_slow
-                else None
-            )
-
-            monitor.failure_count = 0
-
-        else:
-
-            # Only show an error on the dashboard when the API is
-            # actually confirmed DOWN.
-            #
-            # If this is only a temporary failed check and the API
-            # has not reached the DOWN threshold yet, keep the
-            # dashboard status clean.
-            if new_status == "DOWN":
-                monitor.last_error = log_error
-            else:
-                monitor.last_error = None
-
-            monitor.failure_count = current_failure_count
-
-        monitor.save()
