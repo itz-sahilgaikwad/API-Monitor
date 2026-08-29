@@ -216,21 +216,7 @@ def _attempt_request(monitor, timeout=10):
     headers = {}
 
     # -------------------------------------------------------------------------
-    # Custom Request Headers
-    # -------------------------------------------------------------------------
-    #
-    # Headers saved through the dashboard are stored in
-    # monitor.request_headers as a JSON object.
-    #
-    # Example:
-    #
-    # {
-    #     "Content-Type": "application/json",
-    #     "Accept": "application/json",
-    #     "X-Custom-Header": "value"
-    # }
-    #
-    # Add every valid custom header to the outgoing request.
+    # Custom request headers
     # -------------------------------------------------------------------------
 
     request_headers = getattr(monitor, "request_headers", None)
@@ -238,24 +224,35 @@ def _attempt_request(monitor, timeout=10):
     if isinstance(request_headers, dict):
         for key, value in request_headers.items():
             if key and value is not None:
-                headers[str(key).strip()] = str(value)
+                headers[str(key)] = str(value)
 
     # -------------------------------------------------------------------------
-    # Authentication Headers
+    # Authentication headers
     # -------------------------------------------------------------------------
 
     if monitor.api_key:
         if monitor.auth_type == "bearer":
-            headers["Authorization"] = (
-                f"Bearer {monitor.api_key}"
-            )
+            headers["Authorization"] = f"Bearer {monitor.api_key}"
 
         elif monitor.auth_type == "x_api_key":
             headers["X-API-Key"] = monitor.api_key
 
     # -------------------------------------------------------------------------
-    # Send Request
+    # Request body
     # -------------------------------------------------------------------------
+    # Only send bodies for methods that support a request payload in this
+    # monitor. The body is sent as-is so JSON formatting/content-type remain
+    # controlled by the configured request headers.
+    request_body = getattr(monitor, "request_body", "") or ""
+    data = None
+
+    if monitor.method in ("POST", "PUT") and request_body:
+        data = request_body.encode("utf-8")
+
+        # JSON is the supported request-body format. Add a content type only
+        # when the user did not already configure one in custom headers.
+        if not any(str(key).lower() == "content-type" for key in headers):
+            headers["Content-Type"] = "application/json"
 
     start = time.perf_counter()
 
@@ -264,27 +261,22 @@ def _attempt_request(monitor, timeout=10):
             monitor.method,
             monitor.url,
             headers=headers,
+            data=data,
             timeout=timeout,
             allow_redirects=True,
         )
 
-        elapsed_ms = (
-            time.perf_counter() - start
-        ) * 1000
+        elapsed_ms = (time.perf_counter() - start) * 1000
 
         return response, elapsed_ms, None
 
     except requests.exceptions.Timeout:
-        elapsed_ms = (
-            time.perf_counter() - start
-        ) * 1000
+        elapsed_ms = (time.perf_counter() - start) * 1000
 
         return None, elapsed_ms, "Timeout"
 
     except Exception as exc:
-        elapsed_ms = (
-            time.perf_counter() - start
-        ) * 1000
+        elapsed_ms = (time.perf_counter() - start) * 1000
 
         return None, elapsed_ms, _classify_error(exc)
 
@@ -306,21 +298,14 @@ def _recalc_uptime(monitor):
         status="UP",
     ).count()
 
-    return round(
-        (successful / total) * 100,
-        2,
-    )
+    return round((successful / total) * 100, 2)
 
 
 # =============================================================================
 # ALERTS
 # =============================================================================
 
-def _send_slow_alert(
-    monitor,
-    response_time_ms,
-    threshold,
-):
+def _send_slow_alert(monitor, response_time_ms, threshold):
     if response_time_ms is None:
         return
 
@@ -379,10 +364,7 @@ def _send_down_alert(monitor, error_message):
     )
 
 
-def _send_recovery_alert(
-    monitor,
-    downtime_text="",
-):
+def _send_recovery_alert(monitor, downtime_text=""):
     timestamp = timezone.now().strftime(
         "%d %b %Y, %H:%M UTC"
     )
@@ -443,9 +425,7 @@ def _start_incident(monitor, reason):
     if not monitor.downtime_started_at:
         monitor.downtime_started_at = timezone.now()
         monitor.save(
-            update_fields=[
-                "downtime_started_at"
-            ]
+            update_fields=["downtime_started_at"]
         )
 
     return incident
@@ -459,7 +439,6 @@ def _resolve_incident(monitor):
 
     incident.resolved_at = timezone.now()
     incident.status = "RESOLVED"
-
     incident.save(
         update_fields=[
             "resolved_at",
@@ -477,27 +456,15 @@ def _calculate_downtime(monitor):
         - monitor.downtime_started_at
     ).total_seconds()
 
-    minutes = int(
-        downtime_seconds // 60
-    )
-
-    seconds = int(
-        downtime_seconds % 60
-    )
+    minutes = int(downtime_seconds // 60)
+    seconds = int(downtime_seconds % 60)
 
     if minutes:
-        downtime_text = (
-            f"{minutes}m {seconds}s"
-        )
+        downtime_text = f"{minutes}m {seconds}s"
     else:
-        downtime_text = (
-            f"{seconds}s"
-        )
+        downtime_text = f"{seconds}s"
 
-    monitor.last_downtime_duration = (
-        downtime_seconds
-    )
-
+    monitor.last_downtime_duration = downtime_seconds
     monitor.downtime_started_at = None
 
     monitor.save(
@@ -533,8 +500,7 @@ def check_api_health():
 
         if monitor.last_checked_at:
             elapsed = (
-                now
-                - monitor.last_checked_at
+                now - monitor.last_checked_at
             ).total_seconds()
 
             if elapsed < monitor.check_interval:
@@ -545,14 +511,8 @@ def check_api_health():
         # =====================================================================
 
         previous_status = monitor.status
-
-        previous_response_time = (
-            monitor.response_time
-        )
-
-        previous_failure_count = (
-            monitor.failure_count or 0
-        )
+        previous_response_time = monitor.response_time
+        previous_failure_count = monitor.failure_count or 0
 
         threshold = (
             monitor.response_time_threshold_ms
@@ -572,20 +532,15 @@ def check_api_health():
 
         for attempt in range(retries):
 
-            (
-                response,
-                elapsed_ms,
-                request_error,
-            ) = _attempt_request(monitor)
+            response, elapsed_ms, request_error = (
+                _attempt_request(monitor)
+            )
 
             response_time = elapsed_ms
 
             if response is not None:
 
-                if (
-                    response.status_code
-                    == monitor.expected_status
-                ):
+                if response.status_code == monitor.expected_status:
                     error_message = None
                     break
 
@@ -608,8 +563,7 @@ def check_api_health():
 
         request_succeeded = (
             response is not None
-            and response.status_code
-            == monitor.expected_status
+            and response.status_code == monitor.expected_status
         )
 
         status_code = (
@@ -633,7 +587,6 @@ def check_api_health():
 
         if request_succeeded:
             current_failure_count = 0
-
         else:
             current_failure_count = (
                 previous_failure_count + 1
@@ -682,7 +635,6 @@ def check_api_health():
                     f"Slow response: "
                     f"{response_time:.0f} ms"
                 )
-
             else:
                 monitor.last_error = None
 
@@ -698,7 +650,6 @@ def check_api_health():
             # as an actual error until DOWN.
             if new_status == "DOWN":
                 monitor.last_error = log_error
-
             else:
                 monitor.last_error = None
 
@@ -739,27 +690,24 @@ def check_api_health():
         # CONSOLE LOG
         # =====================================================================
 
-        if response_time is not None:
-            print(
-                f"Monitor {monitor.name}: "
-                f"status={new_status}, "
-                f"failures={monitor.failure_count}, "
-                f"expected_status="
-                f"{monitor.expected_status}, "
-                f"actual_status={status_code}, "
-                f"response_time="
-                f"{response_time:.0f}ms"
-            )
-
-        else:
-            print(
-                f"Monitor {monitor.name}: "
-                f"status={new_status}, "
-                f"failures={monitor.failure_count}, "
-                f"expected_status="
-                f"{monitor.expected_status}, "
-                f"actual_status={status_code}"
-            )
+        print(
+            f"Monitor {monitor.name}: "
+            f"status={new_status}, "
+            f"failures={monitor.failure_count}, "
+            f"expected_status="
+            f"{monitor.expected_status}, "
+            f"actual_status={status_code}, "
+            f"response_time="
+            f"{response_time:.0f}ms"
+            if response_time is not None
+            else
+            f"Monitor {monitor.name}: "
+            f"status={new_status}, "
+            f"failures={monitor.failure_count}, "
+            f"expected_status="
+            f"{monitor.expected_status}, "
+            f"actual_status={status_code}"
+        )
 
         # =====================================================================
         # DOWN LOGIC

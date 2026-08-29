@@ -798,6 +798,14 @@
             accent-color: var(--primary);
         }
 
+        .body-textarea {
+            min-height: 150px;
+            resize: vertical;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
         .modal-actions {
             display: flex;
             justify-content: flex-end;
@@ -1325,7 +1333,7 @@
         <div class="form-row">
             <div class="form-group">
                 <label for="method">HTTP Method</label>
-                <select id="method" class="form-select">
+                <select id="method" class="form-select" onchange="updateAddRequestBodyUI()">
                     <option value="GET">GET</option>
                     <option value="POST">POST</option>
                     <option value="PUT">PUT</option>
@@ -1413,6 +1421,22 @@
             </small>
         </div>
 
+        <div id="addRequestBodyGroup" class="form-group" style="display:none;">
+            <label for="requestBody">Request Body</label>
+            <textarea
+                id="requestBody"
+                class="form-input body-textarea"
+                placeholder='{
+  "name": "Test User",
+  "email": "test@example.com"
+}'
+                spellcheck="false"
+            ></textarea>
+            <small class="form-help">
+                Optional JSON body. Used for POST and PUT requests.
+            </small>
+        </div>
+
         <div class="modal-actions">
             <button class="btn btn-cancel" onclick="closeAdd()">Cancel</button>
             <button class="btn btn-primary" onclick="addAPI()">Add API</button>
@@ -1456,7 +1480,7 @@
         <div class="form-row">
             <div class="form-group">
                 <label for="editMethod">HTTP Method</label>
-                <select id="editMethod" class="form-select">
+                <select id="editMethod" class="form-select" onchange="updateEditRequestBodyUI()">
                     <option value="GET">GET</option>
                     <option value="POST">POST</option>
                     <option value="PUT">PUT</option>
@@ -1545,6 +1569,22 @@
             ></textarea>
             <small class="form-help">
                 Optional. Enter one header per line using <strong>Header-Name: value</strong>.
+            </small>
+        </div>
+
+        <div id="editRequestBodyGroup" class="form-group" style="display:none;">
+            <label for="editRequestBody">Request Body</label>
+            <textarea
+                id="editRequestBody"
+                class="form-input body-textarea"
+                placeholder='{
+  "name": "Test User",
+  "email": "test@example.com"
+}'
+                spellcheck="false"
+            ></textarea>
+            <small class="form-help">
+                Optional JSON body. Used for POST and PUT requests.
             </small>
         </div>
 
@@ -2238,6 +2278,7 @@
             Number(document.getElementById("threshold").value);
         const authType = document.getElementById("authType").value;
         const apiKey = document.getElementById("apiKey").value.trim();
+        const requestBody = document.getElementById("requestBody").value.trim();
 
         let requestHeaders;
         try {
@@ -2275,6 +2316,15 @@
             return;
         }
 
+        if (requestBody && ["POST", "PUT"].includes(method)) {
+            try {
+                JSON.parse(requestBody);
+            } catch (error) {
+                alert("Request body must contain valid JSON.");
+                return;
+            }
+        }
+
         const payload = {
             name: name,
             url: url,
@@ -2283,7 +2333,8 @@
             check_interval: checkInterval,
             auth_type: authType,
             response_time_threshold_ms: threshold,
-            request_headers: requestHeaders
+            request_headers: requestHeaders,
+            request_body: ["POST", "PUT"].includes(method) ? requestBody : ""
         };
 
         if (authType === "bearer" || authType === "x_api_key") {
@@ -2329,6 +2380,7 @@
             document.getElementById("checkInterval").value = "60";
             document.getElementById("threshold").value = "1000";
             document.getElementById("requestHeaders").value = "";
+            document.getElementById("requestBody").value = "";
             document.getElementById("authType").value = "none";
             document.getElementById("apiKey").value = "";
             document.getElementById("apiKey").type = "password";
@@ -2410,6 +2462,9 @@
             document.getElementById("editRequestHeaders").value =
                 formatRequestHeaders(api.request_headers);
 
+            document.getElementById("editRequestBody").value =
+                api.request_body || "";
+
             document.getElementById("editApiKey").value = "";
             document.getElementById("removeApiKey").checked = false;
 
@@ -2420,6 +2475,7 @@
                     : "none");
 
             updateEditAuthUI();
+            updateEditRequestBodyUI();
 
             document.getElementById("editModal")
                 .classList.add("show");
@@ -2471,6 +2527,9 @@
         const removeApiKey =
             document.getElementById("removeApiKey").checked;
 
+        const requestBody =
+            document.getElementById("editRequestBody").value.trim();
+
         let requestHeaders;
         try {
             requestHeaders = parseRequestHeaders(
@@ -2502,6 +2561,15 @@
             return;
         }
 
+        if (requestBody && ["POST", "PUT"].includes(method)) {
+            try {
+                JSON.parse(requestBody);
+            } catch (error) {
+                alert("Request body must contain valid JSON.");
+                return;
+            }
+        }
+
         const payload = {
             name: name,
             url: url,
@@ -2510,7 +2578,8 @@
             check_interval: checkInterval,
             response_time_threshold_ms: threshold,
             auth_type: authType,
-            request_headers: requestHeaders
+            request_headers: requestHeaders,
+            request_body: ["POST", "PUT"].includes(method) ? requestBody : ""
         };
 
         if (removeApiKey || authType === "none") {
@@ -2573,6 +2642,29 @@
         }
     }
 
+
+    function updateRequestBodyUI(methodId, groupId) {
+        const method = document.getElementById(methodId).value;
+        const group = document.getElementById(groupId);
+        if (!group) return;
+
+        const supported = ["POST", "PUT"].includes(method);
+        group.style.display = supported ? "block" : "none";
+
+        if (!supported) {
+            const bodyId = methodId === "method" ? "requestBody" : "editRequestBody";
+            const body = document.getElementById(bodyId);
+            if (body) body.value = "";
+        }
+    }
+
+    function updateAddRequestBodyUI() {
+        updateRequestBodyUI("method", "addRequestBodyGroup");
+    }
+
+    function updateEditRequestBodyUI() {
+        updateRequestBodyUI("editMethod", "editRequestBodyGroup");
+    }
 
     function updateAddAuthUI() {
 
@@ -2712,6 +2804,7 @@
         document.getElementById("checkInterval").value = "60";
         document.getElementById("threshold").value = "1000";
         document.getElementById("requestHeaders").value = "";
+        document.getElementById("requestBody").value = "";
 
         document.getElementById("authType").value = "none";
         document.getElementById("apiKey").value = "";
@@ -2725,6 +2818,7 @@
         }
 
         updateAddAuthUI();
+        updateAddRequestBodyUI();
 
         document
             .getElementById("addModal")
@@ -2808,6 +2902,8 @@
      * ================================
      */
 
+    updateAddRequestBodyUI();
+    updateEditRequestBodyUI();
     loadAPIs();
 
 </script>
