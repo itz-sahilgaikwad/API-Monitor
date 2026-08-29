@@ -5,7 +5,7 @@ import secrets
 import hashlib
 
 
-# ── User Manager ──────────────────────────────────────────────────────────────
+# â”€â”€ User Manager â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class UserManager(BaseUserManager):
 
@@ -33,7 +33,7 @@ class UserManager(BaseUserManager):
 
 
 
-# ── User Model ─────────────────────────────────────────────────────────────────
+# â”€â”€ User Model â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class User(AbstractBaseUser, PermissionsMixin):
 
@@ -42,7 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('USER',  'user'),
     )
 
-    email = models.EmailField(unique=True, db_index=True)
+    email = models.EmailField(unique=False, db_index=True)
 
     name = models.CharField(
         max_length=150,
@@ -52,7 +52,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     mobile_number = models.CharField(
         max_length=15,
-        unique=True,
+        unique=False,
         null=True,
         blank=True,
         db_index=True
@@ -74,7 +74,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 
-    # ── Email verification ─────────────────────────────────────────
+    # â”€â”€ Email verification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     email_verified = models.BooleanField(default=False)
 
@@ -86,7 +86,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 
-    # ── Password reset ─────────────────────────────────────────────
+    # â”€â”€ Password reset â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     password_reset_token = models.CharField(
         max_length=64,
@@ -101,7 +101,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 
-    # ── Brute-force protection ─────────────────────────────────────
+    # â”€â”€ Brute-force protection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     login_attempts = models.IntegerField(default=0)
 
@@ -112,7 +112,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 
-    # ── Notification preferences ───────────────────────────────────
+    # â”€â”€ Notification preferences â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     email_alerts_enabled = models.BooleanField(default=True)
 
@@ -139,7 +139,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 
-    # ── Login Identifier (Email OR Mobile) ─────────────────────────
+    # â”€â”€ Login Identifier (Email OR Mobile) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @staticmethod
     def find_by_login(identifier):
@@ -151,14 +151,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 
-    # ── Admin helper ───────────────────────────────────────────────
+    # â”€â”€ Admin helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def is_admin(self):
         return self.role == "ADMIN"
 
 
 
-    # ── Security Lock Check ────────────────────────────────────────
+    # â”€â”€ Security Lock Check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def is_locked(self):
 
@@ -169,7 +169,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 
-    # ── Failed Login Tracking ──────────────────────────────────────
+    # â”€â”€ Failed Login Tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def record_failed_login(self, request=None):
 
@@ -185,7 +185,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 
-    # ── Clear Attempts After Success ───────────────────────────────
+    # â”€â”€ Clear Attempts After Success â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def clear_login_attempts(self):
 
@@ -196,7 +196,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 
-    # ── Alert Cooldown ─────────────────────────────────────────────
+    # â”€â”€ Alert Cooldown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def can_send_alert(self):
 
@@ -217,7 +217,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 
-# ── Activity Log ──────────────────────────────────────────────────────────────
+# â”€â”€ Activity Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class ActivityLog(models.Model):
 
@@ -268,7 +268,7 @@ class ActivityLog(models.Model):
 
 
     def __str__(self):
-        return f"{self.user} — {self.action}"
+        return f"{self.user} â€” {self.action}"
 
 
 
@@ -290,7 +290,7 @@ def _log(user, action, resource='', request=None):
 
 
 
-# ── API Key ───────────────────────────────────────────────────────────────────
+# â”€â”€ API Key â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class APIKey(models.Model):
 
@@ -315,7 +315,7 @@ class APIKey(models.Model):
 
 
     def __str__(self):
-        return f"{self.user.email} — {self.name} ({self.key_prefix}…)"
+        return f"{self.user.email} â€” {self.name} ({self.key_prefix}â€¦)"
 
 
     @staticmethod
@@ -337,7 +337,7 @@ class APIKey(models.Model):
 
 
 
-# ── Teams ─────────────────────────────────────────────────────────────────────
+# â”€â”€ Teams â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class Team(models.Model):
 
