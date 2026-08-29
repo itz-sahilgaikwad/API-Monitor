@@ -103,3 +103,5 @@ build/
 *~
 # Local test scripts containing credentials
 test_api_key.py
+# Celery runtime files
+celerybeat-schedule-*
