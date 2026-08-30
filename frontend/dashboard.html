@@ -1437,6 +1437,33 @@
             </small>
         </div>
 
+        <div class="form-group">
+            <label for="responseValidationType">Response Validation</label>
+            <select id="responseValidationType" class="form-select"
+                    onchange="updateAddResponseValidationUI()">
+                <option value="none">None</option>
+                <option value="contains">Contains</option>
+                <option value="exact">Exact</option>
+                <option value="json">JSON</option>
+            </select>
+            <small class="form-help">
+                Choose how the API response body should be validated after the HTTP status check.
+            </small>
+        </div>
+
+        <div id="addExpectedResponseGroup" class="form-group" style="display:none;">
+            <label for="expectedResponse">Expected Response</label>
+            <textarea
+                id="expectedResponse"
+                class="form-input body-textarea"
+                placeholder='Example: success'
+                spellcheck="false"
+            ></textarea>
+            <small id="addExpectedResponseHelp" class="form-help">
+                Enter the expected response value.
+            </small>
+        </div>
+
         <div class="modal-actions">
             <button class="btn btn-cancel" onclick="closeAdd()">Cancel</button>
             <button class="btn btn-primary" onclick="addAPI()">Add API</button>
@@ -1585,6 +1612,33 @@
             ></textarea>
             <small class="form-help">
                 Optional JSON body. Used for POST and PUT requests.
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="editResponseValidationType">Response Validation</label>
+            <select id="editResponseValidationType" class="form-select"
+                    onchange="updateEditResponseValidationUI()">
+                <option value="none">None</option>
+                <option value="contains">Contains</option>
+                <option value="exact">Exact</option>
+                <option value="json">JSON</option>
+            </select>
+            <small class="form-help">
+                Choose how the API response body should be validated after the HTTP status check.
+            </small>
+        </div>
+
+        <div id="editExpectedResponseGroup" class="form-group" style="display:none;">
+            <label for="editExpectedResponse">Expected Response</label>
+            <textarea
+                id="editExpectedResponse"
+                class="form-input body-textarea"
+                placeholder='Example: success'
+                spellcheck="false"
+            ></textarea>
+            <small id="editExpectedResponseHelp" class="form-help">
+                Enter the expected response value.
             </small>
         </div>
 
@@ -2279,6 +2333,10 @@
         const authType = document.getElementById("authType").value;
         const apiKey = document.getElementById("apiKey").value.trim();
         const requestBody = document.getElementById("requestBody").value.trim();
+        const responseValidationType =
+            document.getElementById("responseValidationType").value;
+        const expectedResponse =
+            document.getElementById("expectedResponse").value.trim();
 
         let requestHeaders;
         try {
@@ -2325,6 +2383,20 @@
             }
         }
 
+        if (responseValidationType !== "none" && !expectedResponse) {
+            alert("Please enter an expected response for response validation.");
+            return;
+        }
+
+        if (responseValidationType === "json" && expectedResponse) {
+            try {
+                JSON.parse(expectedResponse);
+            } catch (error) {
+                alert("Expected response must contain valid JSON when JSON validation is selected.");
+                return;
+            }
+        }
+
         const payload = {
             name: name,
             url: url,
@@ -2334,7 +2406,11 @@
             auth_type: authType,
             response_time_threshold_ms: threshold,
             request_headers: requestHeaders,
-            request_body: ["POST", "PUT"].includes(method) ? requestBody : ""
+            request_body: ["POST", "PUT"].includes(method) ? requestBody : "",
+            response_validation_type: responseValidationType,
+            expected_response: responseValidationType !== "none"
+                ? expectedResponse
+                : ""
         };
 
         if (authType === "bearer" || authType === "x_api_key") {
@@ -2381,6 +2457,8 @@
             document.getElementById("threshold").value = "1000";
             document.getElementById("requestHeaders").value = "";
             document.getElementById("requestBody").value = "";
+            document.getElementById("responseValidationType").value = "none";
+            document.getElementById("expectedResponse").value = "";
             document.getElementById("authType").value = "none";
             document.getElementById("apiKey").value = "";
             document.getElementById("apiKey").type = "password";
@@ -2465,6 +2543,12 @@
             document.getElementById("editRequestBody").value =
                 api.request_body || "";
 
+            document.getElementById("editResponseValidationType").value =
+                api.response_validation_type || "none";
+
+            document.getElementById("editExpectedResponse").value =
+                api.expected_response || "";
+
             document.getElementById("editApiKey").value = "";
             document.getElementById("removeApiKey").checked = false;
 
@@ -2476,6 +2560,7 @@
 
             updateEditAuthUI();
             updateEditRequestBodyUI();
+            updateEditResponseValidationUI();
 
             document.getElementById("editModal")
                 .classList.add("show");
@@ -2530,6 +2615,12 @@
         const requestBody =
             document.getElementById("editRequestBody").value.trim();
 
+        const responseValidationType =
+            document.getElementById("editResponseValidationType").value;
+
+        const expectedResponse =
+            document.getElementById("editExpectedResponse").value.trim();
+
         let requestHeaders;
         try {
             requestHeaders = parseRequestHeaders(
@@ -2570,6 +2661,20 @@
             }
         }
 
+        if (responseValidationType !== "none" && !expectedResponse) {
+            alert("Please enter an expected response for response validation.");
+            return;
+        }
+
+        if (responseValidationType === "json" && expectedResponse) {
+            try {
+                JSON.parse(expectedResponse);
+            } catch (error) {
+                alert("Expected response must contain valid JSON when JSON validation is selected.");
+                return;
+            }
+        }
+
         const payload = {
             name: name,
             url: url,
@@ -2579,7 +2684,11 @@
             response_time_threshold_ms: threshold,
             auth_type: authType,
             request_headers: requestHeaders,
-            request_body: ["POST", "PUT"].includes(method) ? requestBody : ""
+            request_body: ["POST", "PUT"].includes(method) ? requestBody : "",
+            response_validation_type: responseValidationType,
+            expected_response: responseValidationType !== "none"
+                ? expectedResponse
+                : ""
         };
 
         if (removeApiKey || authType === "none") {
@@ -2665,6 +2774,59 @@
     function updateEditRequestBodyUI() {
         updateRequestBodyUI("editMethod", "editRequestBodyGroup");
     }
+
+    function updateResponseValidationUI(typeId, groupId, expectedId, helpId) {
+        const type = document.getElementById(typeId)?.value || "none";
+        const group = document.getElementById(groupId);
+        const expected = document.getElementById(expectedId);
+        const help = document.getElementById(helpId);
+
+        if (!group || !expected) return;
+
+        const needsExpected = ["contains", "exact", "json"].includes(type);
+
+        group.style.display = needsExpected ? "block" : "none";
+
+        if (!needsExpected) {
+            expected.value = "";
+            return;
+        }
+
+        if (help) {
+            if (type === "contains") {
+                help.textContent =
+                    "The response body must contain this text.";
+                expected.placeholder = "Example: success";
+            } else if (type === "exact") {
+                help.textContent =
+                    "The response body must exactly match this value.";
+                expected.placeholder = "Example: OK";
+            } else {
+                help.textContent =
+                    "The response body must be valid JSON and match this JSON value.";
+                expected.placeholder = '{\n  "status": "success"\n}';
+            }
+        }
+    }
+
+    function updateAddResponseValidationUI() {
+        updateResponseValidationUI(
+            "responseValidationType",
+            "addExpectedResponseGroup",
+            "expectedResponse",
+            "addExpectedResponseHelp"
+        );
+    }
+
+    function updateEditResponseValidationUI() {
+        updateResponseValidationUI(
+            "editResponseValidationType",
+            "editExpectedResponseGroup",
+            "editExpectedResponse",
+            "editExpectedResponseHelp"
+        );
+    }
+
 
     function updateAddAuthUI() {
 
@@ -2805,6 +2967,8 @@
         document.getElementById("threshold").value = "1000";
         document.getElementById("requestHeaders").value = "";
         document.getElementById("requestBody").value = "";
+        document.getElementById("responseValidationType").value = "none";
+        document.getElementById("expectedResponse").value = "";
 
         document.getElementById("authType").value = "none";
         document.getElementById("apiKey").value = "";
@@ -2904,6 +3068,8 @@
 
     updateAddRequestBodyUI();
     updateEditRequestBodyUI();
+    updateAddResponseValidationUI();
+    updateEditResponseValidationUI();
     loadAPIs();
 
 </script>
