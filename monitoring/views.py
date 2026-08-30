@@ -664,3 +664,37 @@ class GlobalAnalyticsView(APIView):
             'monitors': result,
             'default_period': period,
         })
+
+# ── Check Now ──────────────────────────────────────────────────────────────────
+class MonitorCheckNowView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            qs = APIMonitor.objects.all() if request.user.role == 'ADMIN' else APIMonitor.objects.filter(owner=request.user)
+            monitor = qs.get(pk=pk)
+        except APIMonitor.DoesNotExist:
+            return Response(
+                {'error': 'Not found'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        from .tasks import check_api_health
+
+        task = check_api_health.delay(monitor_id=monitor.id, force=True)
+
+        _log(
+            request.user,
+            'MONITOR_CHECK_NOW',
+            resource=monitor.name,
+            request=request,
+        )
+
+        return Response(
+            {
+                'id': monitor.id,
+                'task_id': task.id,
+                'message': 'Health check started.',
+            },
+            status=status.HTTP_202_ACCEPTED,
+        )
