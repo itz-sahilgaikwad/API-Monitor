@@ -1,4 +1,5 @@
 from django.db import models
+
 from django.conf import settings
 
 
@@ -24,6 +25,15 @@ class APIMonitor(models.Model):
         ("bearer", "Bearer API Key"),
         ("x_api_key", "X-API-Key"),
     )
+
+    RESPONSE_VALIDATION_TYPES = (
+        ("none", "No Response Validation"),
+        ("contains", "Response Contains Text"),
+        ("exact", "Exact Response Match"),
+        ("json", "JSON Response Validation"),
+    )
+
+    # Basic API configuration
 
     name = models.CharField(
         max_length=100
@@ -51,8 +61,14 @@ class APIMonitor(models.Model):
     )
 
     # Runtime state
+
     status = models.CharField(
         max_length=10,
+        choices=[
+            ("UP", "UP"),
+            ("SLOW", "SLOW"),
+            ("DOWN", "DOWN"),
+        ],
         default="UP"
     )
 
@@ -66,12 +82,14 @@ class APIMonitor(models.Model):
     )  # milliseconds
 
     # Slow response threshold
+
     response_time_threshold_ms = models.FloatField(
         default=1000,
         help_text="Response time threshold in milliseconds"
     )
 
     # Contact / authentication
+
     phone_number = models.CharField(
         max_length=20,
         blank=True,
@@ -91,19 +109,41 @@ class APIMonitor(models.Model):
     )
 
     # Custom request headers
+
     request_headers = models.JSONField(
         default=dict,
         blank=True
     )
 
     # Request body for POST / PUT / PATCH requests
+
     request_body = models.TextField(
         default="",
         blank=True,
         help_text="Optional request body for POST, PUT, and PATCH requests."
     )
 
+    # Response content validation
+
+    response_validation_type = models.CharField(
+        max_length=20,
+        choices=RESPONSE_VALIDATION_TYPES,
+        default="none",
+        help_text="How the API response should be validated."
+    )
+
+    expected_response = models.TextField(
+        blank=True,
+        default="",
+        help_text=(
+            "Expected response value. For 'contains', enter text that "
+            "must appear in the response. For 'exact', enter the exact "
+            "response text. For 'json', enter valid JSON."
+        )
+    )
+
     # Downtime tracking
+
     downtime_started_at = models.DateTimeField(
         null=True,
         blank=True
@@ -115,24 +155,28 @@ class APIMonitor(models.Model):
     )  # seconds
 
     # Monitoring interval
+
     check_interval = models.IntegerField(
         choices=INTERVAL_CHOICES,
         default=60
     )
 
     # Last health check
+
     last_checked_at = models.DateTimeField(
         null=True,
         blank=True
     )
 
     # Last error
+
     last_error = models.TextField(
         null=True,
         blank=True
     )
 
     # Cached uptime
+
     uptime_percentage = models.FloatField(
         null=True,
         blank=True

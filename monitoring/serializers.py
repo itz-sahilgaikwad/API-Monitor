@@ -47,6 +47,16 @@ class APIMonitorSerializer(serializers.ModelSerializer):
             "api_key",
             "has_api_key",
 
+            # Custom request headers
+            "request_headers",
+
+            # Request body
+            "request_body",
+
+            # Response validation
+            "response_validation_type",
+            "expected_response",
+
             # Downtime
             "downtime_started_at",
             "last_downtime_duration",
@@ -88,6 +98,24 @@ class APIMonitorSerializer(serializers.ModelSerializer):
                 "required": False,
                 "allow_blank": True,
                 "allow_null": True,
+            },
+
+            "request_headers": {
+                "required": False,
+            },
+
+            "request_body": {
+                "required": False,
+                "allow_blank": True,
+            },
+
+            "response_validation_type": {
+                "required": False,
+            },
+
+            "expected_response": {
+                "required": False,
+                "allow_blank": True,
             },
         }
 
@@ -191,6 +219,91 @@ class APIMonitorSerializer(serializers.ModelSerializer):
             "owner",
             None
         )
+
+        # =====================================================================
+        # RESPONSE VALIDATION
+        # =====================================================================
+
+        validation_type = attrs.get(
+            "response_validation_type",
+            getattr(
+                self.instance,
+                "response_validation_type",
+                "none"
+            )
+        )
+
+        expected_response = attrs.get(
+            "expected_response",
+            getattr(
+                self.instance,
+                "expected_response",
+                ""
+            )
+        )
+
+        validation_type = str(
+            validation_type
+        ).strip().lower()
+
+        # Only supported response validation types are allowed.
+        allowed_validation_types = {
+            "none",
+            "contains",
+            "exact",
+            "json",
+        }
+
+        if validation_type not in allowed_validation_types:
+            raise serializers.ValidationError({
+                "response_validation_type": (
+                    "Invalid response validation type. "
+                    "Choose none, contains, exact, or json."
+                )
+            })
+
+        # For validation types that require an expected response,
+        # make sure the value is actually provided.
+        if validation_type in {
+            "contains",
+            "exact",
+            "json",
+        }:
+
+            if not str(expected_response).strip():
+                raise serializers.ValidationError({
+                    "expected_response": (
+                        "Expected response is required when "
+                        "response validation is enabled."
+                    )
+                })
+
+        # JSON validation must contain valid JSON.
+        if validation_type == "json":
+
+            import json
+
+            try:
+                json.loads(
+                    expected_response
+                )
+            except (
+                TypeError,
+                ValueError,
+                json.JSONDecodeError
+            ):
+                raise serializers.ValidationError({
+                    "expected_response": (
+                        "Expected response must contain valid JSON "
+                        "when JSON validation is selected."
+                    )
+                })
+
+        # If validation is disabled, clear the expected response.
+        if validation_type == "none":
+
+            attrs["response_validation_type"] = "none"
+            attrs["expected_response"] = ""
 
         # =====================================================================
         # NEW MONITOR
@@ -383,4 +496,4 @@ class IncidentSerializer(
                 2
             )
 
-        return 0 
+        return 0

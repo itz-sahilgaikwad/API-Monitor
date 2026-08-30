@@ -7,573 +7,906 @@
     <meta name="description" content="API monitoring incidents dashboard">
 
     <style>
-        :root {
-            --primary: #6366f1;
-            --secondary: #8b5cf6;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --text: #1e293b;
-            --muted: #64748b;
-            --border: #e2e8f0;
-            --background: #f8fafc;
-            --white: #ffffff;
-        }
-
-        * { box-sizing: border-box; }
-
-        html, body { min-height: 100%; }
-
-        body {
-            margin: 0;
-            font-family: Inter, Arial, Helvetica, sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(99,102,241,.10), transparent 35%),
-                radial-gradient(circle at top right, rgba(139,92,246,.08), transparent 30%),
-                var(--background);
-            color: var(--text);
-        }
-
-        body.modal-open { overflow: hidden; }
-
-        button, input, select { font: inherit; }
-
-        .layout { min-height: 100vh; display: flex; }
-
-        .sidebar {
-            width: 250px;
-            min-width: 250px;
-            max-width: 250px;
-            flex: 0 0 250px;
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            overflow-x: hidden;
-            overflow-y: auto;
-            background: rgba(255,255,255,.90);
-            border-right: 1px solid var(--border);
-            padding: 26px 18px;
-            z-index: 20;
-            backdrop-filter: blur(15px);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .brand {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 0 10px;
-            margin-bottom: 35px;
-        }
-
-        .brand-logo {
-            width: 42px;
-            height: 42px;
-            flex: 0 0 42px;
-            border-radius: 12px;
-            display: grid;
-            place-items: center;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: #fff;
-            font-size: 20px;
-            font-weight: 800;
-            box-shadow: 0 8px 20px rgba(99,102,241,.25);
-        }
-
-        .brand-title { color: var(--text); font-size: 17px; font-weight: 800; }
-        .brand-subtitle { margin-top: 2px; color: var(--muted); font-size: 11px; }
-
-        .menu-label {
-            padding: 0 12px;
-            margin-bottom: 10px;
-            color: #94a3b8;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: .08em;
-        }
-
-        .nav { display: flex; flex-direction: column;
-    gap: 5px; }
-
-        .nav a {
-    padding: 0 13px;
-    height: 45px;
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            border-radius: 10px;
-            color: #64748b;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            transition: .2s ease;
-        }
-
-        .nav a:hover { background: #f1f5f9; color: var(--primary); }
-
-        .nav a.active {
-            color: var(--primary);
-            background: linear-gradient(135deg, rgba(99,102,241,.12), rgba(139,92,246,.08));
-        }
-
-        .sidebar-system {
-            margin-top: auto;
-            padding: 14px 12px;
-            border: 1px solid #dfe5ee;
-            border-radius: 10px;
-            background: rgba(255,255,255,.75);
-        }
-
-        .sidebar-system-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #334155;
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .online-dot {
-            width: 8px;
-            height: 8px;
-            flex: 0 0 8px;
-            border-radius: 50%;
-            background: #10b981;
-            box-shadow: 0 0 0 4px rgba(16,185,129,.10);
-        }
-
-        .sidebar-system-subtitle {
-            margin-top: 7px;
-            padding-left: 16px;
-            color: #64748b;
-            font-size: 10px;
-        }
-
-        .main {
-            margin-left: 250px;
-            width: calc(100% - 250px);
-            min-width: 0;
-            padding: 30px 35px 60px;
-        }
-
-        .topbar {
-            max-width: 1160px;
-            margin: 0 auto 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .eyebrow {
-            color: var(--danger);
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-        }
-
-        h1 {
-            margin: 7px 0 5px;
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: 28px;
-            line-height: 1.1;
-            letter-spacing: -.03em;
-        }
-
-        .subtitle { margin: 0; color: var(--muted); font-size: 14px; }
-
-        .top-actions { display: flex; align-items: center; gap: 10px; }
-
-        .btn {
-            height: 42px;
-            padding: 0 16px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: #fff;
-            color: #475569;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .btn:hover { background: #f8fafc; transform: translateY(-1px); }
-
-        .btn-primary {
-            border-color: transparent;
-            color: #fff;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            box-shadow: 0 8px 20px rgba(99,102,241,.20);
-        }
-
-        .btn:disabled { opacity: .65; cursor: wait; transform: none; }
-
-        .summary {
-            max-width: 1160px;
-            margin: 0 auto 25px;
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 18px;
-        }
-
-        .metric {
-            min-height: 116px;
-            padding: 20px;
-            background: rgba(255,255,255,.94);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(15,23,42,.04);
-        }
-
-        .metric-label { color: var(--muted); font-size: 11px; font-weight: 700; }
-
-        .metric-value {
-            margin-top: 10px;
-            font-family: Georgia, "Times New Roman", serif;
-            color: var(--text);
-            font-size: 29px;
-            font-weight: 800;
-        }
-
-        .metric-value.red { color: var(--danger); }
-        .metric-value.green { color: var(--success); }
-
-        .card {
-            max-width: 1160px;
-            margin: 0 auto;
-            background: rgba(255,255,255,.94);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 8px 30px rgba(15,23,42,.04);
-        }
-
-        .card-header {
-            min-height: 68px;
-            padding: 18px 22px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 18px;
-        }
-
-        .card-title {
-            margin: 0;
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: 17px;
-            font-weight: 800;
-        }
-
-        .card-subtitle { margin-top: 4px; color: var(--muted); font-size: 12px; }
-
-        .filters { display: flex; align-items: center; gap: 10px; }
-
-        .search, .select {
-            height: 38px;
-            border: 1px solid #dfe5ee;
-            border-radius: 9px;
-            background: #fff;
-            color: #334155;
-            outline: none;
-            font-size: 12px;
-        }
-
-        .search { width: 220px; padding: 0 12px; }
-        .select { width: 130px; padding: 0 10px; }
-
-        .search:focus, .select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99,102,241,.10);
-        }
-
-        .state, .empty, .error {
-            padding: 58px 20px;
-            text-align: center;
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .error { color: var(--danger); }
-        .error strong { display: block; margin-bottom: 7px; }
-
-        .loader {
-            width: 28px;
-            height: 28px;
-            margin: 0 auto 12px;
-            border: 3px solid #e5e7eb;
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin .8s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .table-wrap { width: 100%; overflow-x: auto; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 850px;
-        }
-
-        th {
-            padding: 13px 14px;
-            text-align: left;
-            color: #64748b;
-            background: #f8fafc;
-            border-bottom: 1px solid var(--border);
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-        }
-
-        td {
-            padding: 15px 14px;
-            border-bottom: 1px solid #eef1f5;
-            color: #334155;
-            font-size: 12px;
-            vertical-align: middle;
-        }
-
-        tbody tr:last-child td { border-bottom: 0; }
-        tbody tr:hover { background: #fafbff; }
-
-        .name { color: #1e293b; font-size: 13px; font-weight: 800; }
-        .url { margin-top: 4px; color: #64748b; font-size: 10px; word-break: break-all; }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 9px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .badge.open { color: #dc2626; background: #fff1f2; }
-        .badge.down { color: #b45309; background: #fffbeb; }
-        .badge.resolved { color: #059669; background: #ecfdf5; }
-        .badge.unknown { color: #475569; background: #f1f5f9; }
-
-        .view-btn {
-            height: 34px;
-            padding: 0 14px;
-            border: 1px solid #cfd7ff;
-            border-radius: 9px;
-            background: #f8f8ff;
-            color: #4f46e5;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .view-btn:hover {
-            background: #eef0ff;
-            border-color: #aeb8ff;
-        }
-
-        /* Incident details modal */
-        #incidentModal {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-        }
-
-        .incident-modal-backdrop {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            background: rgba(15,23,42,.55);
-            backdrop-filter: blur(5px);
-            opacity: 0;
-            transition: opacity .15s ease;
-        }
-
-        #incidentModal.show .incident-modal-backdrop { opacity: 1; }
-
-        .incident-modal {
-            width: min(680px, 100%);
-            max-height: 90vh;
-            overflow-y: auto;
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 18px;
-            box-shadow: 0 25px 70px rgba(15,23,42,.25);
-            transform: translateY(10px) scale(.98);
-            transition: transform .15s ease;
-        }
-
-        #incidentModal.show .incident-modal { transform: translateY(0) scale(1); }
-
-        .incident-modal-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 20px;
-            padding: 22px 24px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .incident-modal-eyebrow {
-            color: var(--primary);
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: .08em;
-        }
-
-        .incident-modal h2 {
-            margin: 6px 0 0;
-            color: #1e293b;
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: 23px;
-        }
-
-        .incident-modal-close {
-            width: 34px;
-            height: 34px;
-            border: 1px solid #e2e8f0;
-            border-radius: 9px;
-            background: #fff;
-            color: #64748b;
-            cursor: pointer;
-            font-size: 22px;
-            line-height: 1;
-        }
-
-        .incident-modal-close:hover { background: #f8fafc; color: #1e293b; }
-        .incident-modal-status { padding: 18px 24px 0; }
-
-        .incident-detail-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-            padding: 18px 24px;
-        }
-
-        .incident-detail-box {
-            padding: 13px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-        }
-
-        .incident-detail-label {
-            color: #94a3b8;
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-        }
-
-        .incident-detail-value {
-            margin-top: 6px;
-            color: #334155;
-            font-size: 12px;
-            font-weight: 700;
-            word-break: break-word;
-        }
-
-        .incident-url-detail { font-weight: 500; }
-
-        .incident-reason-box {
-            margin: 0 24px 18px;
-            padding: 14px;
-            background: #fff7ed;
-            border: 1px solid #fed7aa;
-            border-radius: 10px;
-        }
-
-        .incident-reason-text {
-            margin-top: 6px;
-            color: #9a3412;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .incident-modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            padding: 16px 24px;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        @media (max-width: 1000px) {
-            .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .card-header { align-items: flex-start; flex-direction: column; }
-            .filters { width: 100%; }
-            .search { flex: 1; width: auto; }
-        }
-
-        @media (max-width: 720px) {
-            .layout { display: block; }
-
-            .sidebar {
-                position: static;
-                width: 100%;
-                min-width: 0;
-                max-width: none;
-                border-right: 0;
-                border-bottom: 1px solid var(--border);
-                padding: 14px;
-            }
-
-            .brand { margin-bottom: 15px; }
-            .menu-label { display: none; }
-
-            .nav {
-                display: grid;
-                grid-template-columns: repeat(5, 1fr);
-            }
-
-            .nav a {
-    padding: 0 13px;
-    height: 45px;
-                justify-content: center;
-                padding: 10px 5px;
-                font-size: 10px;
-            }
-
-            .main {
-                width: 100%;
-                margin-left: 0;
-                padding: 24px 16px 45px;
-            }
-
-            .topbar { display: block; margin-bottom: 22px; }
-            .top-actions { margin-top: 15px; width: 100%; }
-            .top-actions .btn { flex: 1; }
-            .summary { grid-template-columns: 1fr 1fr; gap: 12px; }
-            .filters { flex-direction: column; align-items: stretch; }
-            .search, .select { width: 100%; }
-            .sidebar-system { display: none; }
-        }
-
-        @media (max-width: 480px) {
-            .summary { grid-template-columns: 1fr; }
-            .incident-detail-grid { grid-template-columns: 1fr; }
-            .incident-modal-backdrop { padding: 12px; }
-            .incident-modal-header { padding: 18px; }
-        }
-    </style>
+:root {
+    --primary: #6366f1;
+    --secondary: #8b5cf6;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --background: #f8fafc;
+    --white: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+html, body { min-height: 100%; }
+
+body {
+    margin: 0;
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    background:
+        radial-gradient(circle at top left, rgba(99,102,241,.10), transparent 35%),
+        radial-gradient(circle at top right, rgba(139,92,246,.08), transparent 30%),
+        var(--background);
+    color: var(--text);
+}
+
+button, input, select { font: inherit; }
+
+.layout { min-height: 100vh; display: flex; }
+
+.sidebar {
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    flex: 0 0 250px !important;
+    min-height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: rgba(255,255,255,.90);
+    border-right: 1px solid var(--border);
+    padding: 26px 18px;
+    z-index: 20;
+    backdrop-filter: blur(15px);
+}
+
+.brand {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 10px;
+    margin-bottom: 35px;
+}
+
+.brand-logo {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    font-size: 20px;
+    font-weight: 800;
+    box-shadow: 0 8px 20px rgba(99,102,241,.25);
+}
+
+.brand > div:last-child { min-width: 0; }
+
+.brand-title {
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.brand-subtitle {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.menu-label {
+    padding: 0 12px;
+    margin-bottom: 10px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.nav a {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 13px;
+    border-radius: 10px;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: .2s ease;
+}
+
+.nav a:hover { background: #f1f5f9; color: var(--primary); }
+.nav a.active {
+    color: var(--primary);
+    background: linear-gradient(135deg, rgba(99,102,241,.12), rgba(139,92,246,.08));
+}
+
+.main {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-width: 0;
+    padding: 30px 36px 60px;
+}
+
+.topbar {
+    max-width: 1160px;
+    margin: 0 auto 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.eyebrow {
+    color: var(--danger);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+h1 {
+    margin: 7px 0 5px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 28px;
+    line-height: 1.1;
+    letter-spacing: -.03em;
+}
+
+.subtitle {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn {
+    height: 42px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.btn:hover { background: #f8fafc; transform: translateY(-1px); }
+
+.btn-primary {
+    border-color: transparent;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow: 0 8px 20px rgba(99,102,241,.20);
+}
+
+.summary,
+.incidents-card {
+    max-width: 1048px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.metric {
+    min-height: 116px;
+    padding: 20px;
+    background: rgba(255,255,255,.94);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(15,23,42,.04);
+}
+
+.metric-label {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.metric-value {
+    margin-top: 10px;
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--text);
+    font-size: 29px;
+    font-weight: 800;
+}
+
+.metric-value.open { color: var(--danger); }
+.metric-value.resolved { color: var(--success); }
+
+.incidents-card {
+    background: #ffffff;
+    border: 1px solid #dfe5ee;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(15,23,42,.05);
+}
+
+/* Incident history card + table layout */
+.card {
+    max-width: 1048px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #ffffff;
+    border: 1px solid #dfe5ee;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(15,23,42,.05);
+}
+
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+table {
+    width: 100%;
+    min-width: 940px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+thead {
+    background: #fbfcfe;
+}
+
+th {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--border);
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    text-align: left;
+    white-space: nowrap;
+}
+
+td {
+    padding: 16px 14px;
+    border-bottom: 1px solid #eef1f5;
+    color: #334155;
+    font-size: 12px;
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+}
+
+tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+tbody tr:hover {
+    background: #fafbff;
+}
+
+th:nth-child(1), td:nth-child(1) { width: 19%; }
+th:nth-child(2), td:nth-child(2) { width: 27%; }
+th:nth-child(3), td:nth-child(3) { width: 13%; }
+th:nth-child(4), td:nth-child(4) { width: 13%; }
+th:nth-child(5), td:nth-child(5) { width: 13%; }
+th:nth-child(6), td:nth-child(6) { width: 8%; }
+th:nth-child(7), td:nth-child(7) { width: 7%; }
+
+.name {
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.url {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 10px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+td:nth-child(2) {
+    line-height: 1.35;
+}
+
+td:nth-child(4),
+td:nth-child(5),
+td:nth-child(6) {
+    white-space: nowrap;
+}
+
+td:nth-child(7) {
+    text-align: center;
+}
+
+.metric-value.red {
+    color: var(--danger);
+}
+
+.metric-value.green {
+    color: var(--success);
+}
+
+.badge.open {
+    color: #dc2626;
+    background: #fff1f2;
+}
+
+.badge.down {
+    color: #dc2626;
+    background: #fff1f2;
+}
+
+.badge.unknown {
+    color: #64748b;
+    background: #f1f5f9;
+}
+
+.card-header {
+    min-height: 68px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.card-title {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.card-subtitle {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search, .select {
+    height: 38px;
+    border: 1px solid #dfe5ee;
+    border-radius: 9px;
+    background: #fff;
+    color: #334155;
+    outline: none;
+    font-size: 12px;
+}
+
+.search {
+    width: 220px;
+    padding: 0 12px;
+}
+
+.select {
+    width: 130px;
+    padding: 0 10px;
+}
+
+.search:focus, .select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99,102,241,.10);
+}
+
+#incidentContent {
+    min-height: 120px;
+}
+
+.state, .empty, .error {
+    padding: 58px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.error { color: var(--danger); }
+.error strong { display: block; margin-bottom: 7px; }
+
+.loader {
+    width: 28px;
+    height: 28px;
+    margin: 0 auto 12px;
+    border: 3px solid #e5e7eb;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.incident {
+    padding: 20px 22px;
+    border-bottom: 1px solid #eef1f5;
+}
+
+.incident:last-child { border-bottom: 0; }
+
+.incident-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.incident-name {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.incident-url {
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 11px;
+    word-break: break-all;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.badge.ongoing {
+    color: #dc2626;
+    background: #fff1f2;
+}
+
+.badge.resolved {
+    color: #059669;
+    background: #ecfdf5;
+}
+
+.incident-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.detail {
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.detail-label {
+    color: #94a3b8;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.detail-value {
+    margin-top: 5px;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.reason {
+    margin-top: 12px;
+    padding: 11px 13px;
+    border-radius: 9px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 11px;
+}
+
+@media (max-width: 1000px) {
+    .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card-header { align-items: flex-start; flex-direction: column; }
+    .filters { width: 100%; }
+    .search { flex: 1; width: auto; }
+}
+
+@media (max-width: 720px) {
+    .layout { display: block; }
+
+    .sidebar {
+        position: static;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+        padding: 14px;
+    }
+
+    .brand { margin-bottom: 15px; }
+    .menu-label { display: none; }
+
+    .nav {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .nav a {
+        justify-content: center;
+        padding: 10px 5px;
+        font-size: 10px;
+    }
+
+    .main {
+        width: 100%;
+        margin-left: 0;
+        padding: 24px 16px 45px;
+    }
+
+    .topbar {
+        display: block;
+        margin-bottom: 22px;
+    }
+
+    .top-actions {
+        margin-top: 15px;
+        width: 100%;
+    }
+
+    .top-actions .btn { flex: 1; }
+
+    .summary { grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search, .select { width: 100%; }
+
+    .incident-grid { grid-template-columns: 1fr 1fr; }
+
+    .card-header {
+        padding: 16px;
+    }
+
+    table {
+        min-width: 940px;
+    }
+}
+
+@media (max-width: 480px) {
+    .summary { grid-template-columns: 1fr; }
+    .incident-grid { grid-template-columns: 1fr; }
+    .incident-top { flex-direction: column; }
+}
+
+/* ============================================================
+   ADVANCED INCIDENT MANAGEMENT
+   Additive styles only — existing page styling is preserved.
+   ============================================================ */
+.active-incidents-card {
+    max-width: 1048px;
+    margin: 0 auto 25px;
+    background: #fff;
+    border: 1px solid #dfe5ee;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(15,23,42,.05);
+}
+.active-header {
+    min-height: 68px;
+    padding: 18px 22px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+.active-title {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    font-weight: 800;
+    margin: 0;
+}
+.active-subtitle {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 12px;
+}
+.active-list {
+    padding: 0;
+}
+.active-empty {
+    padding: 38px 22px;
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+}
+.active-item {
+    padding: 18px 22px;
+    border-bottom: 1px solid #eef1f5;
+}
+.active-item:last-child { border-bottom: 0; }
+.active-item-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+.active-api-name {
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 800;
+}
+.active-api-url {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 11px;
+    word-break: break-all;
+}
+.active-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-top: 12px;
+    color: #64748b;
+    font-size: 11px;
+}
+.active-meta strong { color: #334155; }
+.live-duration { color: #dc2626; font-weight: 800; }
+
+.incident-timeline {
+    margin-top: 15px;
+}
+.timeline-track {
+    height: 8px;
+    border-radius: 999px;
+    background: #eef2f7;
+    overflow: hidden;
+    position: relative;
+}
+.timeline-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ef4444, #f97316);
+}
+.timeline-fill.resolved {
+    background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+}
+.timeline-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    color: #94a3b8;
+    font-size: 9px;
+}
+.timeline-labels strong { color: #64748b; }
+
+.incident-row-clickable { cursor: pointer; }
+.incident-row-clickable:hover { background: #fafbff; }
+.view-btn {
+    height: 32px;
+    padding: 0 11px;
+    border: 1px solid #dfe5ee;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.view-btn:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+    background: #f8f7ff;
+}
+
+.incident-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+}
+.incident-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,23,42,.45);
+    backdrop-filter: blur(3px);
+}
+.incident-modal-card {
+    position: relative;
+    width: min(680px, calc(100% - 32px));
+    max-height: calc(100vh - 40px);
+    overflow: auto;
+    margin: 20px auto;
+    background: #fff;
+    border: 1px solid #dfe5ee;
+    border-radius: 16px;
+    box-shadow: 0 24px 70px rgba(15,23,42,.22);
+}
+.incident-modal-header {
+    padding: 20px 22px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+.incident-modal-eyebrow {
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-size: 10px;
+    font-weight: 800;
+}
+.incident-modal-header h2 {
+    margin: 6px 0 4px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 22px;
+    color: #1e293b;
+}
+.incident-modal-url {
+    color: #64748b;
+    font-size: 11px;
+    word-break: break-all;
+}
+.incident-modal-close {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #dfe5ee;
+    border-radius: 9px;
+    background: #fff;
+    color: #64748b;
+    font-size: 20px;
+    cursor: pointer;
+}
+.incident-modal-body { padding: 20px 22px 24px; }
+.modal-status-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.modal-status {
+    display: inline-flex;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+}
+.modal-status.open,
+.modal-status.down {
+    color: #dc2626;
+    background: #fff1f2;
+}
+.modal-status.resolved {
+    color: #059669;
+    background: #ecfdf5;
+}
+.modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 12px;
+}
+.modal-detail {
+    padding: 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+.modal-detail-label {
+    color: #94a3b8;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+.modal-detail-value {
+    margin-top: 5px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+.modal-reason {
+    margin-top: 12px;
+    padding: 12px 13px;
+    border-radius: 9px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 11px;
+}
+.modal-timeline-title {
+    margin: 20px 0 9px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+}
+.modal-timeline {
+    position: relative;
+    padding-left: 24px;
+}
+.modal-timeline::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 5px;
+    bottom: 5px;
+    width: 2px;
+    background: #e2e8f0;
+}
+.modal-event {
+    position: relative;
+    margin-bottom: 17px;
+}
+.modal-event:last-child { margin-bottom: 0; }
+.modal-event::before {
+    content: "";
+    position: absolute;
+    left: -22px;
+    top: 3px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 3px #fff;
+}
+.modal-event.resolved::before { background: #10b981; }
+.modal-event-title {
+    color: #334155;
+    font-size: 11px;
+    font-weight: 800;
+}
+.modal-event-time {
+    margin-top: 3px;
+    color: #64748b;
+    font-size: 10px;
+}
+.modal-event-note {
+    margin-top: 3px;
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+@media (max-width: 720px) {
+    .active-item-top { flex-direction: column; }
+    .modal-grid { grid-template-columns: 1fr; }
+}
+
+</style>
 </head>
 
 <body>
+
 <div class="layout">
 
     <aside class="sidebar">
+
         <div class="brand">
             <div class="brand-logo">A</div>
+
             <div>
                 <div class="brand-title">API Monitor</div>
                 <div class="brand-subtitle">Monitoring Platform</div>
@@ -590,30 +923,38 @@
             <a href="/app/settings.html">⚙ <span>Settings</span></a>
         </nav>
 
-        <div class="sidebar-system">
-            <div class="sidebar-system-title">
-                <span class="online-dot"></span>
-                System Online
-            </div>
-            <div class="sidebar-system-subtitle">All systems operational</div>
-        </div>
     </aside>
 
     <main class="main">
+
         <header class="topbar">
+
             <div>
                 <div class="eyebrow">Incident management</div>
                 <h1>Incidents</h1>
-                <p class="subtitle">Review API failures, downtime events, and recovery history.</p>
+                <p class="subtitle">
+                    Review API failures, downtime events, and recovery history.
+                </p>
             </div>
 
             <div class="top-actions">
-                <button class="btn" type="button" onclick="goDashboard()">← Dashboard</button>
-                <button class="btn btn-primary" id="refreshBtn" type="button" onclick="loadIncidents()">↻ Refresh</button>
+                <button class="btn" onclick="goDashboard()">
+                    ← Dashboard
+                </button>
+
+                <button
+                    class="btn btn-primary"
+                    id="refreshBtn"
+                    onclick="loadIncidents()"
+                >
+                    ↻ Refresh
+                </button>
             </div>
+
         </header>
 
         <section class="summary">
+
             <div class="metric">
                 <div class="metric-label">Total Incidents</div>
                 <div class="metric-value" id="totalCount">—</div>
@@ -633,16 +974,36 @@
                 <div class="metric-label">Affected APIs</div>
                 <div class="metric-value" id="affectedCount">—</div>
             </div>
+
+        </section>
+
+
+        <section class="active-incidents-card">
+            <div class="active-header">
+                <div>
+                    <h2 class="active-title">Active Incidents</h2>
+                    <p class="active-subtitle">APIs currently experiencing confirmed downtime.</p>
+                </div>
+                <span class="live" id="activeLive">● Live</span>
+            </div>
+            <div id="activeIncidentList" class="active-list">
+                <div class="active-empty">Loading active incidents...</div>
+            </div>
         </section>
 
         <section class="card">
+
             <div class="card-header">
+
                 <div>
                     <h2 class="card-title">Incident History</h2>
-                    <p class="card-subtitle">All incidents returned by the monitoring backend.</p>
+                    <p class="card-subtitle">
+                        All incidents returned by the monitoring backend.
+                    </p>
                 </div>
 
                 <div class="filters">
+
                     <input
                         id="search"
                         class="search"
@@ -652,23 +1013,34 @@
                         oninput="applyFilters()"
                     >
 
-                    <select id="statusFilter" class="select" onchange="applyFilters()">
+                    <select
+                        id="statusFilter"
+                        class="select"
+                        onchange="applyFilters()"
+                    >
                         <option value="all">All statuses</option>
                         <option value="open">Open</option>
                         <option value="resolved">Resolved</option>
                         <option value="down">Down</option>
                     </select>
+
                 </div>
+
             </div>
 
             <div id="incidentContent">
+
                 <div class="state">
                     <div class="loader"></div>
                     Loading incidents...
                 </div>
+
             </div>
+
         </section>
+
     </main>
+
 </div>
 
 <script>
@@ -679,7 +1051,6 @@
     }
 
     let allIncidents = [];
-    let currentIncidentItems = [];
 
     function goDashboard() {
         window.location.href = "/app/dashboard.html";
@@ -693,8 +1064,12 @@
     }
 
     async function loadIncidents() {
-        const container = document.getElementById("incidentContent");
-        const button = document.getElementById("refreshBtn");
+
+        const container =
+            document.getElementById("incidentContent");
+
+        const button =
+            document.getElementById("refreshBtn");
 
         button.textContent = "↻ Loading...";
         button.disabled = true;
@@ -707,6 +1082,7 @@
         `;
 
         try {
+
             const response = await fetch(
                 "/api/monitoring/incidents/",
                 {
@@ -715,111 +1091,64 @@
                 }
             );
 
-            if (response.status === 401 || response.status === 403) {
+            if (
+                response.status === 401 ||
+                response.status === 403
+            ) {
                 localStorage.removeItem("access_token");
                 localStorage.removeItem("refresh_token");
-                window.location.href = "/app/user_login.html";
+                window.location.href =
+                    "/app/user_login.html";
                 return;
             }
 
             if (!response.ok) {
                 throw new Error(
-                    "Incident request returned HTTP " + response.status
+                    "Incident request returned HTTP " +
+                    response.status
                 );
             }
 
-            const data = await response.json();
+            const data =
+                await response.json();
 
-            /*
-             * Incident records do not always include the monitor URL.
-             * Load the monitor list as well and use monitor_id to attach
-             * the correct API URL to every incident.
-             */
-            let monitorMap = {};
-
-            try {
-                const monitorResponse = await fetch(
-                    "/api/monitoring/",
-                    {
-                        method: "GET",
-                        headers: authHeaders()
-                    }
-                );
-
-                if (monitorResponse.status === 401 || monitorResponse.status === 403) {
-                    localStorage.removeItem("access_token");
-                    localStorage.removeItem("refresh_token");
-                    window.location.href = "/app/user_login.html";
-                    return;
-                }
-
-                if (monitorResponse.ok) {
-                    const monitorData = await monitorResponse.json();
-                    const monitors = Array.isArray(monitorData)
-                        ? monitorData
-                        : Array.isArray(monitorData?.results)
-                            ? monitorData.results
-                            : Array.isArray(monitorData?.data)
-                                ? monitorData.data
-                                : [];
-
-                    monitors.forEach(monitor => {
-                        if (monitor && monitor.id !== undefined && monitor.id !== null) {
-                            monitorMap[String(monitor.id)] = {
-                                name: monitor.name || "",
-                                url: monitor.url || ""
-                            };
-                        }
-                    });
-                }
-            } catch (monitorError) {
-                console.warn("Unable to load monitor details:", monitorError);
-            }
-
-            allIncidents = normalizeIncidentResponse(data).map(incident => {
-                const rawMonitor = firstValue(
-                    incident.monitor_id,
-                    incident.monitorId,
-                    incident.api_id,
-                    incident.monitor
-                );
-
-                const monitorId =
-                    rawMonitor && typeof rawMonitor === "object"
-                        ? firstValue(rawMonitor.id, rawMonitor.pk)
-                        : rawMonitor;
-
-                const monitor = monitorMap[String(monitorId)] || {};
-
-                return {
-                    ...incident,
-                    monitor_url: monitor.url || "",
-                    monitor_name: monitor.name || ""
-                };
-            });
+            allIncidents =
+                normalizeIncidentResponse(data);
 
             updateSummary();
+            renderActiveIncidents();
             applyFilters();
 
         } catch (error) {
-            console.error("Incident loading error:", error);
+
+            console.error(
+                "Incident loading error:",
+                error
+            );
 
             container.innerHTML = `
                 <div class="error">
                     <strong>Unable to load incidents</strong>
-                    <div>Check the backend incident endpoint.</div>
+                    <div>
+                        Check the backend incident endpoint.
+                    </div>
                     <div style="margin-top:8px;color:#94a3b8;font-size:9px;">
                         ${escapeHTML(error.message)}
                     </div>
                 </div>
             `;
+
         } finally {
+
             button.textContent = "↻ Refresh";
             button.disabled = false;
+
         }
+
     }
 
     function normalizeIncidentResponse(data) {
+
         if (Array.isArray(data)) {
             return data;
         }
@@ -828,19 +1157,38 @@
             return [];
         }
 
-        if (Array.isArray(data.results)) return data.results;
-        if (Array.isArray(data.incidents)) return data.incidents;
-        if (Array.isArray(data.data)) return data.data;
+        if (Array.isArray(data.results)) {
+            return data.results;
+        }
 
-        if (data.data && typeof data.data === "object") {
-            if (Array.isArray(data.data.results)) return data.data.results;
-            if (Array.isArray(data.data.incidents)) return data.data.incidents;
+        if (Array.isArray(data.incidents)) {
+            return data.incidents;
+        }
+
+        if (Array.isArray(data.data)) {
+            return data.data;
+        }
+
+        if (
+            data.data &&
+            typeof data.data === "object"
+        ) {
+
+            if (Array.isArray(data.data.results)) {
+                return data.data.results;
+            }
+
+            if (Array.isArray(data.data.incidents)) {
+                return data.data.incidents;
+            }
+
         }
 
         return [];
     }
 
     function normalizeIncident(item) {
+
         const incident = item || {};
 
         const rawStatus = String(
@@ -866,29 +1214,37 @@
             rawStatus.includes("ongoing") ||
             rawStatus.includes("down")
         ) {
-            status = rawStatus.includes("down") ? "down" : "open";
+            status = rawStatus.includes("down")
+                ? "down"
+                : "open";
         }
 
         const monitorId = firstValue(
             incident.monitor_id,
-            incident.monitorId,
+            incident.monitor,
             incident.api_id,
-            incident.monitor
+            incident.monitorId
         );
 
         return {
-            id: firstValue(incident.id, incident.incident_id),
+
+            id: firstValue(
+                incident.id,
+                incident.incident_id
+            ),
 
             monitorId:
                 typeof monitorId === "object"
-                    ? firstValue(monitorId.id, monitorId.pk)
+                    ? firstValue(
+                        monitorId.id,
+                        monitorId.pk
+                    )
                     : monitorId,
 
             name: firstValue(
                 incident.monitor_name,
                 incident.api_name,
                 incident.name,
-                incident.monitor_name,
                 typeof incident.monitor === "object"
                     ? incident.monitor.name
                     : null,
@@ -898,7 +1254,6 @@
             url: firstValue(
                 incident.url,
                 incident.api_url,
-                incident.monitor_url,
                 typeof incident.monitor === "object"
                     ? incident.monitor.url
                     : null,
@@ -934,84 +1289,125 @@
                 incident.duration,
                 incident.duration_seconds,
                 incident.duration_ms
+            ),
+            reason: firstValue(
+                incident.reason,
+                incident.message,
+                incident.error,
+                incident.error_message
             )
+
         };
+
     }
 
     function updateSummary() {
-        const normalized = allIncidents.map(normalizeIncident);
 
-        const open = normalized.filter(item =>
-            item.status === "open" || item.status === "down"
-        );
+        const normalized =
+            allIncidents.map(normalizeIncident);
 
-        const resolved = normalized.filter(item =>
-            item.status === "resolved"
-        );
+        const open =
+            normalized.filter(item =>
+                item.status === "open" ||
+                item.status === "down"
+            );
 
-        const affected = new Set(
-            normalized
-                .map(item => item.monitorId ?? item.name)
-                .filter(Boolean)
-        );
+        const resolved =
+            normalized.filter(item =>
+                item.status === "resolved"
+            );
 
-        document.getElementById("totalCount").textContent =
+        const affected =
+            new Set(
+                normalized
+                    .map(item => item.monitorId ?? item.name)
+                    .filter(Boolean)
+            );
+
+        document.getElementById("totalCount")
+            .textContent =
             formatNumber(normalized.length);
 
-        document.getElementById("openCount").textContent =
+        document.getElementById("openCount")
+            .textContent =
             formatNumber(open.length);
 
-        document.getElementById("resolvedCount").textContent =
+        document.getElementById("resolvedCount")
+            .textContent =
             formatNumber(resolved.length);
 
-        document.getElementById("affectedCount").textContent =
+        document.getElementById("affectedCount")
+            .textContent =
             formatNumber(affected.size);
+
     }
 
     function applyFilters() {
-        const search = document
-            .getElementById("search")
-            .value
-            .trim()
-            .toLowerCase();
 
-        const filter = document.getElementById("statusFilter").value;
+        const search =
+            document.getElementById("search")
+                .value
+                .trim()
+                .toLowerCase();
 
-        const normalized = allIncidents.map(normalizeIncident);
+        const filter =
+            document.getElementById("statusFilter")
+                .value;
 
-        const filtered = normalized.filter(item => {
-            const matchesSearch =
-                !search ||
-                String(item.name).toLowerCase().includes(search) ||
-                String(item.url).toLowerCase().includes(search) ||
-                String(item.title).toLowerCase().includes(search);
+        const normalized =
+            allIncidents.map(normalizeIncident);
 
-            const matchesStatus =
-                filter === "all" || item.status === filter;
+        const filtered =
+            normalized.filter(item => {
 
-            return matchesSearch && matchesStatus;
-        });
+                const matchesSearch =
+                    !search ||
+                    String(item.name)
+                        .toLowerCase()
+                        .includes(search) ||
+                    String(item.url)
+                        .toLowerCase()
+                        .includes(search) ||
+                    String(item.title)
+                        .toLowerCase()
+                        .includes(search);
+
+                const matchesStatus =
+                    filter === "all" ||
+                    item.status === filter;
+
+                return (
+                    matchesSearch &&
+                    matchesStatus
+                );
+
+            });
 
         renderTable(filtered);
+
     }
 
     function renderTable(items) {
-        const container = document.getElementById("incidentContent");
 
-        currentIncidentItems = items;
+        const container =
+            document.getElementById("incidentContent");
 
         if (!items.length) {
+
             container.innerHTML = `
                 <div class="empty">
                     No incidents match the current filters.
                 </div>
             `;
+
             return;
         }
 
         container.innerHTML = `
             <div class="table-wrap">
+
                 <table>
+
                     <thead>
                         <tr>
                             <th>API</th>
@@ -1025,7 +1421,9 @@
                     </thead>
 
                     <tbody>
-                        ${items.map((item, index) => {
+
+                        ${items.map(item => {
+
                             const badge =
                                 item.status === "resolved"
                                     ? `<span class="badge resolved">● RESOLVED</span>`
@@ -1037,197 +1435,111 @@
 
                             return `
                                 <tr>
-                                    <td>
-                                        <div class="name">${escapeHTML(item.name)}</div>
-                                        <div class="url">${escapeHTML(item.url)}</div>
-                                    </td>
-
-                                    <td>${escapeHTML(item.title)}</td>
-
-                                    <td>${badge}</td>
-
-                                    <td>${escapeHTML(formatDate(item.started))}</td>
-
-                                    <td>${escapeHTML(formatDate(item.resolved))}</td>
-
-                                    <td>${escapeHTML(formatDuration(item.duration))}</td>
 
                                     <td>
-                                        <button
-                                            class="view-btn"
-                                            type="button"
-                                            onclick="showIncidentDetails(${index})"
-                                        >
-                                            View
-                                        </button>
+                                        <div class="name">
+                                            ${escapeHTML(item.name)}
+                                        </div>
+
+                                        <div class="url">
+                                            ${escapeHTML(item.url)}
+                                        </div>
                                     </td>
+
+                                    <td>
+                                        ${escapeHTML(item.title)}
+                                    </td>
+
+                                    <td>
+                                        ${badge}
+                                    </td>
+
+                                    <td>
+                                        ${escapeHTML(
+                                            formatDate(item.started)
+                                        )}
+                                    </td>
+
+                                    <td>
+                                        ${escapeHTML(
+                                            formatDate(item.resolved)
+                                        )}
+                                    </td>
+
+                                    <td>
+                                        ${escapeHTML(
+                                            formatDuration(
+                                                item.duration
+                                            )
+                                        )}
+                                    </td>
+
+                                    <td>
+                                        ${
+                                            item.monitorId !== null &&
+                                            item.monitorId !== undefined &&
+                                            item.monitorId !== ""
+                                                ? `
+                                                    <button
+                                                        class="view-btn"
+                                                        type="button"
+                                                        data-incident-id="${escapeHTML(item.id ?? "")}"
+                                                        onclick="viewIncidentById(this.dataset.incidentId)"
+                                                    >
+                                                        View
+                                                    </button>
+                                                `
+                                                : "—"
+                                        }
+                                    </td>
+
                                 </tr>
                             `;
+
                         }).join("")}
+
                     </tbody>
+
                 </table>
-            </div>
-        `;
-    }
 
-    function showIncidentDetails(index) {
-        const incident = currentIncidentItems[index];
-
-        if (!incident) {
-            console.error("Incident not found:", index);
-            return;
-        }
-
-        closeIncidentDetails(true);
-
-        const statusLabel =
-            incident.status === "resolved"
-                ? "RESOLVED"
-                : incident.status === "down"
-                    ? "DOWN"
-                    : incident.status === "open"
-                        ? "OPEN"
-                        : "UNKNOWN";
-
-        const modal = document.createElement("div");
-        modal.id = "incidentModal";
-
-        modal.innerHTML = `
-            <div class="incident-modal-backdrop" onclick="closeIncidentDetails()">
-                <div class="incident-modal" onclick="event.stopPropagation()">
-                    <div class="incident-modal-header">
-                        <div>
-                            <div class="incident-modal-eyebrow">INCIDENT DETAILS</div>
-                            <h2>${escapeHTML(incident.title)}</h2>
-                        </div>
-
-                        <button
-                            type="button"
-                            class="incident-modal-close"
-                            onclick="closeIncidentDetails()"
-                            aria-label="Close"
-                        >
-                            ×
-                        </button>
-                    </div>
-
-                    <div class="incident-modal-status">
-                        <span class="badge ${incident.status}">
-                            ● ${statusLabel}
-                        </span>
-                    </div>
-
-                    <div class="incident-detail-grid">
-                        <div class="incident-detail-box">
-                            <div class="incident-detail-label">API</div>
-                            <div class="incident-detail-value">
-                                ${escapeHTML(incident.name)}
-                            </div>
-                        </div>
-
-                        <div class="incident-detail-box">
-                            <div class="incident-detail-label">Incident ID</div>
-                            <div class="incident-detail-value">
-                                ${escapeHTML(incident.id ?? "—")}
-                            </div>
-                        </div>
-
-                        <div class="incident-detail-box">
-                            <div class="incident-detail-label">Monitor ID</div>
-                            <div class="incident-detail-value">
-                                ${escapeHTML(incident.monitorId ?? "—")}
-                            </div>
-                        </div>
-
-                        <div class="incident-detail-box">
-                            <div class="incident-detail-label">Started</div>
-                            <div class="incident-detail-value">
-                                ${escapeHTML(formatDate(incident.started))}
-                            </div>
-                        </div>
-
-                        <div class="incident-detail-box">
-                            <div class="incident-detail-label">Resolved</div>
-                            <div class="incident-detail-value">
-                                ${escapeHTML(formatDate(incident.resolved))}
-                            </div>
-                        </div>
-
-                        <div class="incident-detail-box">
-                            <div class="incident-detail-label">Duration</div>
-                            <div class="incident-detail-value">
-                                ${escapeHTML(formatDuration(incident.duration))}
-                            </div>
-                        </div>
-
-                        <div class="incident-detail-box" style="grid-column: 1 / -1;">
-                            <div class="incident-detail-label">API URL</div>
-                            <div class="incident-detail-value incident-url-detail">
-                                ${escapeHTML(incident.url || "—")}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="incident-reason-box">
-                        <div class="incident-detail-label">Incident Message</div>
-                        <div class="incident-reason-text">
-                            ${escapeHTML(incident.title)}
-                        </div>
-                    </div>
-
-                    <div class="incident-modal-footer">
-                        <button
-                            type="button"
-                            class="btn"
-                            onclick="closeIncidentDetails()"
-                        >
-                            Close
-                        </button>
-                    </div>
-                </div>
             </div>
         `;
 
-        document.body.appendChild(modal);
-        document.body.classList.add("modal-open");
-
-        requestAnimationFrame(() => {
-            modal.classList.add("show");
-        });
     }
 
-    function closeIncidentDetails(immediate = false) {
-        const modal = document.getElementById("incidentModal");
+    function viewIncidentById(id) {
+        const item = allIncidents
+            .map(normalizeIncident)
+            .find(incident => String(incident.id) === String(id));
 
-        if (!modal) {
-            document.body.classList.remove("modal-open");
+        if (!item) {
+            console.error("Incident not found:", id);
             return;
         }
 
-        if (immediate) {
-            modal.remove();
-            document.body.classList.remove("modal-open");
+        renderIncidentModal(item);
+    }
+
+    function openIncident(monitorId) {
+
+        if (
+            monitorId === null ||
+            monitorId === undefined ||
+            monitorId === ""
+        ) {
             return;
         }
 
-        modal.classList.remove("show");
+        window.location.href =
+            "/app/incidents.html?monitor_id=" +
+            encodeURIComponent(monitorId);
 
-        setTimeout(() => {
-            if (modal.parentNode) {
-                modal.remove();
-            }
-            document.body.classList.remove("modal-open");
-        }, 150);
     }
-
-    document.addEventListener("keydown", function(event) {
-        if (event.key === "Escape") {
-            closeIncidentDetails();
-        }
-    });
 
     function firstValue(...values) {
+
         for (const value of values) {
+
             if (
                 value !== null &&
                 value !== undefined &&
@@ -1235,44 +1547,66 @@
             ) {
                 return value;
             }
+
         }
 
         return null;
+
     }
 
     function formatNumber(value) {
-        const number = Number(value);
+
+        const number =
+            Number(value);
 
         if (!Number.isFinite(number)) {
             return "0";
         }
 
-        return new Intl.NumberFormat().format(number);
+        return new Intl.NumberFormat()
+            .format(number);
+
     }
 
     function formatDate(value) {
+
         if (!value) {
             return "—";
         }
 
-        const date = new Date(value);
+        const date =
+            new Date(value);
 
-        if (Number.isNaN(date.getTime())) {
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
             return String(value);
         }
 
-        return date.toLocaleString([], {
-            dateStyle: "short",
-            timeStyle: "short"
-        });
+        return date.toLocaleString(
+            [],
+            {
+                dateStyle: "short",
+                timeStyle: "short"
+            }
+        );
+
     }
 
     function formatDuration(value) {
-        if (value === null || value === undefined || value === "") {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
             return "—";
         }
 
-        const number = Number(value);
+        const number =
+            Number(value);
 
         if (!Number.isFinite(number)) {
             return String(value);
@@ -1280,34 +1614,257 @@
 
         let seconds = number;
 
+        /*
+         * If the backend provides milliseconds,
+         * convert them to seconds.
+         */
         if (number > 100000) {
-            seconds = number / 1000;
+            seconds =
+                number / 1000;
         }
 
         if (seconds < 60) {
             return Math.round(seconds) + "s";
         }
 
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = Math.round(seconds % 60);
+        const minutes =
+            Math.floor(seconds / 60);
+
+        const remainingSeconds =
+            Math.round(seconds % 60);
 
         if (minutes < 60) {
-            return minutes + "m " + remainingSeconds + "s";
+            return (
+                minutes +
+                "m " +
+                remainingSeconds +
+                "s"
+            );
         }
 
-        const hours = Math.floor(minutes / 60);
-        const remainingMinutes = minutes % 60;
+        const hours =
+            Math.floor(minutes / 60);
 
-        return hours + "h " + remainingMinutes + "m";
+        const remainingMinutes =
+            minutes % 60;
+
+        return (
+            hours +
+            "h " +
+            remainingMinutes +
+            "m"
+        );
+
     }
 
     function escapeHTML(value) {
-        const div = document.createElement("div");
-        div.textContent = value ?? "";
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            value ?? "";
+
         return div.innerHTML;
+
     }
+
+
+    function getStatusClass(status) {
+        const s = String(status || "").toLowerCase();
+        if (s.includes("resolve") || s.includes("recover") || s.includes("closed")) return "resolved";
+        if (s.includes("down")) return "down";
+        if (s.includes("open") || s.includes("active") || s.includes("ongoing")) return "open";
+        return "open";
+    }
+
+    function incidentDurationSeconds(item) {
+        const direct = Number(item.duration_seconds ?? item.duration);
+        if (Number.isFinite(direct)) return Math.max(0, direct);
+
+        if (item.started_at && item.resolved_at) {
+            const a = new Date(item.started_at).getTime();
+            const b = new Date(item.resolved_at).getTime();
+            if (Number.isFinite(a) && Number.isFinite(b)) return Math.max(0, (b - a) / 1000);
+        }
+
+        if (item.started_at && getStatusClass(item.status) !== "resolved") {
+            const a = new Date(item.started_at).getTime();
+            if (Number.isFinite(a)) return Math.max(0, (Date.now() - a) / 1000);
+        }
+
+        return 0;
+    }
+
+    function formatLiveDuration(seconds) {
+        const n = Math.max(0, Math.round(Number(seconds) || 0));
+        const d = Math.floor(n / 86400);
+        const h = Math.floor((n % 86400) / 3600);
+        const m = Math.floor((n % 3600) / 60);
+        const s = n % 60;
+
+        if (d) return `${d}d ${h}h`;
+        if (h) return `${h}h ${m}m`;
+        if (m) return `${m}m ${s}s`;
+        return `${s}s`;
+    }
+
+    function renderActiveIncidents() {
+        const container = document.getElementById("activeIncidentList");
+        if (!container) return;
+
+        const active = allIncidents
+            .map(normalizeIncident)
+            .filter(item => item.status === "open" || item.status === "down");
+
+        if (!active.length) {
+            container.innerHTML = `
+                <div class="active-empty">
+                    No active incidents. All monitored APIs are currently healthy.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = active.map(item => {
+            const duration = incidentDurationSeconds(item);
+            return `
+                <article class="active-item">
+                    <div class="active-item-top">
+                        <div>
+                            <div class="active-api-name">${escapeHTML(item.name)}</div>
+                            <div class="active-api-url">${escapeHTML(item.url || "URL unavailable")}</div>
+                        </div>
+                        <span class="badge open">● ${item.status === "down" ? "DOWN" : "OPEN"}</span>
+                    </div>
+
+                    <div class="active-meta">
+                        <span>Started: <strong>${escapeHTML(formatDate(item.started))}</strong></span>
+                        <span>Duration: <strong class="live-duration">${escapeHTML(formatLiveDuration(duration))}</strong></span>
+                        <span>Reason: <strong>${escapeHTML(item.title || "API request failed")}</strong></span>
+                    </div>
+
+                    <div class="incident-timeline">
+                        <div class="timeline-track">
+                            <div class="timeline-fill" style="width:100%"></div>
+                        </div>
+                        <div class="timeline-labels">
+                            <span>Incident started</span>
+                            <strong>ONGOING</strong>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }).join("");
+    }
+
+    function renderIncidentModal(item) {
+        const existing = document.getElementById("incidentModal");
+        if (existing) existing.remove();
+
+        const statusClass = getStatusClass(item.status);
+        const statusLabel = statusClass === "resolved" ? "RESOLVED" : (statusClass === "down" ? "DOWN" : "ONGOING");
+        const duration = incidentDurationSeconds(item);
+
+        const modal = document.createElement("div");
+        modal.id = "incidentModal";
+        modal.className = "incident-modal";
+
+        modal.innerHTML = `
+            <div class="incident-modal-backdrop" onclick="closeIncidentModal()"></div>
+            <div class="incident-modal-card" role="dialog" aria-modal="true" aria-label="Incident details">
+                <div class="incident-modal-header">
+                    <div>
+                        <div class="incident-modal-eyebrow">Incident details</div>
+                        <h2>${escapeHTML(item.name || "Unknown API")}</h2>
+                        <div class="incident-modal-url">${escapeHTML(item.url || "")}</div>
+                    </div>
+                    <button class="incident-modal-close" type="button" onclick="closeIncidentModal()">×</button>
+                </div>
+
+                <div class="incident-modal-body">
+                    <div class="modal-status-line">
+                        <span class="modal-status ${statusClass}">● ${statusLabel}</span>
+                        <span style="color:#64748b;font-size:11px;font-weight:700;">
+                            Duration: ${escapeHTML(formatLiveDuration(duration))}
+                        </span>
+                    </div>
+
+                    <div class="modal-grid">
+                        <div class="modal-detail">
+                            <div class="modal-detail-label">Incident</div>
+                            <div class="modal-detail-value">${escapeHTML(item.title || "API incident")}</div>
+                        </div>
+                        <div class="modal-detail">
+                            <div class="modal-detail-label">Status</div>
+                            <div class="modal-detail-value">${escapeHTML(statusLabel)}</div>
+                        </div>
+                        <div class="modal-detail">
+                            <div class="modal-detail-label">Started</div>
+                            <div class="modal-detail-value">${escapeHTML(formatDate(item.started))}</div>
+                        </div>
+                        <div class="modal-detail">
+                            <div class="modal-detail-label">Resolved</div>
+                            <div class="modal-detail-value">${escapeHTML(formatDate(item.resolved))}</div>
+                        </div>
+                        <div class="modal-detail">
+                            <div class="modal-detail-label">Duration</div>
+                            <div class="modal-detail-value">${escapeHTML(formatLiveDuration(duration))}</div>
+                        </div>
+                        <div class="modal-detail">
+                            <div class="modal-detail-label">Monitor ID</div>
+                            <div class="modal-detail-value">${escapeHTML(item.monitorId ?? "—")}</div>
+                        </div>
+                    </div>
+
+                    <div class="modal-reason">
+                        <strong>Reason:</strong> ${escapeHTML(item.reason || item.title || "API request failed")}
+                    </div>
+
+                    <div class="modal-timeline-title">Incident Timeline</div>
+                    <div class="modal-timeline">
+                        <div class="modal-event">
+                            <div class="modal-event-title">Incident started</div>
+                            <div class="modal-event-time">${escapeHTML(formatDate(item.started))}</div>
+                            <div class="modal-event-note">Monitoring detected the API failure.</div>
+                        </div>
+                        ${
+                            statusClass === "resolved"
+                            ? `
+                                <div class="modal-event resolved">
+                                    <div class="modal-event-title">Incident resolved</div>
+                                    <div class="modal-event-time">${escapeHTML(formatDate(item.resolved))}</div>
+                                    <div class="modal-event-note">The API recovered and monitoring returned to normal.</div>
+                                </div>
+                            `
+                            : `
+                                <div class="modal-event">
+                                    <div class="modal-event-title">Incident ongoing</div>
+                                    <div class="modal-event-time">Now</div>
+                                    <div class="modal-event-note">The API has not yet been confirmed recovered.</div>
+                                </div>
+                            `
+                        }
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+    }
+
+    function closeIncidentModal() {
+        const modal = document.getElementById("incidentModal");
+        if (modal) modal.remove();
+    }
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") closeIncidentModal();
+    });
+
 
     loadIncidents();
 </script>
+
 </body>
 </html>

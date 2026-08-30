@@ -5,6 +5,7 @@ import requests
 import time
 from django.core.cache import cache
 from django.conf import settings
+from django.core.mail import send_mail
 
 from .models import APIMonitor, Incident
 from logs.models import APILog
@@ -65,70 +66,31 @@ def _send_email(monitor, subject, body, use_cooldown=True):
         print(f"Email cooldown active for {monitor.name}")
         return False
 
-    brevo_api_key = os.getenv("BREVO_API_KEY", "").strip()
-
-    if not brevo_api_key:
-        print(
-            f"Email alert failed for {monitor.name}: "
-            "BREVO_API_KEY is not configured"
-        )
-        return False
-
-    from_email = os.getenv(
-        "BREVO_FROM_EMAIL",
-        os.getenv(
-            "DEFAULT_FROM_EMAIL",
-            getattr(settings, "DEFAULT_FROM_EMAIL", ""),
-        ),
+    from_email = getattr(
+        settings,
+        "DEFAULT_FROM_EMAIL",
+        ""
     ).strip()
 
     if not from_email:
         print(
             f"Email alert failed for {monitor.name}: "
-            "BREVO_FROM_EMAIL or DEFAULT_FROM_EMAIL is not configured"
+            "DEFAULT_FROM_EMAIL is not configured"
         )
         return False
 
-    from_name = (
-        os.getenv("BREVO_FROM_NAME", "API Monitor").strip()
-        or "API Monitor"
-    )
-
-    payload = {
-        "sender": {
-            "name": from_name,
-            "email": from_email,
-        },
-        "to": [{"email": email} for email in emails],
-        "subject": subject,
-        "textContent": body,
-    }
-
     try:
-        response = requests.post(
-            "https://api.brevo.com/v3/smtp/email",
-            headers={
-                "accept": "application/json",
-                "api-key": brevo_api_key,
-                "content-type": "application/json",
-            },
-            json=payload,
-            timeout=20,
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=from_email,
+            recipient_list=emails,
+            fail_silently=False,
         )
-
-        if not response.ok:
-            try:
-                error_details = response.json()
-            except ValueError:
-                error_details = response.text[:500]
-
-            raise RuntimeError(
-                f"Brevo HTTP {response.status_code}: {error_details}"
-            )
 
         print(
             f"Email alert sent for {monitor.name} "
-            f"to {', '.join(emails)} via Brevo"
+            f"to {', '.join(emails)} via Gmail SMTP"
         )
 
         if use_cooldown:
@@ -137,7 +99,7 @@ def _send_email(monitor, subject, body, use_cooldown=True):
         return True
 
     except Exception as exc:
-        print(f"Brevo email alert failed for {monitor.name}: {exc}")
+        print(f"Email alert failed for {monitor.name}: {exc}")
         return False
 
 
@@ -282,6 +244,113 @@ def _attempt_request(monitor, timeout=10):
 
 
 # =============================================================================
+# RESPONSE BODY VALIDATION
+# =============================================================================
+
+def _validate_response_body(monitor, response):
+    """
+    Validate the response body according to the monitor configuration.
+
+    Supported validation types:
+        none     -> no body validation
+        contains -> expected response text must exist in response body
+        exact    -> response body must exactly match expected response
+        json     -> response JSON must match the expected JSON value
+    """
+
+    validation_type = getattr(
+        monitor,
+        "response_validation_type",
+        "none",
+    ) or "none"
+
+    expected_response = getattr(
+        monitor,
+        "expected_response",
+        "",
+    )
+
+    validation_type = str(validation_type).strip().lower()
+
+    # No response-body validation configured.
+    if validation_type in ("", "none"):
+        return True, None
+
+    if expected_response is None:
+        expected_response = ""
+
+    expected_response = str(expected_response)
+
+    try:
+        actual_text = response.text or ""
+    except Exception:
+        actual_text = ""
+
+    # -------------------------------------------------------------------------
+    # CONTAINS
+    # -------------------------------------------------------------------------
+
+    if validation_type == "contains":
+        if expected_response in actual_text:
+            return True, None
+
+        return (
+            False,
+            "Response body does not contain the expected value",
+        )
+
+    # -------------------------------------------------------------------------
+    # EXACT
+    # -------------------------------------------------------------------------
+
+    if validation_type == "exact":
+        if actual_text.strip() == expected_response.strip():
+            return True, None
+
+        return (
+            False,
+            "Response body does not exactly match the expected value",
+        )
+
+    # -------------------------------------------------------------------------
+    # JSON
+    # -------------------------------------------------------------------------
+
+    if validation_type == "json":
+        import json
+
+        try:
+            expected_json = json.loads(expected_response)
+        except json.JSONDecodeError:
+            return (
+                False,
+                "Configured expected response is not valid JSON",
+            )
+
+        try:
+            actual_json = response.json()
+        except ValueError:
+            return (
+                False,
+                "API response is not valid JSON",
+            )
+
+        if actual_json == expected_json:
+            return True, None
+
+        return (
+            False,
+            "API JSON response does not match the expected response",
+        )
+
+    # Unknown validation type.
+    return (
+        False,
+        f"Unsupported response validation type: {validation_type}",
+    )
+
+
+# =============================================================================
 # UPTIME
 # =============================================================================
 
@@ -295,7 +364,7 @@ def _recalc_uptime(monitor):
 
     successful = APILog.objects.filter(
         api_monitor=monitor,
-        status="UP",
+        status__in=["UP", "SLOW"],
     ).count()
 
     return round((successful / total) * 100, 2)
@@ -541,15 +610,24 @@ def check_api_health():
             if response is not None:
 
                 if response.status_code == monitor.expected_status:
-                    error_message = None
-                    break
+                    body_valid, body_error = _validate_response_body(
+                        monitor,
+                        response,
+                    )
 
-                error_message = (
-                    f"Expected HTTP "
-                    f"{monitor.expected_status}, "
-                    f"received HTTP "
-                    f"{response.status_code}"
-                )
+                    if body_valid:
+                        error_message = None
+                        break
+
+                    error_message = body_error
+
+                else:
+                    error_message = (
+                        f"Expected HTTP "
+                        f"{monitor.expected_status}, "
+                        f"received HTTP "
+                        f"{response.status_code}"
+                    )
 
             else:
                 error_message = request_error
@@ -564,6 +642,10 @@ def check_api_health():
         request_succeeded = (
             response is not None
             and response.status_code == monitor.expected_status
+            and _validate_response_body(
+                monitor,
+                response,
+            )[0]
         )
 
         status_code = (
@@ -593,24 +675,6 @@ def check_api_health():
             )
 
         # =====================================================================
-        # CONFIRMED STATUS
-        # =====================================================================
-
-        if request_succeeded:
-            new_status = "UP"
-
-        elif previous_status == "DOWN":
-            new_status = "DOWN"
-
-        elif current_failure_count >= 3:
-            new_status = "DOWN"
-
-        else:
-            # First and second failures do not immediately
-            # mark the API as DOWN.
-            new_status = "UP"
-
-        # =====================================================================
         # SLOW RESPONSE
         # =====================================================================
 
@@ -619,6 +683,25 @@ def check_api_health():
             and response_time is not None
             and response_time > threshold
         )
+
+        # =====================================================================
+        # CONFIRMED STATUS
+        # =====================================================================
+
+        if request_succeeded:
+            new_status = "SLOW" if is_slow else "UP"
+
+        elif previous_status == "DOWN":
+            new_status = "DOWN"
+
+        elif current_failure_count >= 1:
+            # The task already performs 3 HTTP attempts above. If all
+            # attempts fail (including response-body validation), the
+            # current health check is considered a confirmed failure.
+            new_status = "DOWN"
+
+        else:
+            new_status = "UP"
 
         # =====================================================================
         # UPDATE MONITOR STATE
@@ -662,7 +745,9 @@ def check_api_health():
         APILog.objects.create(
             api_monitor=monitor,
             status=(
-                "UP"
+                "SLOW"
+                if is_slow
+                else "UP"
                 if request_succeeded
                 else "DOWN"
             ),
@@ -765,7 +850,7 @@ def check_api_health():
 
         elif (
             previous_status == "DOWN"
-            and new_status == "UP"
+            and new_status in ("UP", "SLOW")
         ):
 
             _resolve_incident(monitor)
@@ -789,11 +874,14 @@ def check_api_health():
         # SLOW RESPONSE LOGIC
         # =====================================================================
 
-        elif new_status == "UP":
+        elif new_status in ("UP", "SLOW"):
 
             previously_slow = (
-                previous_response_time is not None
-                and previous_response_time > threshold
+                previous_status == "SLOW"
+                or (
+                    previous_response_time is not None
+                    and previous_response_time > threshold
+                )
             )
 
             if is_slow and not previously_slow:
