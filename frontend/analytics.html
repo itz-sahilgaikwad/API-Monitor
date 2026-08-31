@@ -13,8 +13,8 @@
             --bg: #f4f7fb;
             --panel: #ffffff;
             --panel-2: #f8fafc;
-            --border: #e2e8f0;
-            --text: #0f172a;
+            --border: #dbe3ee;
+            --text: #172033;
             --muted: #64748b;
             --primary: #7357ff;
             --primary-2: #8b5cf6;
@@ -106,7 +106,7 @@
             gap: 9px;
             padding: 9px 10px;
             border-radius: 9px;
-            color: #64748b;
+            color: #94a3b8;
             text-decoration: none;
             font-size: 11px;
             font-weight: 700;
@@ -312,7 +312,7 @@
             justify-content: space-between;
             gap: 12px;
             padding: 16px 18px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #1d2c4b;
         }
 
         .card-title {
@@ -388,7 +388,7 @@
             display: flex;
             justify-content: space-between;
             gap: 15px;
-            color: #64748b;
+            color: #94a3b8;
             font-size: 10px;
         }
 
@@ -399,7 +399,7 @@
 
         .summary-divider {
             height: 1px;
-            background: #e2e8f0;
+            background: #1d2c4b;
         }
 
         .table-wrap {
@@ -415,7 +415,7 @@
         th,
         td {
             padding: 12px 18px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #1d2c4b;
             text-align: left;
             font-size: 10px;
         }
@@ -580,505 +580,934 @@
             }
         }
     
-        /* Force the Analytics page to match the light Dashboard theme. */
-        html {
-            color-scheme: light;
-            background: #f4f7fb;
-        }
-
-        body {
-            background:
-                radial-gradient(circle at 85% 5%, rgba(115, 87, 255, 0.08), transparent 28%),
-                radial-gradient(circle at 10% 90%, rgba(56, 189, 248, 0.05), transparent 24%),
-                #f4f7fb;
-            color: #0f172a;
-        }
-
-        .card,
-        .toolbar,
-        .summary,
-        .control,
-        .status-panel,
-        .table-wrap {
-            background-color: #ffffff;
-            color: #0f172a;
-        }
-
-        .card-title,
-        .metric-value,
-        .page-title,
-        h1, h2, h3 {
-            color: #0f172a;
-        }
-
-        .card-subtitle,
-        .metric-label,
-        .toolbar-label,
-        .muted,
-        .status-detail {
-            color: #64748b;
-        }
-
-        .control {
-            border-color: #dbe3ee;
-        }
-
-        .control:focus {
-            border-color: #7c6cff;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(124, 108, 255, 0.12);
-        }
-
-
         /* =========================================================
-           DASHBOARD-MATCHED LAYOUT
-           Keep Analytics on the same desktop geometry as Dashboard.
-        ========================================================= */
-        html,
-        body {
-            width: 100%;
-            min-height: 100%;
-            margin: 0;
-            overflow-x: hidden !important;
+           DASHBOARD REFERENCE THEME
+           Keep Analytics visually consistent with the API Monitor
+           dashboard while preserving all existing analytics logic.
+        ========================================================== */
+
+        html {
+            color-scheme: dark !important;
+            background: #080f20 !important;
         }
 
         body {
-            min-height: 100vh;
-            overflow-y: auto !important;
+            min-height: 100vh !important;
+            background:
+                radial-gradient(circle at 75% 5%, rgba(91,75,190,.18), transparent 30%),
+                radial-gradient(circle at 100% 75%, rgba(67,91,180,.12), transparent 28%),
+                #080f20 !important;
+            color: #e8edf8 !important;
+            font-family: "DM Sans", Arial, sans-serif !important;
         }
 
         .layout {
-            min-height: 100vh !important;
-            height: auto !important;
-            display: flex !important;
-            overflow: visible !important;
-        }
-
-        .sidebar {
-            position: fixed !important;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            width: 250px !important;
             min-height: 100vh;
-            height: 100vh;
-            padding: 26px 18px !important;
-            overflow-y: auto;
-            overflow-x: hidden;
-            background: rgba(255, 255, 255, 0.96) !important;
-            border-right: 1px solid #dfe5ee !important;
-            z-index: 20;
-        }
-
-        .brand {
-            padding: 0 7px 26px !important;
-        }
-
-        .menu-label {
-            color: #94a3b8 !important;
-            padding: 0 8px 10px !important;
-        }
-
-        .nav a {
-            color: #64748b !important;
-            padding: 10px 10px !important;
-        }
-
-        .nav a:hover,
-        .nav a.active {
-            background: rgba(99, 102, 241, 0.10) !important;
-            color: #4f46e5 !important;
-        }
-
-        .main {
-            margin-left: 250px !important;
-            width: calc(100% - 250px) !important;
-            min-height: 100vh !important;
-            height: auto !important;
-            overflow: visible !important;
-            padding: 30px 35px 100px !important;
-        }
-
-        .topbar {
-            align-items: center !important;
-            margin-bottom: 30px !important;
-        }
-
-        .top-actions {
-            flex-shrink: 0;
-        }
-
-        .toolbar {
-            margin-bottom: 18px !important;
-        }
-
-        .metrics {
-            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-            gap: 18px !important;
-            margin-bottom: 25px !important;
-        }
-
-        .metric {
-            min-height: 128px;
-            padding: 18px !important;
-            background: #ffffff !important;
-            border-color: #dbe3ee !important;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-        }
-
-        .metric-label {
-            color: #64748b !important;
-        }
-
-        .metric-value {
-            color: #172033 !important;
-        }
-
-        .metric-help {
-            color: #94a3b8 !important;
-        }
-
-        .card,
-        .toolbar {
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-        }
-
-        .card {
-            background: #ffffff !important;
-            border-color: #dbe3ee !important;
-        }
-
-        .card-header {
-            border-bottom-color: #e8edf4 !important;
-        }
-
-        .card-title,
-        .status-title {
-            color: #172033 !important;
-        }
-
-        .card-subtitle,
-        .status-detail {
-            color: #64748b !important;
-        }
-
-        .summary-row strong {
-            color: #172033 !important;
-        }
-
-        .summary-divider,
-        th,
-        td {
-            border-color: #e8edf4 !important;
-        }
-
-        th {
-            color: #64748b !important;
-        }
-
-        td {
-            color: #334155 !important;
-        }
-
-        .control {
-            background: #ffffff !important;
-            color: #334155 !important;
-            border-color: #dbe3ee !important;
-        }
-
-        .btn {
-            background: #ffffff !important;
-            color: #334155 !important;
-            border-color: #dbe3ee !important;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #7357ff, #8b5cf6) !important;
-            color: #ffffff !important;
-            border-color: transparent !important;
-        }
-
-        .live {
-            color: #059669 !important;
-        }
-
-        @media (max-width: 1050px) {
-            .sidebar {
-                width: 210px !important;
-            }
-
-            .main {
-                margin-left: 210px !important;
-                width: calc(100% - 210px) !important;
-                padding: 30px !important;
-            }
-
-            .metrics {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            }
-        }
-
-        @media (max-width: 800px) {
-            .sidebar {
-                width: 70px !important;
-                padding: 20px 10px !important;
-            }
-
-            .brand-title,
-            .brand-subtitle,
-            .menu-label,
-            .nav a span {
-                display: none;
-            }
-
-            .brand {
-                justify-content: center;
-                padding: 0 !important;
-            }
-
-            .nav a {
-                justify-content: center;
-                padding: 12px !important;
-            }
-
-            .system-card { display: none !important; }
-
-            .main {
-                margin-left: 70px !important;
-                width: calc(100% - 70px) !important;
-                padding: 22px 18px !important;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .topbar {
-                align-items: flex-start !important;
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .top-actions {
-                width: 100%;
-            }
-
-            .top-actions .btn {
-                flex: 1;
-            }
-
-            .metrics {
-                grid-template-columns: 1fr 1fr !important;
-                gap: 10px !important;
-            }
-        }
-
-        @media (max-width: 400px) {
-            .metrics {
-                grid-template-columns: 1fr !important;
-            }
-        }
-    
-        /* =========================================================
-           ADDITIVE STATUS GRAPHS
-           Existing project styling is intentionally preserved.
-        ========================================================== */
-        .status-graphs-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .status-graph {
-            min-width: 0;
-        }
-
-        .status-graph .status-chart-wrap {
-            height: 220px;
-            position: relative;
-        }
-
-        .status-graph .status-chart-wrap canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        .status-graph-footer {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            padding: 10px 18px 14px;
-            border-top: 1px solid #e2e8f0;
-            font-size: 10px;
-            color: #64748b;
         }
 
-        .status-graph-value {
-            font-weight: 800;
-        }
-
-        .status-graph-value.up {
-            color: #10b981;
-        }
-
-        .status-graph-value.slow {
-            color: #f59e0b;
-        }
-
-        .status-graph-value.down {
-            color: #ef4444;
-        }
-
-        .analytics-color-legend {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            padding: 14px 18px;
-            margin-bottom: 16px;
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 15px;
-            font-size: 10px;
-            color: #475569;
-        }
-
-        .analytics-color-legend .legend-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            font-weight: 700;
-        }
-
-        .analytics-color-legend .legend-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-        }
-
-        .analytics-color-legend .legend-dot.up {
-            background: #10b981;
-        }
-
-        .analytics-color-legend .legend-dot.slow {
-            background: #f59e0b;
-        }
-
-        .analytics-color-legend .legend-dot.down {
-            background: #ef4444;
-        }
-
-        .analytics-color-legend .legend-explain {
-            width: 100%;
-            text-align: center;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        @media (max-width: 900px) {
-            .status-graphs-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Sidebar restoration: match the original Dashboard styling.
-           No analytics/graph/card styles are changed here. */
         .sidebar {
             width: 250px !important;
             min-height: 100vh !important;
-            background: rgba(255, 255, 255, 0.88) !important;
-            border-right: 1px solid var(--border) !important;
-            padding: 26px 18px !important;
             position: fixed !important;
             left: 0 !important;
             top: 0 !important;
             bottom: 0 !important;
-            backdrop-filter: blur(15px) !important;
+            padding: 0 !important;
+            background: linear-gradient(180deg, #0b1428 0%, #080f20 100%) !important;
+            border-right: 1px solid #1c2942 !important;
+            display: flex !important;
+            flex-direction: column !important;
             z-index: 20 !important;
         }
 
         .brand {
+            padding: 30px 24px 26px !important;
+            border-bottom: 1px solid #17233a !important;
             display: flex !important;
             align-items: center !important;
-            gap: 12px !important;
-            padding: 0 10px !important;
-            margin-bottom: 35px !important;
+            gap: 13px !important;
         }
 
         .brand-logo {
-            width: 42px !important;
-            height: 42px !important;
-            min-width: 42px !important;
-            min-height: 42px !important;
-            border-radius: 12px !important;
-            font-size: 20px !important;
-            font-weight: 800 !important;
+            width: 43px !important;
+            height: 43px !important;
+            flex: 0 0 43px;
+            border-radius: 11px !important;
+            background: linear-gradient(135deg, #6d5dfc, #4f46c8) !important;
+            font-family: "Libre Baskerville", Georgia, serif !important;
+            font-size: 22px !important;
+            font-weight: 700 !important;
+            box-shadow: 0 8px 25px rgba(91,75,190,.35) !important;
         }
 
         .brand-title {
+            font-family: "Libre Baskerville", Georgia, serif !important;
             font-size: 17px !important;
-            font-weight: 800 !important;
+            font-weight: 700 !important;
+            color: #f5f7ff !important;
+            letter-spacing: -.3px !important;
         }
 
         .brand-subtitle {
-            margin-top: 2px !important;
-            font-size: 11px !important;
+            margin-top: 3px !important;
+            font-size: 10px !important;
+            color: #7e8ca8 !important;
+            letter-spacing: .3px !important;
         }
 
         .menu-label {
-            font-size: 11px !important;
+            padding: 28px 25px 12px !important;
+            color: #687792 !important;
+            font-size: 10px !important;
             font-weight: 700 !important;
-            color: #94a3b8 !important;
+            letter-spacing: 1.2px !important;
             text-transform: uppercase !important;
-            letter-spacing: 0.08em !important;
-            padding: 0 12px !important;
-            margin-bottom: 10px !important;
         }
 
         .nav {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 6px !important;
+            padding: 0 12px !important;
+            display: grid !important;
+            gap: 0 !important;
         }
 
         .nav a {
-            text-decoration: none !important;
-            color: #64748b !important;
-            padding: 12px 13px !important;
-            border-radius: 10px !important;
+            height: 45px !important;
             display: flex !important;
             align-items: center !important;
-            gap: 11px !important;
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            transition: all 0.2s ease !important;
+            gap: 13px !important;
+            padding: 0 15px !important;
+            margin-bottom: 5px !important;
+            border-radius: 9px !important;
+            color: #a8b3c9 !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            text-decoration: none !important;
+            transition: background 160ms ease, color 160ms ease !important;
         }
 
         .nav a:hover {
-            background: #f1f5f9 !important;
-            color: var(--primary) !important;
-            transform: translateX(2px) !important;
+            background: #111d34 !important;
+            color: #ffffff !important;
         }
 
         .nav a.active {
-            background: linear-gradient(
-                135deg,
-                rgba(99, 102, 241, 0.12),
-                rgba(139, 92, 246, 0.08)
-            ) !important;
-            color: var(--primary) !important;
+            background: linear-gradient(90deg, rgba(104,87,220,.34), rgba(77,65,169,.22)) !important;
+            color: #ffffff !important;
+            border-left: 2px solid #8071ff !important;
+            padding-left: 13px !important;
+        }
+
+        .nav a span:first-child,
+        .nav-icon {
+            width: 18px !important;
+            min-width: 18px !important;
+            text-align: center !important;
+            font-size: 15px !important;
+            color: #7f8dfd !important;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto !important;
+            padding: 16px !important;
         }
 
         .system-card {
-            margin-top: 24px !important;
-            padding: 13px !important;
-            border-radius: 10px !important;
-            background: #f8fafc !important;
-            border: 1px solid #dbe3ee !important;
+            padding: 17px !important;
+            border-radius: 12px !important;
+            background: #101b30 !important;
+            border: 1px solid #1d2c47 !important;
         }
 
+        .system-top {
+            display: flex !important;
+            align-items: center !important;
+            gap: 9px !important;
+            color: #e6edf9 !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+        }
+
+        .online-dot {
+            width: 8px !important;
+            height: 8px !important;
+            border-radius: 50% !important;
+            background: #4ade80 !important;
+            box-shadow: 0 0 0 4px rgba(74,222,128,.09) !important;
+        }
+
+        .system-description {
+            margin-top: 7px !important;
+            margin-left: 17px !important;
+            color: #74829d !important;
+            font-size: 10px !important;
+        }
+
+        .main {
+            width: calc(100% - 250px) !important;
+            margin-left: 250px !important;
+            min-height: 100vh !important;
+            padding: 38px 44px 60px !important;
+            position: relative !important;
+        }
+
+        .main::before {
+            content: "";
+            position: absolute;
+            width: 700px;
+            height: 260px;
+            right: 5%;
+            top: -80px;
+            background: radial-gradient(ellipse, rgba(92,76,220,.18), transparent 70%);
+            pointer-events: none;
+        }
+
+        .topbar {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 28px !important;
+        }
+
+        .eyebrow {
+            color: #8d7dff !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            letter-spacing: 1.5px !important;
+            text-transform: uppercase !important;
+            margin-bottom: 7px !important;
+        }
+
+        h1,
+        #pageTitle {
+            font-family: "Libre Baskerville", Georgia, serif !important;
+            font-size: 38px !important;
+            line-height: 1.15 !important;
+            color: #ffffff !important;
+            letter-spacing: -1px !important;
+        }
+
+        .subtitle,
+        #pageSubtitle {
+            margin-top: 8px !important;
+            color: #8290aa !important;
+            font-size: 13px !important;
+            word-break: normal !important;
+        }
+
+        .top-actions {
+            display: flex !important;
+            gap: 10px !important;
+            align-items: center !important;
+        }
+
+        .btn {
+            min-height: 40px !important;
+            height: 40px !important;
+            padding: 0 17px !important;
+            border-radius: 8px !important;
+            border: 1px solid #293754 !important;
+            background: #101a2d !important;
+            color: #dce4f4 !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+        }
+
+        .btn:hover {
+            background: #16223a !important;
+            border-color: #3a4c6d !important;
+        }
+
+        .btn-primary {
+            border-color: transparent !important;
+            background: linear-gradient(135deg, #7364f4, #5b4fd1) !important;
+            color: #ffffff !important;
+            box-shadow: 0 8px 20px rgba(91,79,209,.22) !important;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #8174ff, #6659df) !important;
+        }
+
+        .toolbar {
+            position: relative;
+            z-index: 1;
+            padding: 13px 14px !important;
+            margin-bottom: 18px !important;
+            border: 1px solid #1e2d47 !important;
+            border-radius: 13px !important;
+            background: #101b30 !important;
+            box-shadow: 0 12px 28px rgba(0,0,0,.10) !important;
+        }
+
+        .toolbar-label {
+            color: #74829d !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+        }
+
+        .control {
+            height: 40px !important;
+            border: 1px solid #293754 !important;
+            border-radius: 9px !important;
+            background: #0f192c !important;
+            color: #dce4f4 !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+        }
+
+        .control:focus {
+            border-color: #7364f4 !important;
+            box-shadow: 0 0 0 3px rgba(115,100,244,.12) !important;
+        }
+
+        .live {
+            color: #86efac !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+        }
+
+        .metrics,
+        .grid,
+        #content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .metric,
+        .card {
+            background: linear-gradient(145deg, rgba(18,29,49,.98), rgba(13,23,40,.98)) !important;
+            border: 1px solid #1e2d47 !important;
+            box-shadow: 0 15px 35px rgba(0,0,0,.14) !important;
+        }
+
+        .metric {
+            border-radius: 13px !important;
+        }
+
+        .metric-label {
+            color: #9aa8bf !important;
+        }
+
+        .metric-value {
+            color: #f5f7ff !important;
+            font-family: "Libre Baskerville", Georgia, serif !important;
+        }
+
+        .metric-help,
+        .card-subtitle,
+        .summary-row,
+        .status-detail,
+        .last-update {
+            color: #74829d !important;
+        }
+
+        .card-header {
+            border-bottom: 1px solid #1d2a41 !important;
+        }
+
+        .card-title,
+        .summary-row strong {
+            color: #f5f7ff !important;
+            font-family: "Libre Baskerville", Georgia, serif !important;
+        }
+
+        .card-body {
+            color: #dce4f4 !important;
+        }
+
+        th,
+        td {
+            border-color: #1d2a41 !important;
+        }
+
+        th {
+            color: #687792 !important;
+        }
+
+        td {
+            color: #cbd5e1 !important;
+        }
+
+        .loader {
+            border-color: #263653 !important;
+            border-top-color: #7364f4 !important;
+        }
+
+        .empty,
+        .error,
+        .loading {
+            color: #74829d !important;
+        }
+
+        .error strong {
+            color: #f87171 !important;
+        }
+
+        @media (max-width: 1050px) {
+            .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+            .grid { grid-template-columns: 1fr !important; }
+        }
+
+        @media (max-width: 720px) {
+            .layout { display: block !important; }
+            .sidebar {
+                position: static !important;
+                width: 100% !important;
+                min-height: auto !important;
+                border-right: 0 !important;
+                border-bottom: 1px solid #1c2942 !important;
+            }
+            .brand { padding-bottom: 20px !important; }
+            .nav { grid-template-columns: repeat(5, 1fr) !important; }
+            .nav a {
+                justify-content: center !important;
+                padding: 10px 5px !important;
+                height: 42px !important;
+            }
+            .nav a span:last-child { display: none !important; }
+            .main {
+                width: 100% !important;
+                margin-left: 0 !important;
+                padding: 28px 16px 60px !important;
+            }
+            .topbar {
+                flex-direction: column !important;
+                margin-bottom: 22px !important;
+            }
+            .top-actions { width: 100% !important; }
+            .top-actions .btn { flex: 1 !important; }
+            .toolbar {
+                align-items: flex-start !important;
+                flex-direction: column !important;
+            }
+            .toolbar-left { width: 100% !important; }
+            .toolbar-left .control { flex: 1; min-width: 0; }
+        }
+
+        @media (max-width: 480px) {
+            .metrics { grid-template-columns: 1fr !important; }
+            h1, #pageTitle { font-size: 32px !important; }
+            .nav { grid-template-columns: repeat(5, 1fr) !important; }
+        }
+
+
     </style>
+
+<style id="canonical-app-shell">
+/* =========================================================
+   API MONITOR — CANONICAL LIGHT APP SHELL
+   Same shell used by the corrected Dashboard.
+   ========================================================= */
+
+html {
+    color-scheme: light !important;
+    background: #f5f7fb !important;
+}
+
+body {
+    margin: 0 !important;
+    min-height: 100vh !important;
+    background:
+        radial-gradient(circle at 92% 4%, rgba(115, 87, 255, 0.08), transparent 27%),
+        #f5f7fb !important;
+    color: #172033 !important;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.layout {
+    display: flex !important;
+    min-height: 100vh !important;
+}
+
+/* Fixed 250px desktop sidebar on every page. */
+.sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: 250px !important;
+    min-width: 250px !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    border-right: 1px solid #e3e8f0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    z-index: 100 !important;
+}
+
+.brand {
+    flex: 0 0 auto !important;
+    min-height: 96px !important;
+    padding: 25px 24px 24px !important;
+    border-bottom: 1px solid #e6eaf0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 13px !important;
+    box-sizing: border-box !important;
+}
+
+.brand-logo {
+    width: 43px !important;
+    height: 43px !important;
+    flex: 0 0 43px !important;
+    border-radius: 11px !important;
+    display: grid !important;
+    place-items: center !important;
+    background: linear-gradient(135deg, #7357ff, #6349e8) !important;
+    color: #ffffff !important;
+    font-family: Georgia, "Times New Roman", serif !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 8px 22px rgba(99, 73, 232, .20) !important;
+}
+
+.brand-title {
+    color: #172033 !important;
+    font-family: Georgia, "Times New Roman", serif !important;
+    font-size: 17px !important;
+    font-weight: 700 !important;
+}
+
+.brand-subtitle {
+    margin-top: 3px !important;
+    color: #7c8aa1 !important;
+    font-size: 10px !important;
+}
+
+.menu-label {
+    padding: 28px 30px 10px !important;
+    color: #94a3b8 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.1px !important;
+    text-transform: uppercase !important;
+}
+
+.nav {
+    width: auto !important;
+    padding: 0 12px !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+}
+
+.nav a {
+    width: 100% !important;
+    height: 45px !important;
+    min-height: 45px !important;
+    margin: 0 0 5px !important;
+    padding: 0 15px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 13px !important;
+    border-radius: 9px !important;
+    border-left: 2px solid transparent !important;
+    color: #64748b !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transform: none !important;
+    transition: background 160ms ease, color 160ms ease !important;
+}
+
+.nav a:hover {
+    background: #f1f4fa !important;
+    color: #4f5f79 !important;
+    transform: none !important;
+}
+
+.nav a.active {
+    background: #eef0ff !important;
+    color: #5b4df5 !important;
+    border-left-color: #6957ff !important;
+    padding-left: 13px !important;
+}
+
+.nav a span:first-child,
+.nav-icon {
+    width: 18px !important;
+    min-width: 18px !important;
+    text-align: center !important;
+    color: #6878f7 !important;
+    font-size: 15px !important;
+}
+
+.sidebar-bottom {
+    margin-top: auto !important;
+    padding: 16px !important;
+}
+
+.system-card {
+    padding: 17px !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    border: 1px solid #dbe3ee !important;
+    box-sizing: border-box !important;
+}
+
+.system-top {
+    display: flex !important;
+    align-items: center !important;
+    gap: 9px !important;
+    color: #344054 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+.online-dot {
+    width: 8px !important;
+    height: 8px !important;
+    flex: 0 0 8px !important;
+    border-radius: 50% !important;
+    background: #34d399 !important;
+    box-shadow: 0 0 0 4px rgba(52, 211, 153, .10) !important;
+}
+
+.system-description {
+    margin: 7px 0 0 17px !important;
+    color: #7c8aa1 !important;
+    font-size: 10px !important;
+}
+
+/* Main content always starts exactly after the 250px sidebar. */
+.main {
+    width: calc(100% - 250px) !important;
+    min-width: 0 !important;
+    min-height: 100vh !important;
+    margin-left: 250px !important;
+    padding: 32px 36px 80px !important;
+    box-sizing: border-box !important;
+    background: transparent !important;
+    position: relative !important;
+}
+
+.main::before {
+    content: "" !important;
+    position: absolute !important;
+    width: 520px !important;
+    height: 260px !important;
+    left: -90px !important;
+    top: -100px !important;
+    background: radial-gradient(ellipse, rgba(115,87,255,.10), transparent 70%) !important;
+    pointer-events: none !important;
+}
+
+.topbar {
+    position: relative !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+    margin-bottom: 28px !important;
+}
+
+.eyebrow {
+    margin-bottom: 7px !important;
+    color: #7357ff !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+}
+
+h1,
+#pageTitle {
+    margin: 0 !important;
+    color: #172033 !important;
+    font-family: Georgia, "Times New Roman", serif !important;
+    font-size: 38px !important;
+    line-height: 1.15 !important;
+    letter-spacing: -1px !important;
+}
+
+.subtitle,
+#pageSubtitle {
+    margin-top: 8px !important;
+    color: #64748b !important;
+    font-size: 13px !important;
+    word-break: normal !important;
+}
+
+.top-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+}
+
+.btn {
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 17px !important;
+    border: 1px solid #d8e0eb !important;
+    border-radius: 9px !important;
+    background: #ffffff !important;
+    color: #52617a !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 7px rgba(15,23,42,.03) !important;
+}
+
+.btn:hover {
+    background: #fafbfe !important;
+    border-color: #c8d2e0 !important;
+}
+
+.btn-primary {
+    border-color: transparent !important;
+    background: linear-gradient(135deg, #7357ff, #6749eb) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 18px rgba(103,73,235,.18) !important;
+}
+
+.toolbar {
+    position: relative !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    padding: 13px 16px !important;
+    margin-bottom: 18px !important;
+    border: 1px solid #dbe3ee !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+    box-shadow: 0 8px 22px rgba(15,23,42,.035) !important;
+}
+
+.toolbar-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+}
+
+.toolbar-label {
+    color: #64748b !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+}
+
+.control {
+    height: 40px !important;
+    border: 1px solid #d8e0eb !important;
+    border-radius: 9px !important;
+    background: #ffffff !important;
+    color: #24324a !important;
+    padding: 0 12px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+}
+
+.control:focus {
+    border-color: #7357ff !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(115,87,255,.10) !important;
+}
+
+.live {
+    color: #10a875 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+}
+
+.live-dot {
+    background: #10b981 !important;
+    box-shadow: 0 0 0 4px rgba(16,185,129,.10) !important;
+}
+
+/* Analytics content stays light and uses the same cards as Dashboard. */
+.metrics,
+.grid,
+#content {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.metric,
+.card {
+    background: #ffffff !important;
+    border: 1px solid #dbe3ee !important;
+    border-radius: 14px !important;
+    box-shadow: 0 10px 28px rgba(15,23,42,.045) !important;
+}
+
+.metric {
+    min-height: 128px !important;
+    padding: 18px !important;
+}
+
+.metric-label,
+.card-subtitle,
+.metric-help,
+.summary-row,
+.status-detail,
+.last-update {
+    color: #64748b !important;
+}
+
+.metric-value {
+    color: #172033 !important;
+    font-family: Georgia, "Times New Roman", serif !important;
+}
+
+.card-header {
+    border-bottom: 1px solid #e3e8f0 !important;
+}
+
+.card-title,
+.summary-row strong {
+    color: #172033 !important;
+    font-family: Georgia, "Times New Roman", serif !important;
+}
+
+.card-body {
+    color: #344054 !important;
+}
+
+th,
+td {
+    border-color: #e3e8f0 !important;
+}
+
+th {
+    color: #7c8aa1 !important;
+}
+
+td {
+    color: #344054 !important;
+}
+
+.loading,
+.empty {
+    color: #64748b !important;
+}
+
+.loader {
+    border-color: #dbe3ee !important;
+    border-top-color: #7357ff !important;
+}
+
+@media (max-width: 1050px) {
+    .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .layout {
+        display: block !important;
+    }
+
+    .sidebar {
+        position: static !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        min-height: auto !important;
+        height: auto !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid #e3e8f0 !important;
+    }
+
+    .brand {
+        min-height: 78px !important;
+        padding: 18px !important;
+    }
+
+    .menu-label {
+        display: none !important;
+    }
+
+    .nav {
+        grid-template-columns: repeat(5, 1fr) !important;
+        display: grid !important;
+        padding: 8px 10px !important;
+        gap: 4px !important;
+    }
+
+    .nav a {
+        justify-content: center !important;
+        padding: 8px 5px !important;
+        height: 42px !important;
+        min-height: 42px !important;
+        margin: 0 !important;
+        border-left: 0 !important;
+    }
+
+    .nav a.active {
+        padding-left: 5px !important;
+        border-left: 0 !important;
+    }
+
+    .nav a span:last-child {
+        display: none !important;
+    }
+
+    .sidebar-bottom {
+        display: none !important;
+    }
+
+    .main {
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding: 24px 16px 60px !important;
+    }
+
+    .topbar {
+        flex-direction: column !important;
+        margin-bottom: 22px !important;
+    }
+
+    .top-actions {
+        width: 100% !important;
+    }
+
+    .top-actions .btn {
+        flex: 1 !important;
+    }
+
+    .toolbar {
+        align-items: flex-start !important;
+        flex-direction: column !important;
+    }
+
+    .toolbar-left {
+        width: 100% !important;
+    }
+
+    .toolbar-left .control {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics {
+        grid-template-columns: 1fr !important;
+    }
+
+    h1,
+    #pageTitle {
+        font-size: 32px !important;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -1093,22 +1522,24 @@
             </div>
         </div>
 
-        <div class="menu-label">WORKSPACE</div>
+        <div class="menu-label">Workspace</div>
 
         <nav class="nav">
-            <a href="/app/dashboard.html">▣ <span>Dashboard</span></a>
-            <a href="/app/analytics.html" class="active">◈ <span>Analytics</span></a>
-            <a href="/app/logs.html">☷ <span>Logs</span></a>
-            <a href="/app/incidents.html">! <span>Incidents</span></a>
-            <a href="/app/settings.html">⚙ <span>Settings</span></a>
-        </nav>
+<a href="/app/dashboard.html">▣ <span>Dashboard</span></a>
+<a href="/app/analytics.html" class="active">⌁ <span>Analytics</span></a>
+<a href="/app/logs.html">☷ <span>Logs</span></a>
+<a href="/app/incidents.html">! <span>Incidents</span></a>
+<a href="/app/settings.html">⚙ <span>Settings</span></a>
+</nav>
 
-        <div class="system-card" style="margin-top: 24px; padding: 13px; border-radius: 10px; background: #f8fafc; border: 1px solid #dbe3ee;">
-            <div style="display:flex;align-items:center;gap:8px;color:#334155;font-size:10px;font-weight:800;">
-                <span style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.10);"></span>
-                System Online
+        <div class="sidebar-bottom">
+            <div class="system-card">
+                <div class="system-top">
+                    <span class="online-dot"></span>
+                    <span>System Online</span>
+                </div>
+                <div class="system-description">All systems operational</div>
             </div>
-            <div style="margin-top:5px;margin-left:15px;color:#64748b;font-size:9px;">All systems operational</div>
         </div>
     </aside>
 
@@ -1177,9 +1608,6 @@
     let selectedMonitorId = null;
     let latencyChart = null;
     let uptimeChart = null;
-    let upTimeChart = null;
-    let slowTimeChart = null;
-    let downTimeChart = null;
     let refreshTimer = null;
     let firstLoad = true;
 
@@ -1212,6 +1640,157 @@
         }
 
         return response.json();
+    }
+
+
+    /*
+     * Build the charts from the real APILog records.  The analytics
+     * summary endpoint can contain a compact/legacy history series, which
+     * is not reliable enough for a visual timeline.  The Logs endpoint
+     * exposes the actual monitoring checks, so use those records for the
+     * chart whenever they are available.
+     */
+    async function loadRealChartChecks(monitorId) {
+        const allChecks = [];
+        let page = 1;
+        const pageSize = 100;
+
+        while (page <= 100) {
+            const response = await apiFetch(
+                "/api/monitoring/"
+                + encodeURIComponent(monitorId)
+                + "/logs/?page="
+                + page
+                + "&page_size="
+                + pageSize
+            );
+
+            const rows = Array.isArray(response)
+                ? response
+                : Array.isArray(response.results)
+                    ? response.results
+                    : [];
+
+            allChecks.push(...rows);
+
+            const totalPages = Number(response.total_pages || 1);
+            if (!rows.length || page >= totalPages) {
+                break;
+            }
+
+            page += 1;
+        }
+
+        return allChecks;
+    }
+
+    function buildRealChartHistory(checks, period) {
+        if (!Array.isArray(checks) || !checks.length) {
+            return [];
+        }
+
+        const now = Date.now();
+        const lookbackMs =
+            period === "24h"
+                ? 24 * 60 * 60 * 1000
+                : period === "30d"
+                    ? 30 * 24 * 60 * 60 * 1000
+                    : 7 * 24 * 60 * 60 * 1000;
+
+        const startMs = now - lookbackMs;
+
+        const filtered = checks
+            .map(check => ({
+                ...check,
+                _date: new Date(
+                    check.checked_at ??
+                    check.timestamp ??
+                    check.created_at ??
+                    check.time ??
+                    check.date
+                )
+            }))
+            .filter(check =>
+                !Number.isNaN(check._date.getTime()) &&
+                check._date.getTime() >= startMs &&
+                check._date.getTime() <= now
+            )
+            .sort((a, b) => a._date - b._date);
+
+        if (!filtered.length) {
+            return [];
+        }
+
+        // Keep enough real points to show actual variation without making
+        // the chart unreadably dense.  These are averages of actual checks,
+        // not generated/synthetic values.
+        const bucketMs =
+            period === "24h"
+                ? 30 * 60 * 1000
+                : period === "30d"
+                    ? 12 * 60 * 60 * 1000
+                    : 3 * 60 * 60 * 1000;
+
+        const buckets = new Map();
+
+        filtered.forEach(check => {
+            const timestamp = check._date.getTime();
+            const bucketStart =
+                Math.floor(timestamp / bucketMs) * bucketMs;
+
+            if (!buckets.has(bucketStart)) {
+                buckets.set(bucketStart, {
+                    latencies: [],
+                    total: 0,
+                    up: 0,
+                    down: 0
+                });
+            }
+
+            const bucket = buckets.get(bucketStart);
+            bucket.total += 1;
+
+            const status = String(check.status || "").toUpperCase();
+            if (status === "UP") {
+                bucket.up += 1;
+            } else {
+                bucket.down += 1;
+            }
+
+            const latency = numberOrNull(
+                check.response_time_ms ??
+                check.response_time ??
+                check.responseTime ??
+                check.latency ??
+                check.response_ms
+            );
+
+            if (latency !== null) {
+                bucket.latencies.push(latency);
+            }
+        });
+
+        return Array.from(buckets.entries())
+            .sort((a, b) => a[0] - b[0])
+            .map(([timestamp, bucket]) => ({
+                timestamp: new Date(timestamp).toISOString(),
+                latency: bucket.latencies.length
+                    ? Number((
+                        bucket.latencies.reduce(
+                            (sum, value) => sum + value,
+                            0
+                        ) / bucket.latencies.length
+                    ).toFixed(1))
+                    : null,
+                uptime: bucket.total
+                    ? Number((
+                        (bucket.up / bucket.total) * 100
+                    ).toFixed(2))
+                    : null,
+                checks: bucket.total,
+                up_checks: bucket.up,
+                down_checks: bucket.down
+            }));
     }
 
     async function loadMonitorList() {
@@ -1279,6 +1858,15 @@
         const period =
             document.getElementById("periodSelect").value;
 
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set("period", period);
+
+        if (selectedMonitorId) {
+            currentUrl.searchParams.set("monitor_id", selectedMonitorId);
+        }
+
+        window.history.replaceState({}, "", currentUrl);
+
         const content = document.getElementById("content");
         const refreshBtn = document.getElementById("refreshBtn");
 
@@ -1297,15 +1885,40 @@
         refreshBtn.disabled = true;
 
         try {
+            /*
+             * The current backend uses the collection endpoint for both
+             * monitor selection and detailed analytics. The selected
+             * monitor and period are passed as query parameters.
+             */
             const data = await apiFetch(
                 "/api/monitoring/analytics/"
-                + "?monitor_id="
                 + encodeURIComponent(selectedMonitorId)
-                + "&period="
+                + "/?period="
                 + encodeURIComponent(period)
             );
 
-            renderAnalytics(data);
+            /*
+             * Some backend versions return the calculated values inside
+             * data / analytics / result.  renderAnalytics below handles
+             * both nested and flat responses.
+             */
+            renderAnalytics(data, monitors, selectedMonitorId);
+
+            // Replace any compact/legacy history with the real APILog
+            // timeline.  Summary cards still come from the analytics API.
+            try {
+                const realChecks = await loadRealChartChecks(selectedMonitorId);
+                const realHistory = buildRealChartHistory(realChecks, period);
+
+                if (realHistory.length > 1) {
+                    drawCharts(normalizeHistoryForChart(realHistory));
+                }
+            } catch (chartError) {
+                // Keep the analytics response visible if the chart-only
+                // logs request fails.
+                console.warn("Real chart history unavailable:", chartError);
+            }
+
             firstLoad = false;
 
         } catch (error) {
@@ -1328,6 +1941,25 @@
         }
     }
 
+    function changeResponsePeriod() {
+        const responseSelect = document.getElementById("responsePeriodSelect");
+        const periodSelect = document.getElementById("periodSelect");
+
+        if (!responseSelect || !periodSelect) return;
+
+        periodSelect.value = responseSelect.value;
+
+        const url = new URL(window.location.href);
+        url.searchParams.set("period", responseSelect.value);
+
+        if (selectedMonitorId) {
+            url.searchParams.set("monitor_id", selectedMonitorId);
+        }
+
+        window.history.replaceState({}, "", url);
+        loadSelectedAnalytics(true);
+    }
+
     async function refreshAnalytics() {
         if (!selectedMonitorId) {
             await initialLoad();
@@ -1339,6 +1971,14 @@
 
     async function initialLoad() {
         try {
+            const params = new URLSearchParams(window.location.search);
+            const urlPeriod = params.get("period");
+            const periodSelect = document.getElementById("periodSelect");
+
+            if (periodSelect && ["24h", "7d", "30d"].includes(urlPeriod)) {
+                periodSelect.value = urlPeriod;
+            }
+
             const hasMonitors = await loadMonitorList();
 
             if (hasMonitors) {
@@ -1358,23 +1998,303 @@
         }
     }
 
-    function renderAnalytics(data) {
-        const uptime = numberOrNull(data.uptime_percentage);
-        const avg = numberOrNull(data.avg_response_time);
-        const p95 = numberOrNull(data.p95_latency);
-        const total = numberOrNull(data.total_checks);
-        const up = numberOrNull(data.up_checks);
-        const down = numberOrNull(data.down_checks);
-        const threshold = numberOrNull(data.response_time_threshold_ms);
+    function renderAnalytics(data, monitorList = [], currentMonitorId = null) {
+        const root = data && typeof data === "object"
+            ? data
+            : {};
 
-        const status = String(data.status || "").toUpperCase();
-        const isDown = status === "DOWN";
+        /*
+         * Accept the response shapes used by the monitoring backend:
+         * flat, {data:{...}}, {analytics:{...}}, or {result:{...}}.
+         */
+        const source =
+            root.data && typeof root.data === "object"
+                ? root.data
+                : root.analytics && typeof root.analytics === "object"
+                    ? root.analytics
+                    : root.result && typeof root.result === "object"
+                        ? root.result
+                        : root;
+
+        const stats =
+            source.stats ||
+            source.metrics ||
+            source.summary ||
+            source;
+
+        let history =
+            Array.isArray(source.history)
+                ? source.history
+                : Array.isArray(source.data_points)
+                    ? source.data_points
+                    : Array.isArray(source.datapoints)
+                        ? source.datapoints
+                        : Array.isArray(source.timeline)
+                            ? source.timeline
+                            : Array.isArray(source.series)
+                                ? source.series
+                                : Array.isArray(root.history)
+                                    ? root.history
+                                    : [];
+
+        const legacyHistory =
+            Array.isArray(source.response_time_history)
+                ? source.response_time_history
+                : Array.isArray(root.response_time_history)
+                    ? root.response_time_history
+                    : [];
+
+        const checks =
+            Array.isArray(source.checks)
+                ? source.checks
+                : Array.isArray(source.logs)
+                    ? source.logs
+                    : Array.isArray(source.results)
+                        ? source.results
+                        : Array.isArray(source.recent_history)
+                            ? source.recent_history
+                            : Array.isArray(root.checks)
+                                ? root.checks
+                                : Array.isArray(root.recent_history)
+                                    ? root.recent_history
+                                    : [];
+
+        /*
+         * The backend can return the summary correctly while omitting
+         * "history". In that case build the graph from the actual
+         * monitoring checks instead of displaying a blank chart.
+         */
+        if (!history.length && legacyHistory.length) {
+            history = legacyHistory;
+        }
+
+        const periodForHistory =
+            document.getElementById("periodSelect")?.value || "7d";
+
+        const normalizedCandidateHistory =
+            normalizeHistoryForChart(history);
+
+        const hasLatencyData = normalizedCandidateHistory.some(item =>
+            numberOrNull(
+                item.latency ??
+                item.response_time_ms ??
+                item.response_time ??
+                item.responseTime ??
+                item.response_ms ??
+                item.value
+            ) !== null
+        );
+
+        const hasUptimeData = normalizedCandidateHistory.some(item =>
+            numberOrNull(
+                item.uptime ??
+                item.uptime_percentage ??
+                item.availability
+            ) !== null
+        );
+
+        /*
+         * The backend history contains one bucket per time interval.
+         * Empty buckets can legitimately have null latency/uptime.
+         * If the returned history has no usable measurements at all,
+         * rebuild the chart from the real monitoring checks.
+         */
+        if (
+            checks.length &&
+            (
+                !history.length ||
+                (!hasLatencyData && !hasUptimeData)
+            )
+        ) {
+            history = buildHistoryFromChecks(checks, periodForHistory);
+        }
+
+        const checkRecords = Array.isArray(checks) ? checks : [];
+
+        const responseValues = checkRecords
+            .map(check => numberOrNull(
+                check.response_time_ms ??
+                check.response_time ??
+                check.responseTime ??
+                check.latency ??
+                check.response_ms
+            ))
+            .filter(value => value !== null);
+
+        const explicitResponseTimes =
+            Array.isArray(source.response_times)
+                ? source.response_times
+                : Array.isArray(root.response_times)
+                    ? root.response_times
+                    : [];
+
+        const p95Values = explicitResponseTimes.length
+            ? explicitResponseTimes.map(Number).filter(Number.isFinite)
+            : responseValues;
+
+        const successfulFromChecks = checkRecords.filter(check =>
+            ["UP", "SUCCESS", "HEALTHY"].includes(
+                String(
+                    check.status ??
+                    check.result ??
+                    check.state ??
+                    ""
+                ).toUpperCase()
+            )
+        ).length;
+
+        const failedFromChecks = checkRecords.filter(check =>
+            ["DOWN", "FAILED", "FAIL", "ERROR", "OFFLINE", "UNHEALTHY"].includes(
+                String(
+                    check.status ??
+                    check.result ??
+                    check.state ??
+                    ""
+                ).toUpperCase()
+            )
+        ).length;
+
+        const totalFromChecks = checkRecords.length;
+
+        const avgFromChecks = responseValues.length
+            ? responseValues.reduce((sum, value) => sum + value, 0)
+                / responseValues.length
+            : null;
+
+        const sortedResponses = [...p95Values].sort((a, b) => a - b);
+
+        const p95FromChecks = sortedResponses.length
+            ? sortedResponses[Math.min(
+                sortedResponses.length - 1,
+                Math.ceil(sortedResponses.length * 0.95) - 1
+            )]
+            : null;
+
+        const uptimeFromChecks =
+            totalFromChecks > 0
+                ? (successfulFromChecks / totalFromChecks) * 100
+                : null;
+
+        const selectedMonitor =
+            Array.isArray(monitorList)
+                ? monitorList.find(
+                    monitor =>
+                        String(monitor.monitor_id) ===
+                        String(currentMonitorId)
+                )
+                : null;
+
+        const uptime = firstNonEmpty(
+            stats.uptime_percentage,
+            stats.uptime,
+            stats.availability,
+            source.uptime_percentage,
+            source.uptime,
+            source.availability,
+            uptimeFromChecks
+        );
+
+        const avg = firstNonEmpty(
+            stats.avg_response_time,
+            stats.average_response_time,
+            stats.average_latency,
+            stats.avg_latency,
+            stats.response_time_avg,
+            source.avg_response_time,
+            source.average_response_time,
+            source.average_latency,
+            avgFromChecks
+        );
+
+        const p95 = firstNonEmpty(
+            stats.p95_latency,
+            stats.p95,
+            stats.p95_response_time,
+            source.p95_latency,
+            source.p95,
+            p95FromChecks
+        );
+
+        const total = firstNonEmpty(
+            stats.total_checks,
+            stats.total_requests,
+            stats.total,
+            source.total_checks,
+            source.total,
+            totalFromChecks || null
+        );
+
+        const up = firstNonEmpty(
+            stats.up_checks,
+            stats.successful_checks,
+            stats.successful,
+            stats.success_count,
+            source.up_checks,
+            source.successful_checks,
+            successfulFromChecks || null
+        );
+
+        const down = firstNonEmpty(
+            stats.down_checks,
+            stats.failed_checks,
+            stats.failed,
+            stats.failure_count,
+            stats.error_count,
+            source.down_checks,
+            source.failed_checks,
+            failedFromChecks || null
+        );
+
+        const threshold = firstNonEmpty(
+            stats.response_time_threshold_ms,
+            stats.threshold_ms,
+            source.response_time_threshold_ms,
+            source.threshold_ms,
+            selectedMonitor?.response_time_threshold_ms,
+            selectedMonitor?.threshold_ms
+        );
+
+        const status = String(
+            firstNonEmpty(
+                source.status,
+                source.monitor_status,
+                source.current_status,
+                selectedMonitor?.status,
+                selectedMonitor?.monitor_status,
+                ""
+            ) || ""
+        ).toUpperCase();
+
+        const isDown =
+            status === "DOWN" ||
+            status === "FAILED" ||
+            status === "FAIL" ||
+            status === "ERROR" ||
+            status === "OFFLINE" ||
+            status === "UNHEALTHY";
+
+        const displayName = firstNonEmpty(
+            source.name,
+            source.monitor_name,
+            source.api_name,
+            selectedMonitor?.name,
+            root.name,
+            "API"
+        );
+
+        const displayUrl = firstNonEmpty(
+            source.url,
+            source.api_url,
+            selectedMonitor?.url,
+            root.url,
+            "API performance and uptime insights."
+        );
 
         document.getElementById("pageTitle").textContent =
-            (data.name || "API") + " Analytics";
+            displayName + " Analytics";
 
         document.getElementById("pageSubtitle").textContent =
-            data.url || "API performance and uptime insights.";
+            displayUrl;
 
         document.getElementById("content").innerHTML = `
             <section class="metrics">
@@ -1431,6 +2351,15 @@
                                 Average latency for each time bucket
                             </p>
                         </div>
+
+                        <select id="responsePeriodSelect"
+                                class="control response-period-control"
+                                onchange="changeResponsePeriod()"
+                                aria-label="Response time period">
+                            <option value="24h">Last 24 hours</option>
+                            <option value="7d">Last 7 days</option>
+                            <option value="30d">Last 30 days</option>
+                        </select>
                     </div>
 
                     <div class="card-body">
@@ -1475,33 +2404,15 @@
                 </div>
 
             </section>
-            <div class="analytics-color-legend" aria-label="Analytics color legend">
-                <span class="legend-item">
-                    <span class="legend-dot up"></span>
-                    UP · Healthy
-                </span>
-                <span class="legend-item">
-                    <span class="legend-dot slow"></span>
-                    SLOW · Degraded
-                </span>
-                <span class="legend-item">
-                    <span class="legend-dot down"></span>
-                    DOWN · Failed
-                </span>
-                <div class="legend-explain">
-                    Green shows healthy response periods, orange shows responses slower
-                    than the configured threshold, and red shows failed checks.
-                </div>
-            </div>
 
             <section class="grid">
 
                 <div class="card">
                     <div class="card-header">
                         <div>
-                            <h2 class="card-title">API Health Status</h2>
+                            <h2 class="card-title">Uptime History</h2>
                             <p class="card-subtitle">
-                                UP, SLOW and DOWN status across the selected period
+                                Availability percentage across the selected period
                             </p>
                         </div>
                     </div>
@@ -1510,21 +2421,6 @@
                         <div class="mini-chart">
                             <canvas id="uptimeChart"></canvas>
                         </div>
-                    </div>
-
-                    <div class="analytics-color-legend" aria-label="API health status legend">
-                        <span class="legend-item">
-                            <span class="legend-dot up"></span>
-                            UP · Healthy
-                        </span>
-                        <span class="legend-item">
-                            <span class="legend-dot slow"></span>
-                            SLOW · Degraded
-                        </span>
-                        <span class="legend-item">
-                            <span class="legend-dot down"></span>
-                            DOWN · Failed
-                        </span>
                     </div>
                 </div>
 
@@ -1622,68 +2518,256 @@
             </div>
         `;
 
-        drawCharts(data.history || [], threshold);
-        renderChecks(data.checks || []);
-    }
+        const activePeriod = document.getElementById("periodSelect").value;
+        const responsePeriodSelect = document.getElementById("responsePeriodSelect");
 
-    function getHistoryLatency(item) {
-        if (!item || typeof item !== "object") {
-            return null;
+        if (responsePeriodSelect) {
+            responsePeriodSelect.value = activePeriod;
         }
 
-        return numberOrNull(
-            item.latency ??
-            item.response_time_ms ??
-            item.response_time ??
-            item.responseTime ??
-            item.response_ms ??
-            item.value
-        );
+        drawCharts(normalizeHistoryForChart(history));
+        renderChecks(normalizeChecksForTable(checks));
     }
 
-    function drawCharts(history, threshold) {
+    function firstNonEmpty(...values) {
+        for (const value of values) {
+            if (
+                value !== null &&
+                value !== undefined &&
+                value !== ""
+            ) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    function buildHistoryFromChecks(checks, period) {
+        if (!Array.isArray(checks) || !checks.length) {
+            return [];
+        }
+
+        const bucketMs =
+            period === "24h"
+                ? 30 * 60 * 1000
+                : period === "30d"
+                    ? 12 * 60 * 60 * 1000
+                    : 3 * 60 * 60 * 1000;
+
+        const buckets = new Map();
+
+        checks.forEach(check => {
+            const rawTime =
+                check.checked_at ??
+                check.timestamp ??
+                check.created_at ??
+                check.time ??
+                check.date;
+
+            const date = new Date(rawTime);
+
+            if (Number.isNaN(date.getTime())) {
+                return;
+            }
+
+            const key =
+                Math.floor(date.getTime() / bucketMs) * bucketMs;
+
+            if (!buckets.has(key)) {
+                buckets.set(key, {
+                    latencies: [],
+                    total: 0,
+                    up: 0
+                });
+            }
+
+            const bucket = buckets.get(key);
+            bucket.total += 1;
+
+            const status = String(
+                check.status ??
+                check.result ??
+                check.state ??
+                ""
+            ).toUpperCase();
+
+            if (
+                status === "UP" ||
+                status === "SUCCESS" ||
+                status === "HEALTHY"
+            ) {
+                bucket.up += 1;
+            }
+
+            const latency = numberOrNull(
+                check.response_time_ms ??
+                check.response_time ??
+                check.responseTime ??
+                check.latency ??
+                check.response_ms
+            );
+
+            if (latency !== null) {
+                bucket.latencies.push(latency);
+            }
+        });
+
+        return Array.from(buckets.entries())
+            .sort((a, b) => a[0] - b[0])
+            .map(([timestamp, bucket]) => ({
+                timestamp: new Date(timestamp).toISOString(),
+                latency: bucket.latencies.length
+                    ? Number(
+                        (
+                            bucket.latencies.reduce(
+                                (sum, value) => sum + value,
+                                0
+                            ) / bucket.latencies.length
+                        ).toFixed(1)
+                    )
+                    : null,
+                uptime: bucket.total
+                    ? Number(
+                        ((bucket.up / bucket.total) * 100).toFixed(2)
+                    )
+                    : null,
+                checks: bucket.total,
+                up_checks: bucket.up,
+                down_checks: bucket.total - bucket.up
+            }));
+    }
+
+    function normalizeHistoryForChart(history) {
         if (!Array.isArray(history)) {
-            history = [];
+            return [];
+        }
+
+        return history.map((item, index) => {
+            if (typeof item === "number") {
+                return {
+                    timestamp: String(index + 1),
+                    latency: item,
+                    uptime: null
+                };
+            }
+
+            const obj = item || {};
+
+            return {
+                timestamp: firstNonEmpty(
+                    obj.timestamp,
+                    obj.checked_at,
+                    obj.created_at,
+                    obj.time,
+                    obj.date,
+                    obj.label,
+                    String(index + 1)
+                ),
+                latency: firstNonEmpty(
+                    obj.latency,
+                    obj.response_time_ms,
+                    obj.response_time,
+                    obj.responseTime,
+                    obj.response_ms,
+                    obj.value
+                ),
+                uptime: firstNonEmpty(
+                    obj.uptime_percentage,
+                    obj.uptime,
+                    obj.availability
+                )
+            };
+        });
+    }
+
+    function normalizeChecksForTable(checks) {
+        if (!Array.isArray(checks)) {
+            return [];
+        }
+
+        return checks.slice(0, 15).map(item => {
+            const obj = item || {};
+
+            return {
+                checked_at: firstNonEmpty(
+                    obj.checked_at,
+                    obj.timestamp,
+                    obj.created_at,
+                    obj.time,
+                    obj.date
+                ),
+                status: String(
+                    firstNonEmpty(
+                        obj.status,
+                        obj.result,
+                        obj.state,
+                        ""
+                    ) || ""
+                ).toUpperCase(),
+                response_time_ms: firstNonEmpty(
+                    obj.response_time_ms,
+                    obj.response_time,
+                    obj.responseTime,
+                    obj.latency,
+                    obj.response_ms
+                ),
+                status_code: firstNonEmpty(
+                    obj.status_code,
+                    obj.http_status,
+                    obj.response_status,
+                    obj.code
+                ),
+                error_message: firstNonEmpty(
+                    obj.error_message,
+                    obj.message,
+                    obj.error,
+                    obj.detail,
+                    ""
+                )
+            };
+        });
+    }
+
+    function drawCharts(history) {
+        if (typeof Chart === "undefined") {
+            return;
         }
 
         if (latencyChart) {
             latencyChart.destroy();
-            latencyChart = null;
         }
 
         if (uptimeChart) {
             uptimeChart.destroy();
-            uptimeChart = null;
         }
 
         const labels = history.map(item =>
             formatChartLabel(
-                item?.timestamp ??
-                item?.checked_at ??
-                item?.time ??
-                item?.date ??
-                item?.label
+                item.timestamp ??
+                item.checked_at ??
+                item.time ??
+                item.date ??
+                item.label
             )
         );
 
         const latencyValues = history.map(item =>
-            getHistoryLatency(item)
+            numberOrNull(
+                item.latency ??
+                item.response_time_ms ??
+                item.response_time ??
+                item.responseTime ??
+                item.response_ms ??
+                item.value
+            )
         );
 
-        const states = history.map(item =>
-            statusForBucket(item, threshold)
-        );
-
-        const upValues = states.map(state =>
-            state === "up" ? 3 : null
-        );
-
-        const slowValues = states.map(state =>
-            state === "slow" ? 2 : null
-        );
-
-        const downValues = states.map(state =>
-            state === "down" ? 1 : null
+        const uptimeValues = history.map(item =>
+            numberOrNull(
+                item.uptime ??
+                item.uptime_percentage ??
+                item.availability
+            )
         );
 
         const latencyCanvas =
@@ -1692,575 +2776,57 @@
         const uptimeCanvas =
             document.getElementById("uptimeChart");
 
-        /*
-         * Use Chart.js when it is available.
-         * If the CDN is blocked/unavailable, use the native SVG renderer
-         * below so the Analytics graphs never remain blank.
-         */
-        if (typeof Chart === "undefined") {
-            drawNativeLatencyChart(
-                latencyCanvas,
-                labels,
-                latencyValues
-            );
-
-            drawNativeStatusChart(
-                uptimeCanvas,
-                labels,
-                states
-            );
-
-            return;
-        }
-
         if (latencyCanvas) {
-            const latencyWrapper = latencyCanvas.parentElement;
-            const nativeLatency = latencyWrapper
-                ? latencyWrapper.querySelector(".native-analytics-chart")
-                : null;
-
-            if (nativeLatency) {
-                nativeLatency.remove();
-            }
-
-            latencyCanvas.style.display = "";
-
             latencyChart = new Chart(
                 latencyCanvas,
                 {
                     type: "line",
                     data: {
-                        labels: labels.length
-                            ? labels
-                            : ["No data"],
+                        labels: labels.length ? labels : ["No data"],
                         datasets: [{
-                            label: "Average response",
+                            label: "Response time",
                             data: latencyValues.length
                                 ? latencyValues
-                                : [null],
-                            borderColor: "#7467ff",
-                            backgroundColor: "rgba(116,103,255,0.12)",
+                                : [0],
+                            borderColor: "#7c6cff",
+                            backgroundColor: "rgba(124,108,255,0.12)",
                             fill: true,
-                            tension: 0.28,
-                            spanGaps: false,
+                            tension: 0.22,
                             pointRadius: 2.5,
-                            pointHoverRadius: 5,
-                            pointBackgroundColor: "#7467ff",
-                            pointBorderColor: "#ffffff",
-                            pointBorderWidth: 1.5,
-                            borderWidth: 3
+                            pointHoverRadius: 6,
+                            spanGaps: false
                         }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            intersect: false,
-                            mode: "index"
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return " Response: " +
-                                            formatMs(context.parsed.y);
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    color: "rgba(148,163,184,0.07)"
-                                },
-                                ticks: {
-                                    color: "#94a3b8",
-                                    font: {
-                                        size: 9
-                                    },
-                                    maxTicksLimit: 7,
-                                    maxRotation: 0
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    color: "#64748b",
-                                    font: {
-                                        size: 9
-                                    },
-                                    callback: function(value) {
-                                        return formatMs(value);
-                                    }
-                                },
-                                grid: {
-                                    color: "#edf0f4"
-                                }
-                            }
-                        }
-                    }
+                    options: chartOptions("ms")
                 }
             );
         }
 
         if (uptimeCanvas) {
-            const uptimeWrapper = uptimeCanvas.parentElement;
-            const nativeStatus = uptimeWrapper
-                ? uptimeWrapper.querySelector(".native-analytics-chart")
-                : null;
-
-            if (nativeStatus) {
-                nativeStatus.remove();
-            }
-
-            uptimeCanvas.style.display = "";
-
             uptimeChart = new Chart(
                 uptimeCanvas,
                 {
                     type: "line",
                     data: {
-                        labels: labels.length
-                            ? labels
-                            : ["No data"],
-                        datasets: [
-                            {
-                                label: "UP · Healthy",
-                                data: upValues.length
-                                    ? upValues
-                                    : [null],
-                                borderColor: "#10b981",
-                                backgroundColor: "rgba(16,185,129,0.08)",
-                                fill: false,
-                                stepped: true,
-                                tension: 0,
-                                spanGaps: false,
-                                pointRadius: 2.5,
-                                pointHoverRadius: 5,
-                                pointBackgroundColor: "#10b981",
-                                pointBorderColor: "#ffffff",
-                                pointBorderWidth: 1.5,
-                                borderWidth: 3
-                            },
-                            {
-                                label: "SLOW · Degraded",
-                                data: slowValues.length
-                                    ? slowValues
-                                    : [null],
-                                borderColor: "#f59e0b",
-                                backgroundColor: "rgba(245,158,11,0.08)",
-                                fill: false,
-                                stepped: true,
-                                tension: 0,
-                                spanGaps: false,
-                                pointRadius: 2.5,
-                                pointHoverRadius: 5,
-                                pointBackgroundColor: "#f59e0b",
-                                pointBorderColor: "#ffffff",
-                                pointBorderWidth: 1.5,
-                                borderWidth: 3
-                            },
-                            {
-                                label: "DOWN · Failed",
-                                data: downValues.length
-                                    ? downValues
-                                    : [null],
-                                borderColor: "#ef4444",
-                                backgroundColor: "rgba(239,68,68,0.08)",
-                                fill: false,
-                                stepped: true,
-                                tension: 0,
-                                spanGaps: false,
-                                pointRadius: 2.5,
-                                pointHoverRadius: 5,
-                                pointBackgroundColor: "#ef4444",
-                                pointBorderColor: "#ffffff",
-                                pointBorderWidth: 1.5,
-                                borderWidth: 3
-                            }
-                        ]
+                        labels: labels.length ? labels : ["No data"],
+                        datasets: [{
+                            label: "Uptime",
+                            data: uptimeValues.length
+                                ? uptimeValues
+                                : [0],
+                            borderColor: "#10b981",
+                            backgroundColor: "rgba(16,185,129,0.10)",
+                            fill: true,
+                            tension: 0.22,
+                            pointRadius: 2.5,
+                            pointHoverRadius: 6,
+                            spanGaps: false
+                        }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            intersect: false,
-                            mode: "index"
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        if (context.dataset.label) {
-                                            return " " + context.dataset.label;
-                                        }
-                                        return " No data";
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    color: "rgba(148,163,184,0.07)"
-                                },
-                                ticks: {
-                                    color: "#94a3b8",
-                                    font: {
-                                        size: 9
-                                    },
-                                    maxTicksLimit: 7,
-                                    maxRotation: 0
-                                }
-                            },
-                            y: {
-                                min: 0.5,
-                                max: 3.5,
-                                ticks: {
-                                    color: "#64748b",
-                                    font: {
-                                        size: 9
-                                    },
-                                    stepSize: 1,
-                                    callback: function(value) {
-                                        if (value === 3) return "UP";
-                                        if (value === 2) return "SLOW";
-                                        if (value === 1) return "DOWN";
-                                        return "";
-                                    }
-                                },
-                                grid: {
-                                    color: "#edf0f4"
-                                }
-                            }
-                        }
-                    }
+                    options: chartOptions("%", 100)
                 }
             );
         }
-    }
-
-    function drawNativeLatencyChart(canvas, labels, values) {
-        if (!canvas) {
-            return;
-        }
-
-        const wrapper = canvas.parentElement;
-        if (!wrapper) {
-            return;
-        }
-
-        canvas.style.display = "none";
-
-        const old = wrapper.querySelector(".native-analytics-chart");
-        if (old) {
-            old.remove();
-        }
-
-        const width = Math.max(wrapper.clientWidth || 600, 320);
-        const height = Math.max(wrapper.clientHeight || 330, 220);
-        const pad = { left: 48, right: 16, top: 16, bottom: 34 };
-
-        const valid = values
-            .map((value, index) => ({ value, index }))
-            .filter(point => point.value !== null);
-
-        const maxValue = valid.length
-            ? Math.max(...valid.map(point => point.value), 1)
-            : 1;
-
-        const x = index =>
-            pad.left +
-            (index / Math.max(values.length - 1, 1)) *
-            (width - pad.left - pad.right);
-
-        const y = value =>
-            height -
-            pad.bottom -
-            (value / maxValue) *
-            (height - pad.top - pad.bottom);
-
-        const points = valid
-            .map(point => `${x(point.index)},${y(point.value)}`)
-            .join(" ");
-
-        const grid = [0, 0.25, 0.5, 0.75, 1].map(ratio => {
-            const gy = height - pad.bottom -
-                ratio * (height - pad.top - pad.bottom);
-            const value = maxValue * ratio;
-
-            return `
-                <line x1="${pad.left}" y1="${gy}"
-                      x2="${width - pad.right}" y2="${gy}"
-                      stroke="#edf0f4" stroke-width="1"/>
-                <text x="${pad.left - 8}" y="${gy + 3}"
-                      text-anchor="end"
-                      font-size="9" fill="#64748b">
-                    ${escapeHTML(formatMs(value))}
-                </text>
-            `;
-        }).join("");
-
-        const svg = `
-            <svg class="native-analytics-chart"
-                 viewBox="0 0 ${width} ${height}"
-                 width="100%" height="100%"
-                 role="img"
-                 aria-label="Response time chart">
-                ${grid}
-                ${
-                    points
-                        ? `<polyline points="${points}"
-                              fill="none"
-                              stroke="#7467ff"
-                              stroke-width="3"
-                              stroke-linejoin="round"
-                              stroke-linecap="round"/>`
-                        : `<text x="${width / 2}" y="${height / 2}"
-                                text-anchor="middle"
-                                font-size="11"
-                                fill="#64748b">No response-time data</text>`
-                }
-                ${valid.map(point => `
-                    <circle cx="${x(point.index)}"
-                            cy="${y(point.value)}"
-                            r="3"
-                            fill="#7467ff"/>
-                `).join("")}
-            </svg>
-        `;
-
-        wrapper.insertAdjacentHTML("beforeend", svg);
-    }
-
-    function drawNativeStatusChart(canvas, labels, states) {
-        if (!canvas) {
-            return;
-        }
-
-        const wrapper = canvas.parentElement;
-        if (!wrapper) {
-            return;
-        }
-
-        canvas.style.display = "none";
-
-        const old = wrapper.querySelector(".native-analytics-chart");
-        if (old) {
-            old.remove();
-        }
-
-        const width = Math.max(wrapper.clientWidth || 600, 320);
-        const height = Math.max(wrapper.clientHeight || 235, 220);
-        const pad = { left: 54, right: 16, top: 18, bottom: 30 };
-
-        const x = index =>
-            pad.left +
-            (index / Math.max(states.length - 1, 1)) *
-            (width - pad.left - pad.right);
-
-        const y = state => {
-            if (state === "up") return pad.top + 18;
-            if (state === "slow") return height / 2;
-            if (state === "down") return height - pad.bottom - 18;
-            return null;
-        };
-
-        const grid = [
-            ["UP", pad.top + 18],
-            ["SLOW", height / 2],
-            ["DOWN", height - pad.bottom - 18]
-        ].map(([label, gy]) => `
-            <line x1="${pad.left}" y1="${gy}"
-                  x2="${width - pad.right}" y2="${gy}"
-                  stroke="#edf0f4" stroke-width="1"/>
-            <text x="${pad.left - 9}" y="${gy + 3}"
-                  text-anchor="end"
-                  font-size="9" fill="#64748b">${label}</text>
-        `).join("");
-
-        const statusColor = {
-            up: "#10b981",
-            slow: "#f59e0b",
-            down: "#ef4444"
-        };
-
-        const segments = [];
-
-        for (let i = 1; i < states.length; i++) {
-            const previous = states[i - 1];
-            const current = states[i];
-
-            if (!statusColor[previous] || !statusColor[current]) {
-                continue;
-            }
-
-            const x1 = x(i - 1);
-            const y1 = y(previous);
-            const x2 = x(i);
-            const y2 = y(current);
-
-            segments.push(`
-                <line x1="${x1}" y1="${y1}"
-                      x2="${x2}" y2="${y2}"
-                      stroke="${statusColor[current]}"
-                      stroke-width="3"
-                      stroke-linecap="round"/>
-            `);
-        }
-
-        const points = states.map((state, index) => {
-            if (!statusColor[state]) {
-                return "";
-            }
-
-            return `
-                <circle cx="${x(index)}"
-                        cy="${y(state)}"
-                        r="3.5"
-                        fill="${statusColor[state]}"/>
-            `;
-        }).join("");
-
-        const svg = `
-            <svg class="native-analytics-chart"
-                 viewBox="0 0 ${width} ${height}"
-                 width="100%" height="100%"
-                 role="img"
-                 aria-label="API health status chart">
-                ${grid}
-                ${segments.join("")}
-                ${points}
-                ${
-                    states.some(state => statusColor[state])
-                        ? ""
-                        : `<text x="${width / 2}" y="${height / 2}"
-                                text-anchor="middle"
-                                font-size="11"
-                                fill="#64748b">No status data</text>`
-                }
-            </svg>
-        `;
-
-        wrapper.insertAdjacentHTML("beforeend", svg);
-    }
-
-
-    function statusForBucket(item, threshold) {
-        const downChecks = Number(
-            item?.down_checks ??
-            item?.down ??
-            0
-        );
-
-        const rawStatus = String(
-            item?.status ??
-            item?.state ??
-            ""
-        ).toUpperCase();
-
-        if (
-            downChecks > 0 ||
-            rawStatus === "DOWN" ||
-            rawStatus === "FAILED" ||
-            rawStatus === "FAIL"
-        ) {
-            return "down";
-        }
-
-        const latency = getHistoryLatency(item);
-        const thresholdValue = numberOrNull(threshold);
-
-        if (
-            latency !== null &&
-            thresholdValue !== null &&
-            latency > thresholdValue
-        ) {
-            return "slow";
-        }
-
-        const checks = Number(
-            item?.checks ??
-            item?.total_checks ??
-            0
-        );
-
-        if (
-            checks > 0 ||
-            rawStatus === "UP" ||
-            rawStatus === "HEALTHY"
-        ) {
-            return "up";
-        }
-
-        return "empty";
-    }
-
-    function statusChartOptions() {
-        return {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                intersect: false,
-                mode: "index"
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const value = context.parsed.y;
-
-                            if (value === null || value === undefined) {
-                                return " No data";
-                            }
-
-                            return " " + value + " bucket";
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        color: "rgba(148,163,184,0.07)"
-                    },
-                    ticks: {
-                        color: "#64748b",
-                        font: {
-                            size: 9
-                        },
-                        maxTicksLimit: 6,
-                        maxRotation: 0
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    suggestedMax: 1.2,
-                    ticks: {
-                        color: "#64748b",
-                        font: {
-                            size: 9
-                        },
-                        stepSize: 1,
-                        callback: function(value) {
-                            return value === 1 ? "Status" : "";
-                        }
-                    },
-                    grid: {
-                        color: "rgba(148,163,184,0.08)"
-                    }
-                }
-            }
-        };
     }
 
     function chartOptions(unit, maxY = null) {
@@ -2366,7 +2932,7 @@
 
             return `
                 <tr>
-                    <td>${escapeHTML(formatDateTime(check.checked_at ?? check.timestamp ?? check.time))}</td>
+                    <td>${escapeHTML(formatDateTime(check.checked_at))}</td>
                     <td>${badge}</td>
                     <td>${formatMs(check.response_time_ms)}</td>
                     <td>${check.status_code ?? "—"}</td>

@@ -228,3 +228,58 @@ class Incident(models.Model):
 
     def __str__(self):
         return f"{self.monitor.name} incident"
+        # =============================================================================
+# MONITOR ALERT SETTINGS
+# =============================================================================
+
+class MonitorAlertSettings(models.Model):
+
+    monitor = models.OneToOneField(
+        APIMonitor,
+        on_delete=models.CASCADE,
+        related_name="alert_settings"
+    )
+
+    # Master alert switch
+    alerts_enabled = models.BooleanField(
+        default=True
+    )
+
+    # Alert types
+    down_alert_enabled = models.BooleanField(
+        default=True
+    )
+
+    slow_alert_enabled = models.BooleanField(
+        default=True
+    )
+
+    recovery_alert_enabled = models.BooleanField(
+        default=True
+    )
+
+    # Notification channels
+    email_enabled = models.BooleanField(
+        default=True
+    )
+
+    phone_enabled = models.BooleanField(
+        default=False
+    )
+
+    # Prevent repeated notifications
+    cooldown_minutes = models.PositiveIntegerField(
+        default=30
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    def __str__(self):
+        return f"Alert settings - {self.monitor.name}"

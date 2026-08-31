@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
-from .models import APIMonitor, Incident
+from .models import (
+    APIMonitor,
+    Incident,
+    MonitorAlertSettings,
+)
 
 
 # =============================================================================
@@ -497,3 +501,78 @@ class IncidentSerializer(
             )
 
         return 0
+
+
+# =============================================================================
+# MONITOR ALERT SETTINGS SERIALIZER
+# =============================================================================
+
+class MonitorAlertSettingsSerializer(
+    serializers.ModelSerializer
+):
+
+    monitor_name = serializers.CharField(
+        source="monitor.name",
+        read_only=True
+    )
+
+    monitor_url = serializers.CharField(
+        source="monitor.url",
+        read_only=True
+    )
+
+    class Meta:
+        model = MonitorAlertSettings
+
+        fields = [
+            # Identity
+            "id",
+
+            # Monitor
+            "monitor",
+            "monitor_name",
+            "monitor_url",
+
+            # Master alert switch
+            "alerts_enabled",
+
+            # Alert types
+            "down_alert_enabled",
+            "slow_alert_enabled",
+            "recovery_alert_enabled",
+
+            # Notification channels
+            "email_enabled",
+            "phone_enabled",
+
+            # Notification cooldown
+            "cooldown_minutes",
+
+            # Timestamps
+            "created_at",
+            "updated_at",
+        ]
+
+        read_only_fields = [
+            "id",
+            "monitor",
+            "monitor_name",
+            "monitor_url",
+            "created_at",
+            "updated_at",
+        ]
+
+    # =========================================================================
+    # VALIDATION
+    # =========================================================================
+
+    def validate_cooldown_minutes(
+        self,
+        value
+    ):
+        if value < 0:
+            raise serializers.ValidationError(
+                "Cooldown cannot be negative."
+            )
+
+        return value
