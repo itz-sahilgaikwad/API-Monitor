@@ -969,6 +969,74 @@ class MonitorAnalyticsView(APIView):
             )
         )
 
+        # ---------------------------------------------------------------------
+        # PERFORMANCE SCORE
+        # ---------------------------------------------------------------------
+        # The score is calculated only from real monitoring data.
+        # 60% uptime + 25% latency health + 15% slow-check health.
+        performance_score = None
+        performance_grade = None
+        score_breakdown = {
+            "uptime": None,
+            "latency": None,
+            "slow_checks": None,
+        }
+
+        if total > 0:
+            uptime_score = float(uptime or 0)
+
+            if avg_response_time is None:
+                latency_score = 100.0
+            else:
+                threshold = float(
+                    monitor.response_time_threshold_ms or 1000
+                )
+                if threshold <= 0:
+                    threshold = 1000.0
+
+                # At or below the configured threshold = 100.
+                # At 2x threshold = 50, at 3x or more = 0.
+                latency_score = max(
+                    0.0,
+                    min(
+                        100.0,
+                        100.0 - max(0.0, (
+                            (avg_response_time / threshold) - 1.0
+                        )) * 50.0,
+                    ),
+                )
+
+            slow_check_score = max(
+                0.0,
+                100.0 - float(slow_percentage),
+            )
+
+            performance_score = round(
+                (uptime_score * 0.60)
+                + (latency_score * 0.25)
+                + (slow_check_score * 0.15),
+                1,
+            )
+
+            if performance_score >= 95:
+                performance_grade = "A+"
+            elif performance_score >= 90:
+                performance_grade = "A"
+            elif performance_score >= 80:
+                performance_grade = "B"
+            elif performance_score >= 70:
+                performance_grade = "C"
+            elif performance_score >= 60:
+                performance_grade = "D"
+            else:
+                performance_grade = "F"
+
+            score_breakdown = {
+                "uptime": round(uptime_score, 1),
+                "latency": round(latency_score, 1),
+                "slow_checks": round(slow_check_score, 1),
+            }
+
         return Response({
             "monitor_id": monitor.id,
             "name": monitor.name,
@@ -992,6 +1060,9 @@ class MonitorAnalyticsView(APIView):
             "response_time_threshold_ms": (
                 monitor.response_time_threshold_ms
             ),
+            "performance_score": performance_score,
+            "performance_grade": performance_grade,
+            "score_breakdown": score_breakdown,
             "response_times": response_times,
             "rt_values": response_times,
             "history": history,
@@ -1145,6 +1216,74 @@ class GlobalAnalyticsView(APIView):
             )
         )
 
+        # ---------------------------------------------------------------------
+        # PERFORMANCE SCORE
+        # ---------------------------------------------------------------------
+        # The score is calculated only from real monitoring data.
+        # 60% uptime + 25% latency health + 15% slow-check health.
+        performance_score = None
+        performance_grade = None
+        score_breakdown = {
+            "uptime": None,
+            "latency": None,
+            "slow_checks": None,
+        }
+
+        if total > 0:
+            uptime_score = float(uptime or 0)
+
+            if avg_response_time is None:
+                latency_score = 100.0
+            else:
+                threshold = float(
+                    monitor.response_time_threshold_ms or 1000
+                )
+                if threshold <= 0:
+                    threshold = 1000.0
+
+                # At or below the configured threshold = 100.
+                # At 2x threshold = 50, at 3x or more = 0.
+                latency_score = max(
+                    0.0,
+                    min(
+                        100.0,
+                        100.0 - max(0.0, (
+                            (avg_response_time / threshold) - 1.0
+                        )) * 50.0,
+                    ),
+                )
+
+            slow_check_score = max(
+                0.0,
+                100.0 - float(slow_percentage),
+            )
+
+            performance_score = round(
+                (uptime_score * 0.60)
+                + (latency_score * 0.25)
+                + (slow_check_score * 0.15),
+                1,
+            )
+
+            if performance_score >= 95:
+                performance_grade = "A+"
+            elif performance_score >= 90:
+                performance_grade = "A"
+            elif performance_score >= 80:
+                performance_grade = "B"
+            elif performance_score >= 70:
+                performance_grade = "C"
+            elif performance_score >= 60:
+                performance_grade = "D"
+            else:
+                performance_grade = "F"
+
+            score_breakdown = {
+                "uptime": round(uptime_score, 1),
+                "latency": round(latency_score, 1),
+                "slow_checks": round(slow_check_score, 1),
+            }
+
         return Response({
             "monitor_id": monitor.id,
             "name": monitor.name,
@@ -1168,6 +1307,9 @@ class GlobalAnalyticsView(APIView):
             "response_time_threshold_ms": (
                 monitor.response_time_threshold_ms
             ),
+            "performance_score": performance_score,
+            "performance_grade": performance_grade,
+            "score_breakdown": score_breakdown,
             "response_times": response_times,
             "rt_values": response_times,
             "history": history,

@@ -1508,6 +1508,231 @@ td {
 }
 </style>
 
+
+<style id="smart-health-insights-style">
+        /* Smart Health Insights */
+        .insights-card { margin-bottom: 16px; }
+        .insights-header-right { display:inline-flex; align-items:center; gap:7px; }
+        .trend-badge { display:inline-flex; align-items:center; padding:6px 9px; border-radius:999px; background:#f1f5f9; color:#64748b; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
+        .trend-badge.improving { background:rgba(16,185,129,.10); color:#059669; }
+        .trend-badge.degrading { background:rgba(239,68,68,.10); color:#dc2626; }
+        .trend-badge.stable { background:rgba(115,87,255,.09); color:#6957d8; }
+        .insights-list { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
+        .insight-item { display:flex; align-items:flex-start; gap:10px; padding:11px 12px; border:1px solid #e5eaf1; border-radius:10px; background:#fafbfe; color:#344054; font-size:11px; line-height:1.5; }
+        .insight-dot { width:7px; height:7px; flex:0 0 7px; margin-top:5px; border-radius:50%; background:#7357ff; box-shadow:0 0 0 4px rgba(115,87,255,.09); }
+        .insights-empty { padding:12px; border:1px dashed #d8e0eb; border-radius:10px; color:#64748b; background:#fafbfe; font-size:11px; }
+</style>
+
+
+<style id="anomaly-detection-style">
+    .anomaly-card {
+        margin-bottom: 16px;
+    }
+
+    .anomaly-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .anomaly-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    .anomaly-badge.normal {
+        color: #059669;
+        background: rgba(16,185,129,.10);
+    }
+
+    .anomaly-badge.warning {
+        color: #b45309;
+        background: rgba(245,158,11,.12);
+    }
+
+    .anomaly-badge.critical {
+        color: #dc2626;
+        background: rgba(239,68,68,.12);
+    }
+
+    .anomaly-content {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 18px;
+        align-items: center;
+    }
+
+    .anomaly-title {
+        color: #f5f7ff;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .anomaly-detail {
+        margin-top: 5px;
+        color: #74829d;
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    .anomaly-stats {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .anomaly-stat {
+        min-width: 90px;
+        text-align: right;
+    }
+
+    .anomaly-stat-label {
+        color: #687792;
+        font-size: 8px;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+    }
+
+    .anomaly-stat-value {
+        margin-top: 4px;
+        color: #e7ecf6;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    @media (max-width: 600px) {
+        .anomaly-content {
+            grid-template-columns: 1fr;
+        }
+
+        .anomaly-stats {
+            justify-content: flex-start;
+        }
+
+        .anomaly-stat {
+            text-align: left;
+        }
+    }
+</style>
+
+<style id="performance-score-style">
+    .score-card {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .score-layout {
+        display: grid;
+        grid-template-columns: 145px 1fr;
+        gap: 22px;
+        align-items: center;
+    }
+
+    .score-ring {
+        width: 124px;
+        height: 124px;
+        margin: 0 auto;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: conic-gradient(
+            #7c6cff calc(var(--score, 0) * 1%),
+            rgba(124,108,255,.10) 0
+        );
+        position: relative;
+    }
+
+    .score-ring::after {
+        content: "";
+        position: absolute;
+        inset: 9px;
+        border-radius: 50%;
+        background: #101b30;
+        border: 1px solid #1e2d47;
+    }
+
+    .score-value {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+    }
+
+    .score-number {
+        display: block;
+        color: #f5f7ff;
+        font-family: "Libre Baskerville", Georgia, serif;
+        font-size: 27px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .score-grade {
+        display: block;
+        margin-top: 5px;
+        color: #8d7dff;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .08em;
+    }
+
+    .score-details {
+        display: grid;
+        gap: 11px;
+    }
+
+    .score-row {
+        display: grid;
+        grid-template-columns: 92px 1fr 40px;
+        gap: 9px;
+        align-items: center;
+        color: #8b99b1;
+        font-size: 10px;
+    }
+
+    .score-bar {
+        height: 6px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #1b2942;
+    }
+
+    .score-bar span {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #7364f4, #8d7dff);
+        transition: width 220ms ease;
+    }
+
+    .score-row strong {
+        color: #e7ecf6;
+        text-align: right;
+        font-size: 10px;
+    }
+
+    .score-note {
+        margin-top: 4px;
+        color: #687792;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 600px) {
+        .score-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 </head>
 
 <body>
@@ -1525,12 +1750,12 @@ td {
         <div class="menu-label">Workspace</div>
 
         <nav class="nav">
-<a href="/app/dashboard.html">▣ <span>Dashboard</span></a>
-<a href="/app/analytics.html" class="active">⌁ <span>Analytics</span></a>
-<a href="/app/logs.html">☷ <span>Logs</span></a>
-<a href="/app/incidents.html">! <span>Incidents</span></a>
-<a href="/app/settings.html">⚙ <span>Settings</span></a>
-</nav>
+            <a href="/app/dashboard.html">▣ <span>Dashboard</span></a>
+            <a href="/app/analytics.html" class="active">⌁ <span>Analytics</span></a>
+            <a href="/app/incidents.html">! <span>Incidents</span></a>
+            <a href="/app/logs.html">☷ <span>Logs</span></a>
+            <a href="/app/settings.html">⚙ <span>Settings</span></a>
+        </nav>
 
         <div class="sidebar-bottom">
             <div class="system-card">
@@ -1642,157 +1867,6 @@ td {
         return response.json();
     }
 
-
-    /*
-     * Build the charts from the real APILog records.  The analytics
-     * summary endpoint can contain a compact/legacy history series, which
-     * is not reliable enough for a visual timeline.  The Logs endpoint
-     * exposes the actual monitoring checks, so use those records for the
-     * chart whenever they are available.
-     */
-    async function loadRealChartChecks(monitorId) {
-        const allChecks = [];
-        let page = 1;
-        const pageSize = 100;
-
-        while (page <= 100) {
-            const response = await apiFetch(
-                "/api/monitoring/"
-                + encodeURIComponent(monitorId)
-                + "/logs/?page="
-                + page
-                + "&page_size="
-                + pageSize
-            );
-
-            const rows = Array.isArray(response)
-                ? response
-                : Array.isArray(response.results)
-                    ? response.results
-                    : [];
-
-            allChecks.push(...rows);
-
-            const totalPages = Number(response.total_pages || 1);
-            if (!rows.length || page >= totalPages) {
-                break;
-            }
-
-            page += 1;
-        }
-
-        return allChecks;
-    }
-
-    function buildRealChartHistory(checks, period) {
-        if (!Array.isArray(checks) || !checks.length) {
-            return [];
-        }
-
-        const now = Date.now();
-        const lookbackMs =
-            period === "24h"
-                ? 24 * 60 * 60 * 1000
-                : period === "30d"
-                    ? 30 * 24 * 60 * 60 * 1000
-                    : 7 * 24 * 60 * 60 * 1000;
-
-        const startMs = now - lookbackMs;
-
-        const filtered = checks
-            .map(check => ({
-                ...check,
-                _date: new Date(
-                    check.checked_at ??
-                    check.timestamp ??
-                    check.created_at ??
-                    check.time ??
-                    check.date
-                )
-            }))
-            .filter(check =>
-                !Number.isNaN(check._date.getTime()) &&
-                check._date.getTime() >= startMs &&
-                check._date.getTime() <= now
-            )
-            .sort((a, b) => a._date - b._date);
-
-        if (!filtered.length) {
-            return [];
-        }
-
-        // Keep enough real points to show actual variation without making
-        // the chart unreadably dense.  These are averages of actual checks,
-        // not generated/synthetic values.
-        const bucketMs =
-            period === "24h"
-                ? 30 * 60 * 1000
-                : period === "30d"
-                    ? 12 * 60 * 60 * 1000
-                    : 3 * 60 * 60 * 1000;
-
-        const buckets = new Map();
-
-        filtered.forEach(check => {
-            const timestamp = check._date.getTime();
-            const bucketStart =
-                Math.floor(timestamp / bucketMs) * bucketMs;
-
-            if (!buckets.has(bucketStart)) {
-                buckets.set(bucketStart, {
-                    latencies: [],
-                    total: 0,
-                    up: 0,
-                    down: 0
-                });
-            }
-
-            const bucket = buckets.get(bucketStart);
-            bucket.total += 1;
-
-            const status = String(check.status || "").toUpperCase();
-            if (status === "UP") {
-                bucket.up += 1;
-            } else {
-                bucket.down += 1;
-            }
-
-            const latency = numberOrNull(
-                check.response_time_ms ??
-                check.response_time ??
-                check.responseTime ??
-                check.latency ??
-                check.response_ms
-            );
-
-            if (latency !== null) {
-                bucket.latencies.push(latency);
-            }
-        });
-
-        return Array.from(buckets.entries())
-            .sort((a, b) => a[0] - b[0])
-            .map(([timestamp, bucket]) => ({
-                timestamp: new Date(timestamp).toISOString(),
-                latency: bucket.latencies.length
-                    ? Number((
-                        bucket.latencies.reduce(
-                            (sum, value) => sum + value,
-                            0
-                        ) / bucket.latencies.length
-                    ).toFixed(1))
-                    : null,
-                uptime: bucket.total
-                    ? Number((
-                        (bucket.up / bucket.total) * 100
-                    ).toFixed(2))
-                    : null,
-                checks: bucket.total,
-                up_checks: bucket.up,
-                down_checks: bucket.down
-            }));
-    }
-
     async function loadMonitorList() {
         const data = await apiFetch("/api/monitoring/analytics/");
 
@@ -1885,40 +1959,15 @@ td {
         refreshBtn.disabled = true;
 
         try {
-            /*
-             * The current backend uses the collection endpoint for both
-             * monitor selection and detailed analytics. The selected
-             * monitor and period are passed as query parameters.
-             */
             const data = await apiFetch(
                 "/api/monitoring/analytics/"
+                + "?monitor_id="
                 + encodeURIComponent(selectedMonitorId)
-                + "/?period="
+                + "&period="
                 + encodeURIComponent(period)
             );
 
-            /*
-             * Some backend versions return the calculated values inside
-             * data / analytics / result.  renderAnalytics below handles
-             * both nested and flat responses.
-             */
-            renderAnalytics(data, monitors, selectedMonitorId);
-
-            // Replace any compact/legacy history with the real APILog
-            // timeline.  Summary cards still come from the analytics API.
-            try {
-                const realChecks = await loadRealChartChecks(selectedMonitorId);
-                const realHistory = buildRealChartHistory(realChecks, period);
-
-                if (realHistory.length > 1) {
-                    drawCharts(normalizeHistoryForChart(realHistory));
-                }
-            } catch (chartError) {
-                // Keep the analytics response visible if the chart-only
-                // logs request fails.
-                console.warn("Real chart history unavailable:", chartError);
-            }
-
+            renderAnalytics(data);
             firstLoad = false;
 
         } catch (error) {
@@ -1998,303 +2047,36 @@ td {
         }
     }
 
-    function renderAnalytics(data, monitorList = [], currentMonitorId = null) {
-        const root = data && typeof data === "object"
-            ? data
-            : {};
+    function renderAnalytics(data) {
+        const uptime = numberOrNull(data.uptime_percentage);
+        const avg = numberOrNull(data.avg_response_time);
+        const p95 = numberOrNull(data.p95_latency);
+        const total = numberOrNull(data.total_checks);
+        const up = numberOrNull(data.up_checks);
+        const down = numberOrNull(data.down_checks);
+        const threshold = numberOrNull(data.response_time_threshold_ms);
+        const performanceScore = numberOrNull(data.performance_score);
+        const performanceGrade = data.performance_grade || null;
+        const scoreBreakdown = data.score_breakdown || {};
+        const insights = Array.isArray(data.insights) ? data.insights : [];
+        const latencyTrend = String(data.latency_trend || "stable").toLowerCase();
+        const anomaly = data.anomaly && typeof data.anomaly === "object"
+            ? data.anomaly
+            : {
+                severity: "normal",
+                kind: "none",
+                title: "No anomaly detected",
+                detail: "Recent monitoring behavior is within the normal range."
+            };
 
-        /*
-         * Accept the response shapes used by the monitoring backend:
-         * flat, {data:{...}}, {analytics:{...}}, or {result:{...}}.
-         */
-        const source =
-            root.data && typeof root.data === "object"
-                ? root.data
-                : root.analytics && typeof root.analytics === "object"
-                    ? root.analytics
-                    : root.result && typeof root.result === "object"
-                        ? root.result
-                        : root;
-
-        const stats =
-            source.stats ||
-            source.metrics ||
-            source.summary ||
-            source;
-
-        let history =
-            Array.isArray(source.history)
-                ? source.history
-                : Array.isArray(source.data_points)
-                    ? source.data_points
-                    : Array.isArray(source.datapoints)
-                        ? source.datapoints
-                        : Array.isArray(source.timeline)
-                            ? source.timeline
-                            : Array.isArray(source.series)
-                                ? source.series
-                                : Array.isArray(root.history)
-                                    ? root.history
-                                    : [];
-
-        const legacyHistory =
-            Array.isArray(source.response_time_history)
-                ? source.response_time_history
-                : Array.isArray(root.response_time_history)
-                    ? root.response_time_history
-                    : [];
-
-        const checks =
-            Array.isArray(source.checks)
-                ? source.checks
-                : Array.isArray(source.logs)
-                    ? source.logs
-                    : Array.isArray(source.results)
-                        ? source.results
-                        : Array.isArray(source.recent_history)
-                            ? source.recent_history
-                            : Array.isArray(root.checks)
-                                ? root.checks
-                                : Array.isArray(root.recent_history)
-                                    ? root.recent_history
-                                    : [];
-
-        /*
-         * The backend can return the summary correctly while omitting
-         * "history". In that case build the graph from the actual
-         * monitoring checks instead of displaying a blank chart.
-         */
-        if (!history.length && legacyHistory.length) {
-            history = legacyHistory;
-        }
-
-        const periodForHistory =
-            document.getElementById("periodSelect")?.value || "7d";
-
-        const normalizedCandidateHistory =
-            normalizeHistoryForChart(history);
-
-        const hasLatencyData = normalizedCandidateHistory.some(item =>
-            numberOrNull(
-                item.latency ??
-                item.response_time_ms ??
-                item.response_time ??
-                item.responseTime ??
-                item.response_ms ??
-                item.value
-            ) !== null
-        );
-
-        const hasUptimeData = normalizedCandidateHistory.some(item =>
-            numberOrNull(
-                item.uptime ??
-                item.uptime_percentage ??
-                item.availability
-            ) !== null
-        );
-
-        /*
-         * The backend history contains one bucket per time interval.
-         * Empty buckets can legitimately have null latency/uptime.
-         * If the returned history has no usable measurements at all,
-         * rebuild the chart from the real monitoring checks.
-         */
-        if (
-            checks.length &&
-            (
-                !history.length ||
-                (!hasLatencyData && !hasUptimeData)
-            )
-        ) {
-            history = buildHistoryFromChecks(checks, periodForHistory);
-        }
-
-        const checkRecords = Array.isArray(checks) ? checks : [];
-
-        const responseValues = checkRecords
-            .map(check => numberOrNull(
-                check.response_time_ms ??
-                check.response_time ??
-                check.responseTime ??
-                check.latency ??
-                check.response_ms
-            ))
-            .filter(value => value !== null);
-
-        const explicitResponseTimes =
-            Array.isArray(source.response_times)
-                ? source.response_times
-                : Array.isArray(root.response_times)
-                    ? root.response_times
-                    : [];
-
-        const p95Values = explicitResponseTimes.length
-            ? explicitResponseTimes.map(Number).filter(Number.isFinite)
-            : responseValues;
-
-        const successfulFromChecks = checkRecords.filter(check =>
-            ["UP", "SUCCESS", "HEALTHY"].includes(
-                String(
-                    check.status ??
-                    check.result ??
-                    check.state ??
-                    ""
-                ).toUpperCase()
-            )
-        ).length;
-
-        const failedFromChecks = checkRecords.filter(check =>
-            ["DOWN", "FAILED", "FAIL", "ERROR", "OFFLINE", "UNHEALTHY"].includes(
-                String(
-                    check.status ??
-                    check.result ??
-                    check.state ??
-                    ""
-                ).toUpperCase()
-            )
-        ).length;
-
-        const totalFromChecks = checkRecords.length;
-
-        const avgFromChecks = responseValues.length
-            ? responseValues.reduce((sum, value) => sum + value, 0)
-                / responseValues.length
-            : null;
-
-        const sortedResponses = [...p95Values].sort((a, b) => a - b);
-
-        const p95FromChecks = sortedResponses.length
-            ? sortedResponses[Math.min(
-                sortedResponses.length - 1,
-                Math.ceil(sortedResponses.length * 0.95) - 1
-            )]
-            : null;
-
-        const uptimeFromChecks =
-            totalFromChecks > 0
-                ? (successfulFromChecks / totalFromChecks) * 100
-                : null;
-
-        const selectedMonitor =
-            Array.isArray(monitorList)
-                ? monitorList.find(
-                    monitor =>
-                        String(monitor.monitor_id) ===
-                        String(currentMonitorId)
-                )
-                : null;
-
-        const uptime = firstNonEmpty(
-            stats.uptime_percentage,
-            stats.uptime,
-            stats.availability,
-            source.uptime_percentage,
-            source.uptime,
-            source.availability,
-            uptimeFromChecks
-        );
-
-        const avg = firstNonEmpty(
-            stats.avg_response_time,
-            stats.average_response_time,
-            stats.average_latency,
-            stats.avg_latency,
-            stats.response_time_avg,
-            source.avg_response_time,
-            source.average_response_time,
-            source.average_latency,
-            avgFromChecks
-        );
-
-        const p95 = firstNonEmpty(
-            stats.p95_latency,
-            stats.p95,
-            stats.p95_response_time,
-            source.p95_latency,
-            source.p95,
-            p95FromChecks
-        );
-
-        const total = firstNonEmpty(
-            stats.total_checks,
-            stats.total_requests,
-            stats.total,
-            source.total_checks,
-            source.total,
-            totalFromChecks || null
-        );
-
-        const up = firstNonEmpty(
-            stats.up_checks,
-            stats.successful_checks,
-            stats.successful,
-            stats.success_count,
-            source.up_checks,
-            source.successful_checks,
-            successfulFromChecks || null
-        );
-
-        const down = firstNonEmpty(
-            stats.down_checks,
-            stats.failed_checks,
-            stats.failed,
-            stats.failure_count,
-            stats.error_count,
-            source.down_checks,
-            source.failed_checks,
-            failedFromChecks || null
-        );
-
-        const threshold = firstNonEmpty(
-            stats.response_time_threshold_ms,
-            stats.threshold_ms,
-            source.response_time_threshold_ms,
-            source.threshold_ms,
-            selectedMonitor?.response_time_threshold_ms,
-            selectedMonitor?.threshold_ms
-        );
-
-        const status = String(
-            firstNonEmpty(
-                source.status,
-                source.monitor_status,
-                source.current_status,
-                selectedMonitor?.status,
-                selectedMonitor?.monitor_status,
-                ""
-            ) || ""
-        ).toUpperCase();
-
-        const isDown =
-            status === "DOWN" ||
-            status === "FAILED" ||
-            status === "FAIL" ||
-            status === "ERROR" ||
-            status === "OFFLINE" ||
-            status === "UNHEALTHY";
-
-        const displayName = firstNonEmpty(
-            source.name,
-            source.monitor_name,
-            source.api_name,
-            selectedMonitor?.name,
-            root.name,
-            "API"
-        );
-
-        const displayUrl = firstNonEmpty(
-            source.url,
-            source.api_url,
-            selectedMonitor?.url,
-            root.url,
-            "API performance and uptime insights."
-        );
+        const status = String(data.status || "").toUpperCase();
+        const isDown = status === "DOWN";
 
         document.getElementById("pageTitle").textContent =
-            displayName + " Analytics";
+            (data.name || "API") + " Analytics";
 
         document.getElementById("pageSubtitle").textContent =
-            displayUrl;
+            data.url || "API performance and uptime insights.";
 
         document.getElementById("content").innerHTML = `
             <section class="metrics">
@@ -2484,6 +2266,110 @@ td {
 
             </section>
 
+
+            <section class="card score-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Performance Score</h2>
+                        <p class="card-subtitle">
+                            A single health score calculated from real monitoring data
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="score-layout">
+                        <div class="score-ring" id="scoreRing">
+                            <div class="score-value">
+                                <span class="score-number" id="scoreNumber">—</span>
+                                <span class="score-grade" id="scoreGrade">NO DATA</span>
+                            </div>
+                        </div>
+
+                        <div class="score-details">
+                            <div class="score-row">
+                                <span>Uptime</span>
+                                <div class="score-bar"><span id="scoreUptimeBar"></span></div>
+                                <strong id="scoreUptime">—</strong>
+                            </div>
+
+                            <div class="score-row">
+                                <span>Latency health</span>
+                                <div class="score-bar"><span id="scoreLatencyBar"></span></div>
+                                <strong id="scoreLatency">—</strong>
+                            </div>
+
+                            <div class="score-row">
+                                <span>Slow checks</span>
+                                <div class="score-bar"><span id="scoreSlowBar"></span></div>
+                                <strong id="scoreSlow">—</strong>
+                            </div>
+
+                            <div class="score-note">
+                                Weighted 60% uptime, 25% latency health, and 15% slow-check health.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card insights-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Smart Health Insights</h2>
+                        <p class="card-subtitle">Explainable observations from the selected monitoring period</p>
+                    </div>
+                    <div class="insights-header-right" id="insightsHeaderRight"></div>
+                </div>
+                <div class="card-body">
+                    <div id="insightsContent" class="insights-list">
+                        <div class="insights-empty">No insights available yet.</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card anomaly-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Performance Anomaly Detection</h2>
+                        <p class="card-subtitle">Automatic detection from recent monitoring checks</p>
+                    </div>
+                    <div class="anomaly-head">
+                        <span id="anomalyBadge" class="anomaly-badge normal">● NORMAL</span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="anomaly-content">
+                        <div>
+                            <div class="anomaly-title" id="anomalyTitle">
+                                No anomaly detected
+                            </div>
+                            <div class="anomaly-detail" id="anomalyDetail">
+                                Recent monitoring behavior is within the normal range.
+                            </div>
+                        </div>
+
+                        <div class="anomaly-stats">
+                            <div class="anomaly-stat">
+                                <div class="anomaly-stat-label">Current</div>
+                                <div class="anomaly-stat-value" id="anomalyCurrent">—</div>
+                            </div>
+
+                            <div class="anomaly-stat">
+                                <div class="anomaly-stat-label">Baseline</div>
+                                <div class="anomaly-stat-value" id="anomalyBaseline">—</div>
+                            </div>
+
+                            <div class="anomaly-stat">
+                                <div class="anomaly-stat-label">Affected</div>
+                                <div class="anomaly-stat-value" id="anomalyAffected">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section class="card">
 
                 <div class="card-header">
@@ -2525,206 +2411,153 @@ td {
             responsePeriodSelect.value = activePeriod;
         }
 
-        drawCharts(normalizeHistoryForChart(history));
-        renderChecks(normalizeChecksForTable(checks));
+        drawCharts(data.history || []);
+        renderChecks(data.checks || []);
+        renderPerformanceScore(
+            performanceScore,
+            performanceGrade,
+            scoreBreakdown
+        );
+        renderSmartInsights(insights, latencyTrend);
+        renderAnomaly(anomaly);
     }
 
-    function firstNonEmpty(...values) {
-        for (const value of values) {
-            if (
-                value !== null &&
-                value !== undefined &&
-                value !== ""
-            ) {
-                return value;
-            }
+    function renderAnomaly(anomaly) {
+        const badge = document.getElementById("anomalyBadge");
+        const title = document.getElementById("anomalyTitle");
+        const detail = document.getElementById("anomalyDetail");
+        const current = document.getElementById("anomalyCurrent");
+        const baseline = document.getElementById("anomalyBaseline");
+        const affected = document.getElementById("anomalyAffected");
+
+        if (!badge || !title || !detail) return;
+
+        const severity = ["normal", "warning", "critical"].includes(
+            String(anomaly?.severity || "").toLowerCase()
+        )
+            ? String(anomaly.severity).toLowerCase()
+            : "normal";
+
+        const labels = {
+            normal: "● NORMAL",
+            warning: "● WARNING",
+            critical: "● CRITICAL"
+        };
+
+        badge.className = `anomaly-badge ${severity}`;
+        badge.textContent = labels[severity];
+
+        title.textContent =
+            anomaly?.title || "No anomaly detected";
+
+        detail.textContent =
+            anomaly?.detail ||
+            "Recent monitoring behavior is within the normal range.";
+
+        if (current) {
+            current.textContent =
+                anomaly?.current_ms !== null &&
+                anomaly?.current_ms !== undefined
+                    ? formatMs(anomaly.current_ms)
+                    : "—";
         }
-        return null;
+
+        if (baseline) {
+            baseline.textContent =
+                anomaly?.baseline_ms !== null &&
+                anomaly?.baseline_ms !== undefined
+                    ? formatMs(anomaly.baseline_ms)
+                    : "—";
+        }
+
+        if (affected) {
+            affected.textContent =
+                Number.isFinite(Number(anomaly?.affected_checks))
+                    ? String(Number(anomaly.affected_checks))
+                    : "0";
+        }
     }
 
-    function buildHistoryFromChecks(checks, period) {
-        if (!Array.isArray(checks) || !checks.length) {
-            return [];
+    function renderSmartInsights(insights, latencyTrend) {
+        const content = document.getElementById("insightsContent");
+        const header = document.getElementById("insightsHeaderRight");
+
+        if (!content) return;
+
+        const safeTrend = ["improving", "degrading", "stable"].includes(latencyTrend)
+            ? latencyTrend
+            : "stable";
+
+        const trendLabels = {
+            improving: "Latency improving",
+            degrading: "Latency degrading",
+            stable: "Latency stable"
+        };
+
+        if (header) {
+            header.innerHTML = `<span class="trend-badge ${safeTrend}">${escapeHTML(trendLabels[safeTrend])}</span>`;
         }
 
-        const bucketMs =
-            period === "24h"
-                ? 30 * 60 * 1000
-                : period === "30d"
-                    ? 12 * 60 * 60 * 1000
-                    : 3 * 60 * 60 * 1000;
+        if (!insights.length) {
+            content.innerHTML = `<div class="insights-empty">No additional insights were detected for the selected period.</div>`;
+            return;
+        }
 
-        const buckets = new Map();
+        content.innerHTML = insights.slice(0, 5).map(insight => `
+            <div class="insight-item">
+                <span class="insight-dot"></span>
+                <span>${escapeHTML(String(insight))}</span>
+            </div>
+        `).join("");
+    }
 
-        checks.forEach(check => {
-            const rawTime =
-                check.checked_at ??
-                check.timestamp ??
-                check.created_at ??
-                check.time ??
-                check.date;
+    function renderPerformanceScore(score, grade, breakdown) {
+        const ring = document.getElementById("scoreRing");
+        const number = document.getElementById("scoreNumber");
+        const gradeEl = document.getElementById("scoreGrade");
 
-            const date = new Date(rawTime);
+        const uptime = numberOrNull(breakdown.uptime);
+        const latency = numberOrNull(breakdown.latency);
+        const slow = numberOrNull(breakdown.slow_checks);
 
-            if (Number.isNaN(date.getTime())) {
+        const values = [
+            ["scoreUptime", "scoreUptimeBar", uptime],
+            ["scoreLatency", "scoreLatencyBar", latency],
+            ["scoreSlow", "scoreSlowBar", slow]
+        ];
+
+        if (score === null || score === undefined) {
+            if (ring) ring.style.setProperty("--score", 0);
+            if (number) number.textContent = "—";
+            if (gradeEl) gradeEl.textContent = "NO DATA";
+        } else {
+            const safeScore = Math.max(
+                0,
+                Math.min(100, Number(score))
+            );
+
+            if (ring) ring.style.setProperty("--score", safeScore);
+            if (number) number.textContent = safeScore.toFixed(1);
+            if (gradeEl) gradeEl.textContent = grade || "SCORE";
+        }
+
+        values.forEach(([textId, barId, value]) => {
+            const text = document.getElementById(textId);
+            const bar = document.getElementById(barId);
+
+            if (value === null || value === undefined) {
+                if (text) text.textContent = "—";
+                if (bar) bar.style.width = "0%";
                 return;
             }
 
-            const key =
-                Math.floor(date.getTime() / bucketMs) * bucketMs;
-
-            if (!buckets.has(key)) {
-                buckets.set(key, {
-                    latencies: [],
-                    total: 0,
-                    up: 0
-                });
-            }
-
-            const bucket = buckets.get(key);
-            bucket.total += 1;
-
-            const status = String(
-                check.status ??
-                check.result ??
-                check.state ??
-                ""
-            ).toUpperCase();
-
-            if (
-                status === "UP" ||
-                status === "SUCCESS" ||
-                status === "HEALTHY"
-            ) {
-                bucket.up += 1;
-            }
-
-            const latency = numberOrNull(
-                check.response_time_ms ??
-                check.response_time ??
-                check.responseTime ??
-                check.latency ??
-                check.response_ms
+            const safe = Math.max(
+                0,
+                Math.min(100, Number(value))
             );
 
-            if (latency !== null) {
-                bucket.latencies.push(latency);
-            }
-        });
-
-        return Array.from(buckets.entries())
-            .sort((a, b) => a[0] - b[0])
-            .map(([timestamp, bucket]) => ({
-                timestamp: new Date(timestamp).toISOString(),
-                latency: bucket.latencies.length
-                    ? Number(
-                        (
-                            bucket.latencies.reduce(
-                                (sum, value) => sum + value,
-                                0
-                            ) / bucket.latencies.length
-                        ).toFixed(1)
-                    )
-                    : null,
-                uptime: bucket.total
-                    ? Number(
-                        ((bucket.up / bucket.total) * 100).toFixed(2)
-                    )
-                    : null,
-                checks: bucket.total,
-                up_checks: bucket.up,
-                down_checks: bucket.total - bucket.up
-            }));
-    }
-
-    function normalizeHistoryForChart(history) {
-        if (!Array.isArray(history)) {
-            return [];
-        }
-
-        return history.map((item, index) => {
-            if (typeof item === "number") {
-                return {
-                    timestamp: String(index + 1),
-                    latency: item,
-                    uptime: null
-                };
-            }
-
-            const obj = item || {};
-
-            return {
-                timestamp: firstNonEmpty(
-                    obj.timestamp,
-                    obj.checked_at,
-                    obj.created_at,
-                    obj.time,
-                    obj.date,
-                    obj.label,
-                    String(index + 1)
-                ),
-                latency: firstNonEmpty(
-                    obj.latency,
-                    obj.response_time_ms,
-                    obj.response_time,
-                    obj.responseTime,
-                    obj.response_ms,
-                    obj.value
-                ),
-                uptime: firstNonEmpty(
-                    obj.uptime_percentage,
-                    obj.uptime,
-                    obj.availability
-                )
-            };
-        });
-    }
-
-    function normalizeChecksForTable(checks) {
-        if (!Array.isArray(checks)) {
-            return [];
-        }
-
-        return checks.slice(0, 15).map(item => {
-            const obj = item || {};
-
-            return {
-                checked_at: firstNonEmpty(
-                    obj.checked_at,
-                    obj.timestamp,
-                    obj.created_at,
-                    obj.time,
-                    obj.date
-                ),
-                status: String(
-                    firstNonEmpty(
-                        obj.status,
-                        obj.result,
-                        obj.state,
-                        ""
-                    ) || ""
-                ).toUpperCase(),
-                response_time_ms: firstNonEmpty(
-                    obj.response_time_ms,
-                    obj.response_time,
-                    obj.responseTime,
-                    obj.latency,
-                    obj.response_ms
-                ),
-                status_code: firstNonEmpty(
-                    obj.status_code,
-                    obj.http_status,
-                    obj.response_status,
-                    obj.code
-                ),
-                error_message: firstNonEmpty(
-                    obj.error_message,
-                    obj.message,
-                    obj.error,
-                    obj.detail,
-                    ""
-                )
-            };
+            if (text) text.textContent = safe.toFixed(1);
+            if (bar) bar.style.width = safe + "%";
         });
     }
 
@@ -2742,32 +2575,15 @@ td {
         }
 
         const labels = history.map(item =>
-            formatChartLabel(
-                item.timestamp ??
-                item.checked_at ??
-                item.time ??
-                item.date ??
-                item.label
-            )
+            formatChartLabel(item.timestamp)
         );
 
         const latencyValues = history.map(item =>
-            numberOrNull(
-                item.latency ??
-                item.response_time_ms ??
-                item.response_time ??
-                item.responseTime ??
-                item.response_ms ??
-                item.value
-            )
+            numberOrNull(item.latency)
         );
 
         const uptimeValues = history.map(item =>
-            numberOrNull(
-                item.uptime ??
-                item.uptime_percentage ??
-                item.availability
-            )
+            numberOrNull(item.uptime)
         );
 
         const latencyCanvas =
@@ -2791,10 +2607,10 @@ td {
                             borderColor: "#7c6cff",
                             backgroundColor: "rgba(124,108,255,0.12)",
                             fill: true,
-                            tension: 0.22,
-                            pointRadius: 2.5,
-                            pointHoverRadius: 6,
-                            spanGaps: false
+                            tension: 0.35,
+                            pointRadius: 2,
+                            pointHoverRadius: 5,
+                            spanGaps: true
                         }]
                     },
                     options: chartOptions("ms")
@@ -2817,10 +2633,10 @@ td {
                             borderColor: "#10b981",
                             backgroundColor: "rgba(16,185,129,0.10)",
                             fill: true,
-                            tension: 0.22,
-                            pointRadius: 2.5,
-                            pointHoverRadius: 6,
-                            spanGaps: false
+                            tension: 0.35,
+                            pointRadius: 2,
+                            pointHoverRadius: 5,
+                            spanGaps: true
                         }]
                     },
                     options: chartOptions("%", 100)
