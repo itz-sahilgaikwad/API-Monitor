@@ -551,13 +551,26 @@ def _calculate_downtime(monitor):
 # =============================================================================
 
 @shared_task
-def check_api_health():
+def check_api_health(monitor_id=None, force=False):
+    """
+    Run health checks for active monitors.
+
+    When ``monitor_id`` is supplied, only that monitor is checked.
+    This is used by the Dashboard "Check Now" action so a manual check
+    never triggers checks for every API.
+    When called without an id, the normal scheduled all-monitors behavior
+    is preserved. ``force=True`` bypasses the normal interval guard for a
+    manual Dashboard check.
+    """
 
     monitors = (
         APIMonitor.objects
         .filter(is_active=True)
         .select_related("owner")
     )
+
+    if monitor_id is not None:
+        monitors = monitors.filter(id=monitor_id)
 
     now = timezone.now()
 
@@ -567,7 +580,7 @@ def check_api_health():
         # CHECK INTERVAL
         # =====================================================================
 
-        if monitor.last_checked_at:
+        if monitor.last_checked_at and not (monitor_id is not None and force):
             elapsed = (
                 now - monitor.last_checked_at
             ).total_seconds()

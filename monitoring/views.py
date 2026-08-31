@@ -1,20 +1,34 @@
+import math
+from datetime import timedelta
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
-from django.utils import timezone
-from datetime import timedelta
-import math
 
-from .models import APIMonitor, Incident
-from logs.models import APILog
-from .serializers import APIMonitorSerializer, IncidentSerializer
-from users.permissions import IsAdminUserRole
-from users.models import _log
+from django.utils import timezone
 from django.db.models import Avg, F, ExpressionWrapper, DurationField
 
+from .models import APIMonitor, Incident, MonitorAlertSettings
+from logs.models import APILog
+from .serializers import APIMonitorSerializer, IncidentSerializer
+from users.models import _log
 
-# ── Monitors ──────────────────────────────────────────────────────────────────
+
+# =============================================================================
+# HELPERS
+# =============================================================================
+
+def _monitor_queryset_for_user(user):
+    if user.role == "ADMIN":
+        return APIMonitor.objects.all()
+
+    return APIMonitor.objects.filter(owner=user)
+
+
+# =============================================================================
+# MONITORS
+# =============================================================================
 
 class APIMonitorListCreateView(generics.ListCreateAPIView):
     serializer_class = APIMonitorSerializer
@@ -22,194 +36,421 @@ class APIMonitorListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == 'ADMIN':
-            return APIMonitor.objects.all().order_by('-id')
-        return APIMonitor.objects.filter(owner=user).order_by('-id')
+
+        if user.role == "ADMIN":
+            return APIMonitor.objects.all().order_by("-id")
+
+        return APIMonitor.objects.filter(
+            owner=user
+        ).order_by("-id")
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        # ── Duplicate prevention ─────────────────────────────────────
-        url    = (request.data.get('url') or '').strip().rstrip('/')
-        method = (request.data.get('method') or 'GET').upper()
-        owner  = request.user
+        # ---------------------------------------------------------------------
+        # Duplicate prevention
+        # ---------------------------------------------------------------------
+        url = (
+            (request.data.get("url") or "")
+            .strip()
+            .rstrip("/")
+        )
 
-        qs = APIMonitor.objects.filter(owner=owner, method=method)
-        # normalize trailing slash for comparison
-        for m in qs:
-            if m.url.rstrip('/') == url:
+        method = (
+            (request.data.get("method") or "GET")
+            .upper()
+        )
+
+        owner = request.user
+
+        qs = APIMonitor.objects.filter(
+            owner=owner,
+            method=method,
+        )
+
+        for monitor in qs:
+            if monitor.url.rstrip("/") == url:
                 return Response(
-                    {'url': [f'A {method} monitor for this URL already exists.']},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {
+                        "url": [
+                            f"A {method} monitor for this URL already exists."
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        # ── Interval minimum validation ──────────────────────────────
+        # ---------------------------------------------------------------------
+        # Interval minimum validation
+        # ---------------------------------------------------------------------
         try:
-            interval = int(request.data.get('check_interval', 60))
+            interval = int(
+                request.data.get(
+                    "check_interval",
+                    60,
+                )
+            )
         except (TypeError, ValueError):
             interval = 60
 
         if interval < 10:
             return Response(
-                {'check_interval': ['Interval must be at least 10 seconds.']},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "check_interval": [
+                        "Interval must be at least 10 seconds."
+                    ]
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        response = super().create(request, *args, **kwargs)
-        if response.status_code == 201:
-            name = request.data.get('name', '')
-            _log(request.user, 'MONITOR_CREATED', resource=name, request=request)
+        response = super().create(
+            request,
+            *args,
+            **kwargs,
+        )
+
+        if response.status_code == status.HTTP_201_CREATED:
+            name = request.data.get(
+                "name",
+                "",
+            )
+
+            _log(
+                request.user,
+                "MONITOR_CREATED",
+                resource=name,
+                request=request,
+            )
+
         return response
 
 
-class APIMonitorDetailView(generics.RetrieveUpdateDestroyAPIView):
+class APIMonitorDetailView(
+    generics.RetrieveUpdateDestroyAPIView
+):
     serializer_class = APIMonitorSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        if user.role == 'ADMIN':
-            return APIMonitor.objects.all()
-        return APIMonitor.objects.filter(owner=user)
+        return _monitor_queryset_for_user(
+            self.request.user
+        )
 
     def perform_destroy(self, instance):
-        _log(self.request.user, 'MONITOR_DELETED', resource=instance.name,
-             request=self.request)
+        _log(
+            self.request.user,
+            "MONITOR_DELETED",
+            resource=instance.name,
+            request=self.request,
+        )
+
         instance.delete()
 
 
-# ── Toggle enable/pause ───────────────────────────────────────────────────────
+# =============================================================================
+# TOGGLE ENABLE / PAUSE
+# =============================================================================
 
 class MonitorToggleView(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, pk):
         try:
-            qs = APIMonitor.objects.all() if request.user.role == 'ADMIN' \
-                 else APIMonitor.objects.filter(owner=request.user)
-            monitor = qs.get(pk=pk)
+            monitor = _monitor_queryset_for_user(
+                request.user
+            ).get(pk=pk)
+
         except APIMonitor.DoesNotExist:
-            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         monitor.is_active = not monitor.is_active
-        monitor.save(update_fields=['is_active'])
-        _log(request.user, 'MONITOR_TOGGLED',
-             resource=f"{monitor.name} → {'Active' if monitor.is_active else 'Paused'}",
-             request=request)
-        return Response({
-            'id': monitor.id,
-            'is_active': monitor.is_active,
-            'message': 'Monitor activated.' if monitor.is_active else 'Monitor paused.',
-        })
+
+        monitor.save(
+            update_fields=["is_active"]
+        )
+
+        _log(
+            request.user,
+            "MONITOR_TOGGLED",
+            resource=(
+                f"{monitor.name} → "
+                f"{'Active' if monitor.is_active else 'Paused'}"
+            ),
+            request=request,
+        )
+
+        return Response(
+            {
+                "id": monitor.id,
+                "is_active": monitor.is_active,
+                "message": (
+                    "Monitor activated."
+                    if monitor.is_active
+                    else "Monitor paused."
+                ),
+            }
+        )
 
 
-# ── Logs (status history + latency for detail panel) ─────────────────────────
+# =============================================================================
+# CHECK NOW
+# =============================================================================
+
+class MonitorCheckNowView(APIView):
+    """
+    Queue an immediate monitoring run.
+
+    The existing Celery task is responsible for checking active monitors.
+    This endpoint does not duplicate the monitoring logic.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            monitor = _monitor_queryset_for_user(
+                request.user
+            ).get(pk=pk)
+
+        except APIMonitor.DoesNotExist:
+            return Response(
+                {"error": "Not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not monitor.is_active:
+            return Response(
+                {
+                    "error": "Monitor is paused.",
+                    "id": monitor.id,
+                    "is_active": False,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            from .tasks import check_api_health
+
+            task = check_api_health.delay()
+
+        except Exception as exc:
+            return Response(
+                {
+                    "error": "Unable to queue health check.",
+                    "detail": str(exc),
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        _log(
+            request.user,
+            "MONITOR_CHECK_NOW",
+            resource=monitor.name,
+            request=request,
+        )
+
+        return Response(
+            {
+                "id": monitor.id,
+                "name": monitor.name,
+                "message": (
+                    "Health check queued successfully."
+                ),
+                "task_id": task.id,
+            },
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+
+# =============================================================================
+# LOGS
+# =============================================================================
 
 class MonitorLogsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         try:
-            qs = APIMonitor.objects.all() if request.user.role == 'ADMIN' \
-                 else APIMonitor.objects.filter(owner=request.user)
-            monitor = qs.get(pk=pk)
-        except APIMonitor.DoesNotExist:
-            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+            monitor = _monitor_queryset_for_user(
+                request.user
+            ).get(pk=pk)
 
+        except APIMonitor.DoesNotExist:
+            return Response(
+                {"error": "Not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # ---------------------------------------------------------------------
+        # Pagination
+        # ---------------------------------------------------------------------
         try:
-            page = max(1, int(request.query_params.get('page', 1)))
+            page = max(
+                1,
+                int(
+                    request.query_params.get(
+                        "page",
+                        1,
+                    )
+                ),
+            )
         except (TypeError, ValueError):
             page = 1
 
         try:
-            page_size = int(request.query_params.get('page_size', 30))
+            page_size = int(
+                request.query_params.get(
+                    "page_size",
+                    30,
+                )
+            )
         except (TypeError, ValueError):
             page_size = 30
 
-        page_size = min(max(page_size, 10), 100)
+        page_size = min(
+            max(page_size, 10),
+            100,
+        )
 
+        # ---------------------------------------------------------------------
+        # Query logs
+        # ---------------------------------------------------------------------
         logs_qs = (
             APILog.objects
             .filter(api_monitor=monitor)
-            .order_by('-checked_at')
+            .order_by("-checked_at")
         )
 
         total = logs_qs.count()
-        total_pages = max(1, math.ceil(total / page_size))
-        page = min(page, total_pages)
 
-        start = (page - 1) * page_size
-        end = start + page_size
-
-        logs = logs_qs[start:end].values(
-            'status',
-            'status_code',
-            'response_time_ms',
-            'error_message',
-            'checked_at',
+        total_pages = max(
+            1,
+            math.ceil(total / page_size),
         )
 
-        return Response({
-            'monitor_id': monitor.id,
-            'page': page,
-            'page_size': page_size,
-            'total': total,
-            'total_pages': total_pages,
-            'results': list(logs),
-        })
+        page = min(
+            page,
+            total_pages,
+        )
+
+        start = (
+            page - 1
+        ) * page_size
+
+        end = start + page_size
+
+        logs = logs_qs[
+            start:end
+        ].values(
+            "status",
+            "status_code",
+            "response_time_ms",
+            "error_message",
+            "checked_at",
+        )
+
+        return Response(
+            {
+                "monitor_id": monitor.id,
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "total_pages": total_pages,
+                "results": list(logs),
+            }
+        )
 
 
-# ── All Incidents (for incidents page) ────────────────────────────────────────
+# =============================================================================
+# ALL INCIDENTS
+# =============================================================================
 
 class AllIncidentsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if request.user.role == 'ADMIN':
-            incidents = Incident.objects.all().select_related('monitor').order_by('-started_at')
+        if request.user.role == "ADMIN":
+            incidents = (
+                Incident.objects
+                .all()
+                .select_related("monitor")
+                .order_by("-started_at")
+            )
+
         else:
-            incidents = Incident.objects.filter(
-                monitor__owner=request.user
-            ).select_related('monitor').order_by('-started_at')
+            incidents = (
+                Incident.objects
+                .filter(
+                    monitor__owner=request.user
+                )
+                .select_related("monitor")
+                .order_by("-started_at")
+            )
 
-        serializer = IncidentSerializer(incidents[:100], many=True)
-        return Response(serializer.data)
+        serializer = IncidentSerializer(
+            incidents[:100],
+            many=True,
+        )
+
+        return Response(
+            serializer.data
+        )
 
 
-# ── Monitor-specific incidents ────────────────────────────────────────────────
+# =============================================================================
+# MONITOR-SPECIFIC INCIDENTS
+# =============================================================================
 
 class IncidentDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, monitor_id):
+        # Security: only allow the user's monitors,
+        # except for ADMIN users.
         try:
-            monitor = _monitor_queryset_for_user(request).get(pk=monitor_id)
+            monitor = _monitor_queryset_for_user(
+                request.user
+            ).get(pk=monitor_id)
+
         except APIMonitor.DoesNotExist:
             return Response(
-                {'error': 'Not found'},
+                {"error": "Not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        incidents = Incident.objects.filter(
-            monitor=monitor
-        ).order_by('-started_at')
+        incidents = (
+            Incident.objects
+            .filter(monitor=monitor)
+            .order_by("-started_at")
+        )
 
         total_incidents = incidents.count()
-        unresolved = incidents.filter(status='ONGOING').count()
 
-        resolved_incidents = incidents.filter(
-            status='RESOLVED'
-        ).annotate(
-            duration=ExpressionWrapper(
-                F('resolved_at') - F('started_at'),
-                output_field=DurationField(),
+        unresolved = incidents.filter(
+            status="ONGOING"
+        ).count()
+
+        resolved_incidents = (
+            incidents
+            .filter(status="RESOLVED")
+            .annotate(
+                duration=ExpressionWrapper(
+                    F("resolved_at")
+                    - F("started_at"),
+                    output_field=DurationField(),
+                )
             )
         )
 
-        avg_duration = resolved_incidents.aggregate(
-            avg=Avg('duration')
-        )['avg']
+        avg_duration = (
+            resolved_incidents
+            .aggregate(
+                avg=Avg("duration")
+            )["avg"]
+        )
 
         avg_downtime = (
             avg_duration.total_seconds()
@@ -222,479 +463,719 @@ class IncidentDashboardView(APIView):
             many=True,
         )
 
-        return Response({
-            'monitor_id': monitor.id,
-            'total_incidents': total_incidents,
-            'ongoing_incidents': unresolved,
-            'recent_incidents': serializer.data,
-            'avg_downtime': avg_downtime,
-        })
+        return Response(
+            {
+                "monitor_id": monitor.id,
+                "total_incidents": total_incidents,
+                "ongoing_incidents": unresolved,
+                "recent_incidents": serializer.data,
+                "avg_downtime": avg_downtime,
+            }
+        )
+
+# =============================================================================
+# MONITOR ALERT SETTINGS
+# =============================================================================
+
+class MonitorAlertSettingsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def _get_monitor(self, request, monitor_id):
+        try:
+            return _monitor_queryset_for_user(
+                request.user
+            ).get(pk=monitor_id)
+        except APIMonitor.DoesNotExist:
+            return None
+
+    def _get_settings(self, monitor):
+        settings_obj, _ = MonitorAlertSettings.objects.get_or_create(
+            monitor=monitor
+        )
+        return settings_obj
+
+    def _serialize(self, settings_obj):
+        return {
+            "id": settings_obj.id,
+            "monitor": settings_obj.monitor_id,
+            "alerts_enabled": settings_obj.alerts_enabled,
+            "down_alert_enabled": settings_obj.down_alert_enabled,
+            "slow_alert_enabled": settings_obj.slow_alert_enabled,
+            "recovery_alert_enabled": settings_obj.recovery_alert_enabled,
+            "email_enabled": settings_obj.email_enabled,
+            "phone_enabled": settings_obj.phone_enabled,
+            "cooldown_minutes": settings_obj.cooldown_minutes,
+            "created_at": settings_obj.created_at,
+            "updated_at": settings_obj.updated_at,
+        }
+
+    def get(self, request, monitor_id):
+        monitor = self._get_monitor(
+            request,
+            monitor_id
+        )
+
+        if monitor is None:
+            return Response(
+                {"error": "Not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        settings_obj = self._get_settings(
+            monitor
+        )
+
+        return Response(
+            self._serialize(settings_obj),
+            status=status.HTTP_200_OK,
+        )
+
+    def patch(self, request, monitor_id):
+        monitor = self._get_monitor(
+            request,
+            monitor_id
+        )
+
+        if monitor is None:
+            return Response(
+                {"error": "Not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        settings_obj = self._get_settings(
+            monitor
+        )
+
+        boolean_fields = [
+            "alerts_enabled",
+            "down_alert_enabled",
+            "slow_alert_enabled",
+            "recovery_alert_enabled",
+            "email_enabled",
+            "phone_enabled",
+        ]
+
+        update_fields = []
+
+        for field in boolean_fields:
+            if field not in request.data:
+                continue
+
+            value = request.data.get(field)
+
+            if isinstance(value, bool):
+                parsed_value = value
+
+            elif isinstance(value, str):
+                normalized = value.strip().lower()
+
+                if normalized in (
+                    "true",
+                    "1",
+                    "yes",
+                    "on",
+                ):
+                    parsed_value = True
+
+                elif normalized in (
+                    "false",
+                    "0",
+                    "no",
+                    "off",
+                ):
+                    parsed_value = False
+
+                else:
+                    return Response(
+                        {
+                            field: [
+                                "Value must be true or false."
+                            ]
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            else:
+                return Response(
+                    {
+                        field: [
+                            "Value must be true or false."
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            setattr(
+                settings_obj,
+                field,
+                parsed_value
+            )
+
+            update_fields.append(
+                field
+            )
+
+        if "cooldown_minutes" in request.data:
+            try:
+                cooldown = int(
+                    request.data.get(
+                        "cooldown_minutes"
+                    )
+                )
+            except (
+                TypeError,
+                ValueError
+            ):
+                return Response(
+                    {
+                        "cooldown_minutes": [
+                            "Cooldown must be a whole number."
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if cooldown < 0:
+                return Response(
+                    {
+                        "cooldown_minutes": [
+                            "Cooldown cannot be negative."
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            settings_obj.cooldown_minutes = cooldown
+
+            update_fields.append(
+                "cooldown_minutes"
+            )
+
+        if update_fields:
+            settings_obj.save(
+                update_fields=(
+                    update_fields
+                    + ["updated_at"]
+                )
+            )
+
+        _log(
+            request.user,
+            "MONITOR_ALERT_SETTINGS_UPDATED",
+            resource=monitor.name,
+            request=request,
+        )
+
+        return Response(
+            self._serialize(settings_obj),
+            status=status.HTTP_200_OK,
+        )
 
 
-# ── Analytics helpers ─────────────────────────────────────────────────────────
 
-def _percentile(values, percentile):
-    """Return a percentile using linear interpolation."""
-    if not values:
-        return 0
-
-    ordered = sorted(float(v) for v in values)
-    if len(ordered) == 1:
-        return round(ordered[0], 1)
-
-    rank = (len(ordered) - 1) * percentile
-    lower = math.floor(rank)
-    upper = math.ceil(rank)
-
-    if lower == upper:
-        return round(ordered[lower], 1)
-
-    value = (
-        ordered[lower]
-        + (ordered[upper] - ordered[lower]) * (rank - lower)
-    )
-    return round(value, 1)
-
+# =============================================================================
+# MONITOR ANALYTICS
+# =============================================================================
 
 def _analytics_period(period):
-    """
-    Convert the UI period into:
-    - lookback duration
-    - chart bucket size
-    """
-    choices = {
-        '24h': (timedelta(hours=24), 30 * 60, '24 hours'),
-        '7d':  (timedelta(days=7), 3 * 60 * 60, '7 days'),
-        '30d': (timedelta(days=30), 12 * 60 * 60, '30 days'),
+    periods = {
+        "24h": (24, 30 * 60),
+        "7d": (24 * 7, 3 * 60 * 60),
+        "30d": (24 * 30, 12 * 60 * 60),
     }
-    return choices.get(period, choices['7d'])
+    return periods.get(period, periods["7d"])
 
 
-def _bucket_history(log_rows, start_time, bucket_seconds):
-    """
-    Build a compact time-series for the selected range.
-
-    24h -> 48 buckets
-    7d  -> 56 buckets
-    30d -> 60 buckets
-    """
+def _build_analytics_history(logs, bucket_seconds):
+    """Build chart-ready history from real monitoring logs."""
     buckets = {}
 
-    start_epoch = start_time.timestamp()
-
-    for row in log_rows:
-        checked_at = row['checked_at']
+    for item in logs.values(
+        "status",
+        "response_time_ms",
+        "checked_at",
+    ):
+        checked_at = item["checked_at"]
         if not checked_at:
             continue
 
-        offset = checked_at.timestamp() - start_epoch
-        bucket_index = max(0, int(offset // bucket_seconds))
-        bucket_start = start_time + timedelta(
-            seconds=bucket_index * bucket_seconds
-        )
+        timestamp = int(checked_at.timestamp())
+        bucket_timestamp = (
+            timestamp // bucket_seconds
+        ) * bucket_seconds
 
         bucket = buckets.setdefault(
-            bucket_start,
+            bucket_timestamp,
             {
-                'latencies': [],
-                'total': 0,
-                'up': 0,
-                'down': 0,
-            }
+                "latencies": [],
+                "total": 0,
+                "up": 0,
+                "down": 0,
+            },
         )
 
-        bucket['total'] += 1
+        bucket["total"] += 1
 
-        if row['status'] == 'UP':
-            bucket['up'] += 1
+        if str(item["status"]).upper() == "UP":
+            bucket["up"] += 1
         else:
-            bucket['down'] += 1
+            bucket["down"] += 1
 
-        if row['response_time_ms'] is not None:
-            bucket['latencies'].append(
-                float(row['response_time_ms'])
-            )
+        latency = item["response_time_ms"]
+
+        if latency is not None:
+            try:
+                bucket["latencies"].append(float(latency))
+            except (TypeError, ValueError):
+                pass
 
     history = []
 
-    # Return every bucket, including empty ones, so the graph remains stable.
-    bucket_count = max(
-        1,
-        math.ceil(
-            (timezone.now() - start_time).total_seconds()
-            / bucket_seconds
-        )
-    )
+    for timestamp in sorted(buckets):
+        bucket = buckets[timestamp]
+        latencies = sorted(bucket["latencies"])
 
-    for index in range(bucket_count):
-        bucket_start = start_time + timedelta(
-            seconds=index * bucket_seconds
-        )
-        bucket = buckets.get(
-            bucket_start,
-            {
-                'latencies': [],
-                'total': 0,
-                'up': 0,
-                'down': 0,
-            }
+        average = (
+            sum(latencies) / len(latencies)
+            if latencies
+            else None
         )
 
-        latencies = bucket['latencies']
+        p95 = None
+        if latencies:
+            rank = max(
+                1,
+                math.ceil(0.95 * len(latencies)),
+            )
+            p95 = latencies[rank - 1]
+
+        uptime = (
+            (bucket["up"] / bucket["total"]) * 100
+            if bucket["total"]
+            else None
+        )
 
         history.append({
-            'timestamp': bucket_start.isoformat(),
-            'latency': (
-                round(sum(latencies) / len(latencies), 1)
-                if latencies else None
-            ),
-            'uptime': (
-                round(
-                    (bucket['up'] / bucket['total']) * 100,
-                    2
-                )
-                if bucket['total']
+            "timestamp": timezone.datetime.fromtimestamp(
+                timestamp,
+                tz=timezone.get_current_timezone(),
+            ).isoformat(),
+            "latency": (
+                round(average, 1)
+                if average is not None
                 else None
             ),
-            'checks': bucket['total'],
-            'up_checks': bucket['up'],
-            'down_checks': bucket['down'],
+            "p95_latency": (
+                round(p95, 1)
+                if p95 is not None
+                else None
+            ),
+            "uptime": (
+                round(uptime, 2)
+                if uptime is not None
+                else None
+            ),
+            "checks": bucket["total"],
+            "up_checks": bucket["up"],
+            "down_checks": bucket["down"],
         })
 
     return history
 
 
-def _monitor_queryset_for_user(request):
-    if request.user.role == 'ADMIN':
-        return APIMonitor.objects.all()
-    return APIMonitor.objects.filter(owner=request.user)
 
+def _build_analytics_insights(history, uptime, avg_response_time, p95_latency,
+                               slow_percentage, total_checks):
+    """Build simple, explainable analytics insights from real check history."""
+    insights = []
+    latency_trend = "stable"
 
-def _monitor_analytics(
-    monitor,
-    period='7d',
-    page=1,
-    page_size=30,
-    status_filter='',
-    search='',
-):
-    lookback, bucket_seconds, period_label = _analytics_period(period)
-    now = timezone.now()
-    start_time = now - lookback
+    points = [
+        item["latency"] for item in history
+        if item.get("latency") is not None
+    ]
 
-    base_logs_qs = (
-        APILog.objects
-        .filter(
-            api_monitor=monitor,
-            checked_at__gte=start_time,
-            checked_at__lte=now,
+    if len(points) >= 4:
+        half = max(2, len(points) // 2)
+        earlier = points[:half]
+        recent = points[-half:]
+
+        earlier_avg = sum(earlier) / len(earlier)
+        recent_avg = sum(recent) / len(recent)
+
+        if earlier_avg > 0:
+            change = ((recent_avg - earlier_avg) / earlier_avg) * 100
+            if change >= 10:
+                latency_trend = "degrading"
+                insights.append(
+                    f"Latency increased about {round(change)}% recently."
+                )
+            elif change <= -10:
+                latency_trend = "improving"
+                insights.append(
+                    f"Latency improved about {round(abs(change))}% recently."
+                )
+
+    if uptime is not None:
+        if uptime >= 99.9:
+            insights.append("Excellent availability.")
+        elif uptime >= 99:
+            insights.append("Availability is healthy.")
+        elif uptime >= 95:
+            insights.append("Availability needs attention.")
+        else:
+            insights.append("Frequent failures are affecting availability.")
+
+    if slow_percentage >= 10:
+        insights.append(
+            f"{round(slow_percentage, 1)}% of measured checks exceeded the "
+            "configured response-time threshold."
         )
-        .order_by('-checked_at')
-    )
-
-    # Normalize the Logs-page filters first.
-    normalized_status = str(status_filter or '').strip().upper()
-    normalized_search = str(search or '').strip()
-
-    # Start with the complete selected period.
-    logs_qs = base_logs_qs
-
-    if normalized_status in {'UP', 'DOWN'}:
-        logs_qs = logs_qs.filter(status=normalized_status)
-
-    if normalized_search:
-        from django.db.models import Q
-
-        search_query = (
-            Q(status__icontains=normalized_search)
-            | Q(error_message__icontains=normalized_search)
+    elif slow_percentage > 0:
+        insights.append(
+            f"{round(slow_percentage, 1)}% of measured checks were slower "
+            "than the configured threshold."
         )
 
-        try:
-            search_code = int(normalized_search)
-            search_query |= Q(status_code=search_code)
-        except (TypeError, ValueError):
-            pass
+    if p95_latency is not None and avg_response_time is not None:
+        if avg_response_time > 0 and p95_latency >= avg_response_time * 2:
+            insights.append(
+                "The p95 latency is much higher than the average, "
+                "suggesting occasional slow spikes."
+            )
 
-        logs_qs = logs_qs.filter(search_query)
+    if total_checks == 0:
+        insights.append("Not enough monitoring data yet.")
 
-    # All summary numbers below now describe exactly what the user is
-    # currently viewing in the Logs page. With no filters, this is the
-    # complete selected period. With DOWN/UP/search filters, the cards
-    # follow the filtered table instead of showing unrelated totals.
-    total = logs_qs.count()
-    up_count = logs_qs.filter(status='UP').count()
-    down_count = logs_qs.filter(status='DOWN').count()
-
-    uptime = (
-        round((up_count / total) * 100, 2)
-        if total else 0
-    )
-
-    error_rate = (
-        round((down_count / total) * 100, 2)
-        if total else 0
-    )
-
-    # Response-time statistics must follow the same filters as the
-    # Monitoring History table and the summary cards.
-    latency_values = list(
-        logs_qs
-        .exclude(response_time_ms=None)
-        .values_list('response_time_ms', flat=True)
-    )
-
-    avg_response = (
-        round(
-            sum(float(value) for value in latency_values)
-            / len(latency_values),
-            1,
-        )
-        if latency_values
-        else 0
-    )
-
-    p95_response = _percentile(
-        latency_values,
-        0.95,
-    )
-
-    rows = list(
-        logs_qs.values(
-            'status',
-            'status_code',
-            'response_time_ms',
-            'checked_at',
-            'error_message',
-        )
-    )
-
-    history_rows = list(
-        base_logs_qs.values(
-            'status',
-            'status_code',
-            'response_time_ms',
-            'checked_at',
-            'error_message',
-        )
-    )
-
-    history = _bucket_history(
-        history_rows,
-        start_time,
-        bucket_seconds,
-    )
-
-    try:
-        page = max(1, int(page))
-    except (TypeError, ValueError):
-        page = 1
-
-    try:
-        page_size = int(page_size)
-    except (TypeError, ValueError):
-        page_size = 30
-
-    page_size = min(max(page_size, 10), 100)
-
-    checks_total = len(rows)
-    checks_total_pages = max(1, math.ceil(checks_total / page_size))
-    page = min(page, checks_total_pages)
-
-    start_index = (page - 1) * page_size
-    recent = rows[start_index:start_index + page_size]
-
+    # Keep the API response compact and deterministic.
     return {
-        'monitor_id': monitor.id,
-        'name': monitor.name,
-        'url': monitor.url,
-        'status': monitor.status,
-        'is_active': monitor.is_active,
-
-        'period': period,
-        'period_label': period_label,
-
-        'uptime_percentage': uptime,
-        'downtime_percentage': round(
-            max(0, 100 - uptime),
-            2,
-        ),
-        'error_rate': error_rate,
-
-        'avg_response_time': avg_response,
-        'p95_latency': p95_response,
-
-        'total_checks': total,
-        'up_checks': up_count,
-        'down_checks': down_count,
-
-        'response_time_threshold_ms': (
-            monitor.response_time_threshold_ms
-        ),
-
-        'last_checked_at': monitor.last_checked_at,
-        'response_time': monitor.response_time,
-
-        'history': history,
-        'checks': recent,
-        'checks_total': checks_total,
-        'summary_total_checks': total,
-        'summary_up_checks': up_count,
-        'summary_down_checks': down_count,
-        'checks_page': page,
-        'checks_page_size': page_size,
-        'checks_total_pages': checks_total_pages,
-        'checks_status_filter': normalized_status,
-        'checks_search': normalized_search,
+        "latency_trend": latency_trend,
+        "insights": insights[:5],
     }
 
-
-# ── Analytics per monitor ─────────────────────────────────────────────────────
 
 class MonitorAnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, monitor_id):
         try:
-            monitor = _monitor_queryset_for_user(request).get(
-                pk=monitor_id
-            )
+            monitor = _monitor_queryset_for_user(
+                request.user
+            ).get(pk=monitor_id)
         except APIMonitor.DoesNotExist:
             return Response(
-                {'error': 'Not found'},
+                {"error": "Not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        period = request.query_params.get(
-            'period',
-            '7d',
-        ).lower()
+        period = request.query_params.get("period", "7d")
+        hours, bucket_seconds = _analytics_period(period)
 
-        if period not in {'24h', '7d', '30d'}:
-            period = '7d'
+        start_time = (
+            timezone.now()
+            - timedelta(hours=hours)
+        )
 
-        try:
-            page = max(1, int(request.query_params.get('page', 1)))
-        except (TypeError, ValueError):
-            page = 1
+        logs = (
+            APILog.objects
+            .filter(
+                api_monitor=monitor,
+                checked_at__gte=start_time,
+            )
+            .order_by("-checked_at")
+        )
 
-        try:
-            page_size = int(request.query_params.get('page_size', 30))
-        except (TypeError, ValueError):
-            page_size = 30
+        total = logs.count()
+        up_count = logs.filter(status="UP").count()
+        down_count = total - up_count
 
-        return Response(
-            _monitor_analytics(
-                monitor,
-                period,
-                page=page,
-                page_size=page_size,
-                status_filter=request.query_params.get('status', ''),
-                search=request.query_params.get('search', ''),
+        uptime = (
+            round((up_count / total) * 100, 2)
+            if total
+            else None
+        )
+
+        response_times = list(
+            logs
+            .exclude(response_time_ms=None)
+            .values_list("response_time_ms", flat=True)
+        )
+
+        numeric_times = []
+        for value in response_times:
+            try:
+                numeric_times.append(float(value))
+            except (TypeError, ValueError):
+                continue
+
+        avg_response_time = (
+            round(
+                sum(numeric_times) / len(numeric_times),
+                1,
+            )
+            if numeric_times
+            else None
+        )
+
+        sorted_times = sorted(numeric_times)
+        p95_latency = None
+
+        if sorted_times:
+            rank = max(
+                1,
+                math.ceil(0.95 * len(sorted_times)),
+            )
+            p95_latency = round(
+                sorted_times[rank - 1],
+                1,
+            )
+
+        slow_count = sum(
+            1
+            for value in numeric_times
+            if value > monitor.response_time_threshold_ms
+        )
+
+        slow_percentage = (
+            round(
+                (slow_count / len(numeric_times)) * 100,
+                2,
+            )
+            if numeric_times
+            else 0
+        )
+
+        history = _build_analytics_history(
+            logs,
+            bucket_seconds,
+        )
+
+        analytics_insights = _build_analytics_insights(
+            history=history,
+            uptime=uptime,
+            avg_response_time=avg_response_time,
+            p95_latency=p95_latency,
+            slow_percentage=slow_percentage,
+            total_checks=total,
+        )
+
+        recent = list(
+            logs[:20].values(
+                "status",
+                "status_code",
+                "response_time_ms",
+                "checked_at",
+                "error_message",
             )
         )
 
+        return Response({
+            "monitor_id": monitor.id,
+            "name": monitor.name,
+            "url": monitor.url,
+            "status": monitor.status,
+            "is_active": monitor.is_active,
+            "period": period,
+            "uptime_percentage": uptime,
+            "downtime_percentage": (
+                round(max(0, 100 - uptime), 2)
+                if uptime is not None
+                else None
+            ),
+            "avg_response_time": avg_response_time,
+            "p95_latency": p95_latency,
+            "total_checks": total,
+            "up_checks": up_count,
+            "down_checks": down_count,
+            "slow_checks": slow_count,
+            "slow_percentage": slow_percentage,
+            "response_time_threshold_ms": (
+                monitor.response_time_threshold_ms
+            ),
+            "response_times": response_times,
+            "rt_values": response_times,
+            "history": history,
+            "latency_trend": analytics_insights["latency_trend"],
+            "insights": analytics_insights["insights"],
+            "checks": recent,
+            "recent_history": recent,
+            "last_checked_at": monitor.last_checked_at,
+            "response_time": monitor.response_time,
+        })
 
-# ── Global analytics / monitor list ──────────────────────────────────────────
+
+# =============================================================================
+# GLOBAL ANALYTICS
+# =============================================================================
 
 class GlobalAnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        monitors = _monitor_queryset_for_user(request).order_by('-id')
+        monitor_id = request.query_params.get("monitor_id")
+        period = request.query_params.get("period", "7d")
 
-        monitor_id = request.query_params.get('monitor_id')
-        period = request.query_params.get(
-            'period',
-            '7d',
-        ).lower()
+        if period not in ("24h", "7d", "30d"):
+            period = "7d"
 
-        if period not in {'24h', '7d', '30d'}:
-            period = '7d'
+        monitors = (
+            _monitor_queryset_for_user(request.user)
+            .order_by("-id")
+        )
 
-        # When a monitor is requested, return the complete analytics
-        # for that specific monitor.
-        if monitor_id:
-            try:
-                monitor = monitors.get(pk=monitor_id)
-            except APIMonitor.DoesNotExist:
-                return Response(
-                    {'error': 'Not found'},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+        if not monitor_id:
+            return Response([
+                {
+                    "monitor_id": monitor.id,
+                    "name": monitor.name,
+                    "url": monitor.url,
+                    "status": monitor.status,
+                    "is_active": monitor.is_active,
+                    "last_checked_at": monitor.last_checked_at,
+                    "response_time": monitor.response_time,
+                }
+                for monitor in monitors
+            ])
 
-            try:
-                page = max(1, int(request.query_params.get('page', 1)))
-            except (TypeError, ValueError):
-                page = 1
-
-            try:
-                page_size = int(request.query_params.get('page_size', 30))
-            except (TypeError, ValueError):
-                page_size = 30
-
-            return Response(
-                _monitor_analytics(
-                    monitor,
-                    period,
-                    page=page,
-                    page_size=page_size,
-                    status_filter=request.query_params.get('status', ''),
-                    search=request.query_params.get('search', ''),
-                )
-            )
-
-        # No monitor selected: return a lightweight list used by the
-        # Analytics API selector.
-        result = []
-
-        for monitor in monitors:
-            result.append({
-                'monitor_id': monitor.id,
-                'name': monitor.name,
-                'url': monitor.url,
-                'status': monitor.status,
-                'is_active': monitor.is_active,
-                'uptime_percentage': monitor.uptime_percentage,
-                'response_time': monitor.response_time,
-                'last_checked_at': monitor.last_checked_at,
-            })
-
-        return Response({
-            'monitors': result,
-            'default_period': period,
-        })
-
-# ── Check Now ──────────────────────────────────────────────────────────────────
-class MonitorCheckNowView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, pk):
         try:
-            qs = APIMonitor.objects.all() if request.user.role == 'ADMIN' else APIMonitor.objects.filter(owner=request.user)
-            monitor = qs.get(pk=pk)
+            monitor = monitors.get(pk=monitor_id)
         except APIMonitor.DoesNotExist:
             return Response(
-                {'error': 'Not found'},
+                {"error": "Not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        from .tasks import check_api_health
+        hours, bucket_seconds = _analytics_period(period)
 
-        task = check_api_health.delay(monitor_id=monitor.id, force=True)
-
-        _log(
-            request.user,
-            'MONITOR_CHECK_NOW',
-            resource=monitor.name,
-            request=request,
+        start_time = (
+            timezone.now()
+            - timedelta(hours=hours)
         )
 
-        return Response(
-            {
-                'id': monitor.id,
-                'task_id': task.id,
-                'message': 'Health check started.',
-            },
-            status=status.HTTP_202_ACCEPTED,
+        logs = (
+            APILog.objects
+            .filter(
+                api_monitor=monitor,
+                checked_at__gte=start_time,
+            )
+            .order_by("-checked_at")
         )
+
+        total = logs.count()
+        up_count = logs.filter(status="UP").count()
+        down_count = total - up_count
+
+        uptime = (
+            round((up_count / total) * 100, 2)
+            if total
+            else None
+        )
+
+        response_times = list(
+            logs
+            .exclude(response_time_ms=None)
+            .values_list("response_time_ms", flat=True)
+        )
+
+        numeric_times = []
+        for value in response_times:
+            try:
+                numeric_times.append(float(value))
+            except (TypeError, ValueError):
+                continue
+
+        avg_response_time = (
+            round(
+                sum(numeric_times) / len(numeric_times),
+                1,
+            )
+            if numeric_times
+            else None
+        )
+
+        sorted_times = sorted(numeric_times)
+        p95_latency = None
+
+        if sorted_times:
+            rank = max(
+                1,
+                math.ceil(0.95 * len(sorted_times)),
+            )
+            p95_latency = round(
+                sorted_times[rank - 1],
+                1,
+            )
+
+        slow_count = sum(
+            1
+            for value in numeric_times
+            if value > monitor.response_time_threshold_ms
+        )
+
+        slow_percentage = (
+            round(
+                (slow_count / len(numeric_times)) * 100,
+                2,
+            )
+            if numeric_times
+            else 0
+        )
+
+        history = _build_analytics_history(
+            logs,
+            bucket_seconds,
+        )
+
+        analytics_insights = _build_analytics_insights(
+            history=history,
+            uptime=uptime,
+            avg_response_time=avg_response_time,
+            p95_latency=p95_latency,
+            slow_percentage=slow_percentage,
+            total_checks=total,
+        )
+
+        recent_checks = list(
+            logs[:20].values(
+                "status",
+                "status_code",
+                "response_time_ms",
+                "checked_at",
+                "error_message",
+            )
+        )
+
+        return Response({
+            "monitor_id": monitor.id,
+            "name": monitor.name,
+            "url": monitor.url,
+            "status": monitor.status,
+            "is_active": monitor.is_active,
+            "period": period,
+            "uptime_percentage": uptime,
+            "downtime_percentage": (
+                round(max(0, 100 - uptime), 2)
+                if uptime is not None
+                else None
+            ),
+            "avg_response_time": avg_response_time,
+            "p95_latency": p95_latency,
+            "total_checks": total,
+            "up_checks": up_count,
+            "down_checks": down_count,
+            "slow_checks": slow_count,
+            "slow_percentage": slow_percentage,
+            "response_time_threshold_ms": (
+                monitor.response_time_threshold_ms
+            ),
+            "response_times": response_times,
+            "rt_values": response_times,
+            "history": history,
+            "latency_trend": analytics_insights["latency_trend"],
+            "insights": analytics_insights["insights"],
+            "checks": recent_checks,
+            "recent_history": recent_checks,
+            "last_checked_at": monitor.last_checked_at,
+            "response_time": monitor.response_time,
+        })
+

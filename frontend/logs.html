@@ -954,7 +954,7 @@ tbody tr:hover {
             <section class="summary">
 
                 <div class="metric">
-                    <div class="metric-label">Total Logs</div>
+                    <div class="metric-label">Displayed Logs</div>
                     <div
                         class="metric-value"
                         id="displayedCount"
@@ -1005,7 +1005,7 @@ tbody tr:hover {
                         </h2>
 
                         <p class="card-subtitle">
-                            Recent checks returned by the monitoring backend.
+                            Recent checks returned by the monitoring backend and filtered here.
                         </p>
                     </div>
 
@@ -1211,9 +1211,17 @@ tbody tr:hover {
 
     async function loadMonitors() {
 
+        /*
+         * Use the main monitor endpoint for the selector.
+         * The Dashboard already uses the authenticated monitor list,
+         * so Logs should use the same source of truth.
+         *
+         * Accept both DRF list responses and wrapped responses so this
+         * page remains compatible with the current backend.
+         */
         const response =
             await fetch(
-                "/api/monitoring/analytics/",
+                "/api/monitoring/",
                 {
                     method: "GET",
                     headers: authHeaders()
@@ -1238,10 +1246,45 @@ tbody tr:hover {
         const data =
             await response.json();
 
+        const rawMonitors =
+            Array.isArray(data)
+                ? data
+                : (
+                    Array.isArray(data.results)
+                        ? data.results
+                        : (
+                            Array.isArray(data.monitors)
+                                ? data.monitors
+                                : []
+                        )
+                );
+
         monitors =
-            Array.isArray(data.monitors)
-                ? data.monitors
-                : [];
+            rawMonitors.map(
+                function(monitor) {
+                    return {
+                        monitor_id:
+                            monitor.monitor_id ??
+                            monitor.id,
+                        name:
+                            monitor.name ??
+                            "Unnamed API",
+                        url:
+                            monitor.url ??
+                            "",
+                        status:
+                            monitor.status ??
+                            "UNKNOWN"
+                    };
+                }
+            ).filter(
+                function(monitor) {
+                    return (
+                        monitor.monitor_id !== null &&
+                        monitor.monitor_id !== undefined
+                    );
+                }
+            );
 
         const select =
             document.getElementById(
@@ -1269,8 +1312,11 @@ tbody tr:hover {
 
                 option.textContent =
                     monitor.name +
-                    " — " +
-                    monitor.url;
+                    (
+                        monitor.url
+                            ? " — " + monitor.url
+                            : ""
+                    );
 
                 select.appendChild(option);
             }
@@ -1307,22 +1353,10 @@ tbody tr:hover {
     }
 
     async function loadLogs(page = currentPage) {
+        const container = document.getElementById("logsContent");
+        const button = document.getElementById("refreshBtn");
 
-        syncUrlFilters();
-
-        const container =
-            document.getElementById(
-                "logsContent"
-            );
-
-        const button =
-            document.getElementById(
-                "refreshBtn"
-            );
-
-        button.textContent =
-            "↻ Loading...";
-
+        button.textContent = "↻ Loading...";
         button.disabled = true;
 
         container.innerHTML = `
@@ -1333,120 +1367,154 @@ tbody tr:hover {
         `;
 
         try {
-
             if (!monitors.length) {
                 await loadMonitors();
             }
 
-            const select =
-                document.getElementById(
-                    "monitorSelect"
-                );
-
-            selectedMonitor =
-                select.value;
+            const select = document.getElementById("monitorSelect");
+            selectedMonitor = select.value;
 
             if (!selectedMonitor) {
-                throw new Error(
-                    "No monitored API is available."
-                );
+                throw new Error("No monitored API is available.");
             }
 
-            const period =
-                document.getElementById(
-                    "periodSelect"
-                ).value;
+            const period = document.getElementById("periodSelect").value;
+            const status = document.getElementById("statusFilter").value;
+            const search = document.getElementById("searchInput").value.trim().toLowerCase();
 
-            /*
-             * The existing analytics endpoint already returns
-             * the latest 30 checks for the selected monitor.
-             *
-             * Each check contains:
-             * status
-             * status_code
-             * response_time_ms
-             * checked_at
-             * error_message
-             */
-            const status =
-                document.getElementById(
-                    "statusFilter"
-                ).value;
+            // Use the dedicated MonitorLogsView endpoint.
+            // It returns paginated APILog records in data.results.
+            let fetchedLogs = [];
+            let backendPage = 1;
+            let backendTotalPages = 1;
 
-            const search =
-                document.getElementById(
-                    "searchInput"
-                ).value.trim();
+            do {
+                const params = new URLSearchParams();
+                params.set("page", String(backendPage));
+                params.set("page_size", "100");
 
-            const params = new URLSearchParams();
-            params.set("monitor_id", selectedMonitor);
-            params.set("period", period);
-            params.set("page", String(page));
-            params.set("page_size", String(pageSize));
-
-            if (status !== "all") {
-                params.set("status", status);
-            }
-
-            if (search) {
-                params.set("search", search);
-            }
-
-            const endpoint =
-                "/api/monitoring/analytics/?" +
-                params.toString();
-
-            const response =
-                await fetch(
-                    endpoint,
+                const response = await fetch(
+                    "/api/monitoring/" +
+                    encodeURIComponent(selectedMonitor) +
+                    "/logs/?" +
+                    params.toString(),
                     {
                         method: "GET",
                         headers: authHeaders()
                     }
                 );
 
-            if (
-                response.status === 401 ||
-                response.status === 403
-            ) {
-                logout();
-                return;
-            }
+                if (response.status === 401 || response.status === 403) {
+                    logout();
+                    return;
+                }
 
-            if (!response.ok) {
-                throw new Error(
-                    "Logs request returned HTTP " +
-                    response.status
-                );
-            }
+                if (!response.ok) {
+                    throw new Error(
+                        "Logs request returned HTTP " + response.status
+                    );
+                }
 
-            const data =
-                await response.json();
+                const data = await response.json();
 
-            selectedMonitor =
-                String(
-                    data.monitor_id
-                );
+                if (Array.isArray(data.results)) {
+                    fetchedLogs = fetchedLogs.concat(data.results);
+                }
 
-            currentPage = Number(data.checks_page || page) || 1;
-            totalPages = Number(data.checks_total_pages || 1) || 1;
+                backendTotalPages = Number(data.total_pages || 1);
+                backendPage += 1;
+            } while (backendPage <= backendTotalPages);
 
-            allLogs =
-                Array.isArray(data.checks)
-                    ? data.checks
-                    : [];
+            const periodMs = {
+                "24h": 24 * 60 * 60 * 1000,
+                "7d": 7 * 24 * 60 * 60 * 1000,
+                "30d": 30 * 24 * 60 * 60 * 1000
+            };
 
-            updateMonitorHeader(data);
-            updateSummary(data);
+            const cutoff = Date.now() - (periodMs[period] || periodMs["7d"]);
+
+            const filteredLogs = fetchedLogs.filter(function(log) {
+                const checkedAt = new Date(log.checked_at).getTime();
+
+                if (Number.isFinite(checkedAt) && checkedAt < cutoff) {
+                    return false;
+                }
+
+                const logStatus = String(log.status || "UNKNOWN").toUpperCase();
+
+                if (status !== "all" && logStatus !== status) {
+                    return false;
+                }
+
+                if (search) {
+                    const searchable = [
+                        log.status,
+                        log.status_code,
+                        log.error_message,
+                        log.response_time_ms,
+                        log.checked_at
+                    ]
+                    .filter(value => value !== null && value !== undefined)
+                    .join(" ")
+                    .toLowerCase();
+
+                    if (!searchable.includes(search)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            filteredLogs.sort(function(a, b) {
+                return new Date(b.checked_at).getTime() -
+                       new Date(a.checked_at).getTime();
+            });
+
+            const totalFiltered = filteredLogs.length;
+
+            totalPages = Math.max(
+                1,
+                Math.ceil(totalFiltered / pageSize)
+            );
+
+            currentPage = Math.min(
+                Math.max(Number(page) || 1, 1),
+                totalPages
+            );
+
+            const startIndex = (currentPage - 1) * pageSize;
+
+            allLogs = filteredLogs.slice(
+                startIndex,
+                startIndex + pageSize
+            );
+
+            const selectedMonitorObject = monitors.find(function(monitor) {
+                return String(monitor.monitor_id) === String(selectedMonitor);
+            });
+
+            updateMonitorHeader({
+                status: selectedMonitorObject
+                    ? selectedMonitorObject.status
+                    : "UNKNOWN"
+            });
+
+            updateSummary({
+                filtered_logs: filteredLogs
+            });
+
             renderLogs(allLogs);
-            renderPagination(data);
+
+            renderPagination({
+                total: totalFiltered,
+                page: currentPage,
+                pages: totalPages,
+                page_size: pageSize
+            });
 
         } catch (error) {
-
-            console.error(
-                "Logs error:",
-                error
-            );
+            console.error("Logs error:", error);
 
             container.innerHTML = `
                 <div class="error">
@@ -1457,13 +1525,11 @@ tbody tr:hover {
                 </div>
             `;
 
+            document.getElementById("pagination").style.display = "none";
+
         } finally {
-
-            button.textContent =
-                "↻ Refresh";
-
-            button.disabled =
-                false;
+            button.textContent = "↻ Refresh";
+            button.disabled = false;
         }
     }
 
@@ -1488,29 +1554,35 @@ tbody tr:hover {
     }
 
     function updateSummary(data) {
+        const logs = Array.isArray(data.filtered_logs)
+            ? data.filtered_logs
+            : [];
 
-        document.getElementById(
-            "displayedCount"
-        ).textContent =
-            data.checks_total ??
-            (Array.isArray(data.checks) ? data.checks.length : 0);
+        const up = logs.filter(function(log) {
+            return String(log.status || "").toUpperCase() === "UP";
+        }).length;
 
-        document.getElementById(
-            "upCount"
-        ).textContent =
-            data.summary_up_checks ?? data.up_checks ?? 0;
+        const down = logs.filter(function(log) {
+            return String(log.status || "").toUpperCase() === "DOWN";
+        }).length;
 
-        document.getElementById(
-            "downCount"
-        ).textContent =
-            data.summary_down_checks ?? data.down_checks ?? 0;
+        const responseValues = logs
+            .map(function(log) {
+                const value = Number(log.response_time_ms);
+                return Number.isFinite(value) ? value : null;
+            })
+            .filter(value => value !== null);
 
-        document.getElementById(
-            "avgResponse"
-        ).textContent =
-            formatResponse(
-                data.avg_response_time
-            );
+        const average = responseValues.length
+            ? responseValues.reduce((sum, value) => sum + value, 0) /
+              responseValues.length
+            : null;
+
+        document.getElementById("displayedCount").textContent = logs.length;
+        document.getElementById("upCount").textContent = up;
+        document.getElementById("downCount").textContent = down;
+        document.getElementById("avgResponse").textContent =
+            average === null ? "—" : formatResponse(average);
     }
 
     function resetPaginationAndLoad() {
@@ -1542,40 +1614,32 @@ tbody tr:hover {
     }
 
     function renderPagination(data) {
-        const pagination =
-            document.getElementById("pagination");
+        const pagination = document.getElementById("pagination");
+        const info = document.getElementById("paginationInfo");
+        const buttons = document.getElementById("paginationButtons");
 
-        const info =
-            document.getElementById("paginationInfo");
-
-        const buttons =
-            document.getElementById("paginationButtons");
-
-        const total = Number(data.checks_total || 0);
-        const page = Number(data.checks_page || 1);
-        const pages = Number(data.checks_total_pages || 1);
-        const size = Number(data.checks_page_size || pageSize);
+        const total = Number(data.total || 0);
+        const page = Number(data.page || 1);
+        const pages = Number(data.pages || 1);
+        const size = Number(data.page_size || pageSize);
 
         if (!total || pages <= 1) {
-            pagination.style.display = total ? "flex" : "none";
-            if (!total) {
-                return;
-            }
-        } else {
-            pagination.style.display = "flex";
+            pagination.style.display = "none";
+            return;
         }
+
+        pagination.style.display = "flex";
 
         const first = ((page - 1) * size) + 1;
         const last = Math.min(page * size, total);
 
-        info.textContent =
-            `Showing ${first}-${last} of ${total} logs`;
+        info.textContent = `Showing ${first}-${last} of ${total} logs`;
 
         const pageNumbers = [];
-        const start = Math.max(1, page - 2);
-        const end = Math.min(pages, page + 2);
+        const startPage = Math.max(1, page - 2);
+        const endPage = Math.min(pages, page + 2);
 
-        for (let number = start; number <= end; number++) {
+        for (let number = startPage; number <= endPage; number++) {
             pageNumbers.push(number);
         }
 
