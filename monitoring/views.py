@@ -7,7 +7,7 @@ from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
 
 from django.utils import timezone
-from django.db.models import Avg, F, ExpressionWrapper, DurationField
+from django.db.models import Avg, F, ExpressionWrapper, DurationField, Q
 
 from .models import APIMonitor, Incident, MonitorAlertSettings
 from logs.models import APILog
@@ -959,6 +959,54 @@ class MonitorAnalyticsView(APIView):
             total_checks=total,
         )
 
+        # ---------------------------------------------------------------------
+        # INCIDENT CORRELATION
+        # ---------------------------------------------------------------------
+        # Return incidents that overlap the selected analytics period.
+        # This is additive only: existing history/check calculations remain
+        # unchanged so the current Analytics graphs keep using the same data.
+        now = timezone.now()
+
+        incident_qs = (
+            Incident.objects
+            .filter(
+                monitor=monitor,
+                started_at__lte=now,
+            )
+            .filter(
+                Q(resolved_at__isnull=True)
+                | Q(resolved_at__gte=start_time)
+            )
+            .order_by("started_at")
+        )
+
+        analytics_incidents = []
+
+        for incident in incident_qs:
+            resolved_at = incident.resolved_at
+
+            if resolved_at:
+                duration_seconds = max(
+                    0,
+                    (resolved_at - incident.started_at).total_seconds(),
+                )
+            else:
+                duration_seconds = max(
+                    0,
+                    (now - incident.started_at).total_seconds(),
+                )
+
+            analytics_incidents.append({
+                "id": incident.id,
+                "monitor_id": monitor.id,
+                "monitor_name": monitor.name,
+                "status": incident.status,
+                "started_at": incident.started_at,
+                "resolved_at": resolved_at,
+                "duration_seconds": round(duration_seconds, 1),
+                "reason": incident.reason or "API request failed",
+            })
+
         recent = list(
             logs[:20].values(
                 "status",
@@ -1068,6 +1116,7 @@ class MonitorAnalyticsView(APIView):
             "history": history,
             "latency_trend": analytics_insights["latency_trend"],
             "insights": analytics_insights["insights"],
+            "incidents": analytics_incidents,
             "checks": recent,
             "recent_history": recent,
             "last_checked_at": monitor.last_checked_at,

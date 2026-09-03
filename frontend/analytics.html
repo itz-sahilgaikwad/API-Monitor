@@ -1733,6 +1733,56 @@ td {
     }
 </style>
 
+
+<style id="health-timeline-style">
+    .health-timeline-card { margin-bottom: 16px; }
+    .health-legend { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    .health-legend-item { display:inline-flex; align-items:center; gap:6px; color:#64748b; font-size:9px; font-weight:700; }
+    .health-legend-dot { width:8px; height:8px; border-radius:50%; }
+    .health-legend-dot.up { background:#10b981; }
+    .health-legend-dot.slow { background:#f59e0b; }
+    .health-legend-dot.down { background:#ef4444; }
+    .health-timeline { overflow-x:auto; padding-bottom:4px; }
+    .health-axis { display:flex; justify-content:space-between; gap:10px; margin-bottom:8px; color:#7c8aa1; font-size:9px; font-weight:700; min-width:560px; }
+    .health-track { display:flex; gap:3px; min-width:560px; height:46px; padding:5px; border:1px solid #e3e8f0; border-radius:10px; background:#f8fafc; }
+    .health-segment { position:relative; flex:1 1 0; min-width:7px; border:0; border-radius:5px; cursor:pointer; transition:transform 120ms ease, filter 120ms ease; }
+    .health-segment:hover, .health-segment.active { transform:translateY(-2px); filter:brightness(.96); }
+    .health-segment.up { background:#34d399; }
+    .health-segment.slow { background:#fbbf24; }
+    .health-segment.down { background:#f87171; }
+    .health-segment.empty { background:#e2e8f0; cursor:default; }
+
+    .health-segment {
+        overflow: visible;
+    }
+
+    .health-segment.incident-linked::after {
+        content: "";
+        position: absolute;
+        top: -4px;
+        right: -2px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #ef4444;
+        border: 2px solid #101b30;
+        box-shadow: 0 2px 6px rgba(0,0,0,.18);
+    }
+    .health-timeline-detail { margin-top:14px; padding:14px; border:1px solid #e3e8f0; border-radius:10px; background:#fafbfe; }
+    .health-detail-empty { color:#64748b; font-size:10px; }
+    .health-detail-head { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .health-detail-title { color:#172033; font-size:13px; font-weight:800; }
+    .health-detail-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; margin-top:12px; }
+    .health-detail-label { color:#7c8aa1; font-size:8px; text-transform:uppercase; letter-spacing:.06em; }
+    .health-detail-value { margin-top:4px; color:#344054; font-size:10px; font-weight:700; }
+    .health-detail-reason { margin-top:12px; color:#64748b; font-size:10px; line-height:1.5; }
+    .health-status-pill { display:inline-flex; align-items:center; padding:5px 8px; border-radius:999px; font-size:9px; font-weight:900; }
+    .health-status-pill.up { color:#059669; background:rgba(16,185,129,.10); }
+    .health-status-pill.slow { color:#b45309; background:rgba(245,158,11,.12); }
+    .health-status-pill.down { color:#dc2626; background:rgba(239,68,68,.12); }
+    @media (max-width:700px) { .health-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+</style>
+
 </head>
 
 <body>
@@ -1752,8 +1802,8 @@ td {
         <nav class="nav">
             <a href="/app/dashboard.html">▣ <span>Dashboard</span></a>
             <a href="/app/analytics.html" class="active">⌁ <span>Analytics</span></a>
-            <a href="/app/incidents.html">! <span>Incidents</span></a>
             <a href="/app/logs.html">☷ <span>Logs</span></a>
+            <a href="/app/incidents.html">! <span>Incidents</span></a>
             <a href="/app/settings.html">⚙ <span>Settings</span></a>
         </nav>
 
@@ -2370,6 +2420,27 @@ td {
                 </div>
             </section>
 
+
+            <section class="card health-timeline-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">API Health Timeline</h2>
+                        <p class="card-subtitle">UP, SLOW and DOWN periods correlated with recorded incidents</p>
+                    </div>
+                    <div class="health-legend">
+                        <span class="health-legend-item"><span class="health-legend-dot up"></span>UP</span>
+                        <span class="health-legend-item"><span class="health-legend-dot slow"></span>SLOW</span>
+                        <span class="health-legend-item"><span class="health-legend-dot down"></span>DOWN</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="healthTimeline" class="health-timeline"></div>
+                    <div id="healthTimelineDetail" class="health-timeline-detail">
+                        <div class="health-detail-empty">Select a timeline period to inspect its health status and related incident.</div>
+                    </div>
+                </div>
+            </section>
+
             <section class="card">
 
                 <div class="card-header">
@@ -2420,6 +2491,160 @@ td {
         );
         renderSmartInsights(insights, latencyTrend);
         renderAnomaly(anomaly);
+        renderHealthTimeline(data.history || [], data.incidents || [], threshold, activePeriod);
+    }
+
+
+    function renderHealthTimeline(history, incidents, threshold, period) {
+        const timeline = document.getElementById("healthTimeline");
+        const detail = document.getElementById("healthTimelineDetail");
+
+        if (!timeline || !detail) return;
+
+        if (!Array.isArray(history) || !history.length) {
+            timeline.innerHTML = `<div class="empty">No monitoring history is available for the selected period.</div>`;
+            detail.innerHTML = `<div class="health-detail-empty">There is no timeline data to inspect.</div>`;
+            return;
+        }
+
+        const bucketSeconds = period === "24h"
+            ? 30 * 60
+            : period === "30d"
+                ? 12 * 60 * 60
+                : 3 * 60 * 60;
+
+        const safeIncidents = Array.isArray(incidents) ? incidents : [];
+        const safeThreshold = numberOrNull(threshold);
+
+        timeline.innerHTML = `
+            <div class="health-axis">
+                <span>${escapeHTML(formatChartLabel(history[0].timestamp))}</span>
+                <span>${escapeHTML(formatChartLabel(history[Math.floor(history.length / 2)].timestamp))}</span>
+                <span>${escapeHTML(formatChartLabel(history[history.length - 1].timestamp))}</span>
+            </div>
+            <div class="health-track" id="healthTrack"></div>
+        `;
+
+        const track = document.getElementById("healthTrack");
+        if (!track) return;
+
+        history.forEach((item, index) => {
+            const start = new Date(item.timestamp);
+            const startMs = start.getTime();
+            const endMs = startMs + bucketSeconds * 1000;
+            const downChecks = Number(item.down_checks || 0);
+            const latency = numberOrNull(item.latency);
+
+            let state = "up";
+            if (downChecks > 0) {
+                state = "down";
+            } else if (safeThreshold !== null && latency !== null && latency > safeThreshold) {
+                state = "slow";
+            }
+
+            const relatedIncident = safeIncidents.find(incident => {
+                const incidentStart = new Date(incident.started_at).getTime();
+                const incidentEnd = incident.resolved_at
+                    ? new Date(incident.resolved_at).getTime()
+                    : Date.now();
+                return incidentStart < endMs && incidentEnd >= startMs;
+            });
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = `health-segment ${state}`;
+
+            if (relatedIncident) {
+                button.classList.add("incident-linked");
+            }
+
+            const incidentLabel = relatedIncident
+                ? ` · Incident #${relatedIncident.id}`
+                : "";
+
+            button.title =
+                `${state.toUpperCase()} · ${formatChartLabel(item.timestamp)}${incidentLabel}`;
+
+            button.setAttribute("aria-label", button.title);
+
+            button.addEventListener("click", () => {
+                document.querySelectorAll(".health-segment.active").forEach(el => el.classList.remove("active"));
+                button.classList.add("active");
+                renderHealthTimelineDetail(item, state, relatedIncident);
+            });
+
+            track.appendChild(button);
+
+            if (index === history.length - 1 && history.length === 1) {
+                button.style.minWidth = "100%";
+            }
+        });
+
+        const downIncident = safeIncidents.find(incident => String(incident.status).toUpperCase() === "ONGOING");
+        if (downIncident) {
+            detail.innerHTML = `<div class="health-detail-empty">An incident is currently ongoing. Click the red timeline period to view its details.</div>`;
+        }
+    }
+
+    function renderHealthTimelineDetail(item, state, incident) {
+        const detail = document.getElementById("healthTimelineDetail");
+        if (!detail) return;
+
+        const labels = {
+            up: "UP",
+            slow: "SLOW",
+            down: "DOWN"
+        };
+
+        if (!incident) {
+            detail.innerHTML = `
+                <div class="health-detail-head">
+                    <div class="health-detail-title">Health period</div>
+                    <span class="health-status-pill ${state}">● ${labels[state]}</span>
+                </div>
+                <div class="health-detail-grid">
+                    <div><div class="health-detail-label">Period</div><div class="health-detail-value">${escapeHTML(formatChartLabel(item.timestamp))}</div></div>
+                    <div><div class="health-detail-label">Checks</div><div class="health-detail-value">${formatNumber(item.checks)}</div></div>
+                    <div><div class="health-detail-label">UP checks</div><div class="health-detail-value">${formatNumber(item.up_checks)}</div></div>
+                    <div><div class="health-detail-label">DOWN checks</div><div class="health-detail-value">${formatNumber(item.down_checks)}</div></div>
+                </div>
+                <div class="health-detail-reason">No incident record overlaps this period.</div>
+            `;
+            return;
+        }
+
+        detail.innerHTML = `
+            <div class="health-detail-head">
+                <div class="health-detail-title">Incident #${escapeHTML(String(incident.id))}</div>
+                <span class="health-status-pill down">● ${escapeHTML(String(incident.status || "INCIDENT").toUpperCase())}</span>
+            </div>
+            <div class="health-detail-grid">
+                <div><div class="health-detail-label">Started</div><div class="health-detail-value">${escapeHTML(formatDateTime(incident.started_at))}</div></div>
+                <div><div class="health-detail-label">Resolved</div><div class="health-detail-value">${escapeHTML(formatDateTime(incident.resolved_at))}</div></div>
+                <div><div class="health-detail-label">Duration</div><div class="health-detail-value">${escapeHTML(formatDuration(incident.duration_seconds))}</div></div>
+                <div><div class="health-detail-label">Monitor</div><div class="health-detail-value">${escapeHTML(incident.monitor_name || "—")}</div></div>
+            </div>
+            <div class="health-detail-reason"><strong>Reason:</strong> ${escapeHTML(incident.reason || "API request failed")}</div>
+        `;
+    }
+
+    function formatDuration(seconds) {
+        const value = numberOrNull(seconds);
+        if (value === null) return "Ongoing";
+
+        const total = Math.max(0, Math.round(value));
+        const days = Math.floor(total / 86400);
+        const hours = Math.floor((total % 86400) / 3600);
+        const minutes = Math.floor((total % 3600) / 60);
+        const secs = total % 60;
+
+        const parts = [];
+        if (days) parts.push(days + "d");
+        if (hours) parts.push(hours + "h");
+        if (minutes) parts.push(minutes + "m");
+        if (secs || !parts.length) parts.push(secs + "s");
+
+        return parts.join(" ");
     }
 
     function renderAnomaly(anomaly) {

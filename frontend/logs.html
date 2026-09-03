@@ -868,6 +868,15 @@ tbody tr:hover {
                     </button>
 
                     <button
+                        class="btn"
+                        id="exportBtn"
+                        type="button"
+                        onclick="exportLogs()"
+                    >
+                        ↓ Export CSV
+                    </button>
+
+                    <button
                         class="btn btn-primary"
                         id="refreshBtn"
                         type="button"
@@ -1483,6 +1492,8 @@ tbody tr:hover {
                 totalPages
             );
 
+            window.currentFilteredLogs = filteredLogs;
+
             const startIndex = (currentPage - 1) * pageSize;
 
             allLogs = filteredLogs.slice(
@@ -1792,6 +1803,90 @@ tbody tr:hover {
 
             </div>
         `;
+    }
+
+    function exportLogs() {
+        const logs = Array.isArray(window.currentFilteredLogs)
+            ? window.currentFilteredLogs
+            : [];
+
+        if (!logs.length) {
+            alert("There are no logs to export for the current filters.");
+            return;
+        }
+
+        function csvCell(value) {
+            const text =
+                value === null || value === undefined
+                    ? ""
+                    : String(value);
+
+            return '"' + text.replace(/"/g, '""') + '"';
+        }
+
+        const headers = [
+            "Status",
+            "HTTP Code",
+            "Response Time (ms)",
+            "Error",
+            "Checked At"
+        ];
+
+        const rows = logs.map(function(log) {
+            return [
+                log.status,
+                log.status_code,
+                log.response_time_ms,
+                log.error_message,
+                log.checked_at
+            ].map(csvCell).join(",");
+        });
+
+        const csv = [
+            headers.map(csvCell).join(","),
+            ...rows
+        ].join("\r\n");
+
+        const monitorSelect =
+            document.getElementById("monitorSelect");
+
+        const selectedOption =
+            monitorSelect &&
+            monitorSelect.options[monitorSelect.selectedIndex];
+
+        const monitorName =
+            selectedOption
+                ? selectedOption.textContent.split(" — ")[0]
+                : "api-monitor";
+
+        const period =
+            document.getElementById("periodSelect").value || "period";
+
+        const status =
+            document.getElementById("statusFilter").value || "all";
+
+        const safeName =
+            (monitorName + "-" + period + "-" + status + "-logs")
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "");
+
+        const blob = new Blob(
+            ["\uFEFF" + csv],
+            { type: "text/csv;charset=utf-8;" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = (safeName || "api-monitor-logs") + ".csv";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        URL.revokeObjectURL(url);
     }
 
     function showDetails(index) {
