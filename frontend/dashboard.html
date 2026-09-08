@@ -355,6 +355,228 @@
         }
 
         /* =========================
+           RECENT HEALTH TREND
+        ========================= */
+
+        .api-insights {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .recent-health {
+            min-width: 0;
+            padding: 11px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 11px;
+            background: #fbfdff;
+        }
+
+        .recent-health-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .recent-health-title {
+            color: #475569;
+            font-size: 10px;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .recent-health-meta {
+            color: #94a3b8;
+            font-size: 9px;
+        }
+
+        .recent-health-bars {
+            display: flex;
+            align-items: stretch;
+            gap: 3px;
+            height: 22px;
+        }
+
+        .health-bar {
+            position: relative;
+            flex: 1 1 0;
+            min-width: 5px;
+            border-radius: 3px;
+            background: #cbd5e1;
+            cursor: default;
+        }
+
+        .health-bar.up { background: #22c55e; }
+        .health-bar.slow { background: #f59e0b; }
+        .health-bar.down { background: #ef4444; }
+        .health-bar.empty { background: #e2e8f0; }
+
+        .health-bar:hover {
+            opacity: .78;
+        }
+
+        .recent-health-empty {
+            color: #94a3b8;
+            font-size: 10px;
+        }
+
+        .recent-health-streak {
+            margin-top: 7px;
+            color: #64748b;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .recent-health-streak.up {
+            color: #047857;
+        }
+
+        .recent-health-streak.slow {
+            color: #b45309;
+        }
+
+        .recent-health-streak.down {
+            color: #b91c1c;
+        }
+
+        .recent-health-uptime {
+            margin-top: 5px;
+            color: #475569;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .recent-health-uptime strong {
+            color: #334155;
+        }
+
+        .recent-response-trend {
+            min-width: 0;
+            padding: 11px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 11px;
+            background: #fbfdff;
+        }
+
+        .recent-response-trend-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .recent-response-trend-title {
+            color: #334155;
+            font-size: 9px;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .recent-response-trend-meta {
+            color: #94a3b8;
+            font-size: 8px;
+            white-space: nowrap;
+        }
+
+        .recent-response-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 34px;
+            padding: 0 1px 3px;
+            border-bottom: 1px solid #cbd5e1;
+        }
+
+        .response-bar {
+            flex: 1 1 0;
+            min-width: 5px;
+            max-width: 18px;
+            height: 8px;
+            border-radius: 3px 3px 2px 2px;
+            background: #818cf8;
+            opacity: .88;
+            cursor: default;
+            transition: opacity .15s ease, transform .15s ease;
+        }
+
+        .response-bar:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+
+        .recent-response-empty {
+            color: #94a3b8;
+            font-size: 9px;
+        }
+
+        .response-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+            color: #64748b;
+            font-size: 9px;
+        }
+
+        .response-summary span {
+            white-space: nowrap;
+        }
+
+        .response-summary strong {
+            color: #334155;
+            font-weight: 800;
+        }
+
+        .response-performance {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 7px;
+            padding-top: 7px;
+            border-top: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .response-performance-label {
+            color: #64748b;
+        }
+
+        .response-performance-value {
+            font-weight: 800;
+        }
+
+        .response-performance-value.stable {
+            color: #475569;
+        }
+
+        .response-performance-value.improving {
+            color: #047857;
+        }
+
+        .response-performance-value.degrading {
+            color: #b45309;
+        }
+
+        .response-performance-value.spike {
+            color: #b91c1c;
+        }
+
+        @media (max-width: 900px) {
+            .api-insights {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* =========================
            API LIST
         ========================= */
 
@@ -363,10 +585,8 @@
         }
 
         .api-card {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 20px;
-            align-items: center;
+            position: relative;
+            display: block;
             padding: 18px;
             margin-top: 10px;
             border: 1px solid var(--border);
@@ -383,6 +603,18 @@
 
         .api-main {
             min-width: 0;
+        }
+
+        /* Keep the API information readable while the action buttons
+           sit in their own row at the top-right on wide screens. */
+        .api-name-row,
+        .api-url,
+        .api-details {
+            padding-right: 600px;
+        }
+
+        .api-insights {
+            width: 100%;
         }
 
         .api-name-row {
@@ -515,11 +747,23 @@
         }
 
         .api-actions {
+            position: absolute;
+            top: 18px;
+            right: 18px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 6px;
+            flex-wrap: nowrap;
             justify-content: flex-end;
+            max-width: 600px;
+            white-space: nowrap;
+        }
+
+        .api-actions .btn {
+            padding: 10px 13px;
+            font-size: 12px;
+            gap: 6px;
+            flex-shrink: 0;
         }
 
         .edit-btn {
@@ -885,10 +1129,19 @@
             }
 
             .api-card {
-                grid-template-columns: 1fr;
+                display: block;
+            }
+
+            .api-name-row,
+            .api-url,
+            .api-details {
+                padding-right: 0;
             }
 
             .api-actions {
+                position: static;
+                max-width: none;
+                margin-top: 12px;
                 justify-content: flex-end;
             }
 
@@ -2010,7 +2263,7 @@
                 const data =
                     await res.json();
 
-                renderAPIs(data);
+                await renderAPIs(data);
 
             } catch (error) {
 
@@ -2050,7 +2303,467 @@
          * RENDER APIs
          * ================================ */
 
-        function renderAPIs(data) {
+        let recentHealthRequestId = 0;
+
+        function classifyRecentCheck(check, api) {
+
+            const rawStatus =
+                String(check.status || "")
+                    .toUpperCase();
+
+            if (rawStatus === "DOWN") {
+                return "down";
+            }
+
+            const responseTime =
+                Number(
+                    check.response_time_ms ??
+                    check.response_time
+                );
+
+            const threshold =
+                Number(
+                    api.response_time_threshold_ms ??
+                    1000
+                );
+
+            if (
+                Number.isFinite(responseTime) &&
+                Number.isFinite(threshold) &&
+                responseTime > threshold
+            ) {
+                return "slow";
+            }
+
+            if (rawStatus === "UP") {
+                return "up";
+            }
+
+            return "empty";
+        }
+
+        function formatRecentCheckTitle(check, state) {
+
+            const checkedAt =
+                check.checked_at
+                    ? formatLastChecked(check.checked_at)
+                    : "Unknown time";
+
+            const responseTime =
+                Number(
+                    check.response_time_ms ??
+                    check.response_time
+                );
+
+            const responseText =
+                Number.isFinite(responseTime)
+                    ? ` · ${formatResponseTime(responseTime)}`
+                    : "";
+
+            return `${state.toUpperCase()} · ${checkedAt}${responseText}`;
+        }
+
+        function getPerformanceStatus(values) {
+
+            if (!Array.isArray(values) || values.length < 3) {
+                return { key: "stable", label: "Insufficient data" };
+            }
+
+            const recentWindow = values.slice(-Math.min(4, values.length));
+            const previousWindow =
+                values.slice(
+                    Math.max(0, values.length - 8),
+                    Math.max(0, values.length - 4)
+                );
+
+            const recentAverage =
+                recentWindow.reduce((sum, value) => sum + value, 0) /
+                recentWindow.length;
+
+            const previousAverage =
+                previousWindow.length
+                    ? previousWindow.reduce((sum, value) => sum + value, 0) /
+                      previousWindow.length
+                    : recentAverage;
+
+            const maximum = Math.max(...values);
+            const baseline =
+                previousWindow.length ? previousAverage : recentAverage;
+
+            // Flag a clear latency spike before classifying the overall trend.
+            if (baseline > 0 && maximum >= baseline * 1.75) {
+                return { key: "spike", label: "Spike detected" };
+            }
+
+            if (previousAverage > 0) {
+                const change =
+                    (recentAverage - previousAverage) / previousAverage;
+
+                if (change <= -0.10) {
+                    return { key: "improving", label: "Improving" };
+                }
+
+                if (change >= 0.10) {
+                    return { key: "degrading", label: "Degrading" };
+                }
+            }
+
+            return { key: "stable", label: "Stable" };
+        }
+
+        function renderRecentHealth(apiId, api, checks) {
+
+            const container =
+                document.getElementById(
+                    `recent-health-bars-${apiId}`
+                );
+
+            const streakContainer =
+                document.getElementById(
+                    `recent-health-streak-${apiId}`
+                );
+
+            const uptimeContainer =
+                document.getElementById(
+                    `recent-health-uptime-${apiId}`
+                );
+
+            const responseTrendContainer =
+                document.getElementById(
+                    `recent-response-bars-${apiId}`
+                );
+
+            const performanceContainer =
+                document.getElementById(
+                    `response-performance-${apiId}`
+                );
+
+            if (!container) {
+                return;
+            }
+
+            if (!Array.isArray(checks) || !checks.length) {
+                container.innerHTML =
+                    `<span class="recent-health-empty">No recent checks available.</span>`;
+
+                if (streakContainer) {
+                    streakContainer.textContent =
+                        "Current streak: No data";
+                }
+
+                if (uptimeContainer) {
+                    uptimeContainer.innerHTML =
+                        "<strong>Recent uptime:</strong> No data";
+                }
+
+                if (performanceContainer) {
+                    performanceContainer.innerHTML =
+                        '<span class="response-performance-label">Performance</span>' +
+                        '<span class="response-performance-value stable">No data</span>';
+                }
+
+                return;
+            }
+
+            // The analytics endpoint returns checks newest first.
+            // Use the newest checks for the current streak and reverse them
+            // only for the left-to-right history display.
+            const recent =
+                checks
+                    .slice(0, 12);
+
+            const latestState =
+                classifyRecentCheck(
+                    recent[0],
+                    api
+                );
+
+            let streakCount = 0;
+
+            if (latestState !== "empty") {
+                for (const check of recent) {
+                    if (
+                        classifyRecentCheck(
+                            check,
+                            api
+                        ) !== latestState
+                    ) {
+                        break;
+                    }
+
+                    streakCount += 1;
+                }
+            }
+
+            if (streakContainer) {
+                if (latestState === "empty" || streakCount === 0) {
+                    streakContainer.textContent =
+                        "Current streak: No data";
+                } else {
+                    const stateLabel =
+                        latestState.toUpperCase();
+
+                    streakContainer.textContent =
+                        `Current streak: ${streakCount} ${
+                            streakCount === 1 ? "check" : "checks"
+                        } ${stateLabel}`;
+
+                    streakContainer.className =
+                        `recent-health-streak ${latestState}`;
+                }
+            }
+
+            // Render the health history first. Keep this independent from
+            // the response-time/performance calculations so a problem in one
+            // metric can never replace valid health history with an error.
+            try {
+                container.innerHTML =
+                    recent
+                        .slice()
+                        .reverse()
+                        .map(
+                            check => {
+                                const state =
+                                    classifyRecentCheck(check, api);
+
+                                const bar =
+                                    document.createElement("span");
+
+                                bar.className =
+                                    `health-bar ${state}`;
+
+                                bar.title =
+                                    formatRecentCheckTitle(
+                                        check,
+                                        state
+                                    );
+
+                                return bar.outerHTML;
+                            }
+                        )
+                        .join("");
+            } catch (healthRenderError) {
+                console.error(
+                    `Recent health render error for API ${apiId}:`,
+                    healthRenderError
+                );
+
+                container.innerHTML =
+                    `<span class="recent-health-empty">Unable to render health history.</span>`;
+            }
+
+            if (uptimeContainer) {
+                // Keep the uptime figure consistent with the same checks
+                // displayed in Recent Health. DOWN checks count as downtime;
+                // UP and SLOW checks count as available.
+                const validChecks = recent.filter(
+                    check => classifyRecentCheck(check, api) !== "empty"
+                );
+
+                const availableChecks = validChecks.filter(
+                    check => classifyRecentCheck(check, api) !== "down"
+                ).length;
+
+                const recentUptime =
+                    validChecks.length > 0
+                        ? (availableChecks / validChecks.length) * 100
+                        : null;
+
+                if (Number.isFinite(recentUptime)) {
+                    uptimeContainer.innerHTML =
+                        `<strong>Recent uptime:</strong> ${recentUptime.toFixed(2)}%`;
+                } else {
+                    uptimeContainer.innerHTML =
+                        "<strong>Recent uptime:</strong> No data";
+                }
+            }
+
+            if (responseTrendContainer) {
+                const chronologicalChecks =
+                    recent.slice().reverse();
+
+                const responsePoints =
+                    chronologicalChecks.map(
+                        check => {
+                            const value = Number(
+                                check.response_time_ms ??
+                                check.response_time
+                            );
+
+                            return Number.isFinite(value) && value >= 0
+                                ? value
+                                : null;
+                        }
+                    );
+
+                const numericPoints =
+                    responsePoints.filter(
+                        value => value !== null
+                    );
+
+                if (!numericPoints.length) {
+                    responseTrendContainer.innerHTML =
+                        `<span class="recent-response-empty">No response-time data available.</span>`;
+                } else {
+                    const minValue = Math.min(...numericPoints);
+                    const maxValue = Math.max(...numericPoints);
+                    const avgValue =
+                        numericPoints.reduce((sum, value) => sum + value, 0) /
+                        numericPoints.length;
+                    const range = maxValue - minValue;
+
+                    responseTrendContainer.innerHTML =
+                        responsePoints.map(
+                            (value, index) => {
+                                const check = chronologicalChecks[index];
+
+                                if (value === null) {
+                                    return `
+                                        <span
+                                            class="response-bar"
+                                            style="height: 6px; opacity: .25;"
+                                            title="No response-time data"
+                                        ></span>
+                                    `;
+                                }
+
+                                const normalized =
+                                    range > 0
+                                        ? (value - minValue) / range
+                                        : 0.5;
+
+                                const height =
+                                    Math.round(8 + normalized * 20);
+
+                                const checkedAt =
+                                    check?.checked_at
+                                        ? formatLastChecked(check.checked_at)
+                                        : "Unknown time";
+
+                                return `
+                                    <span
+                                        class="response-bar"
+                                        style="height: ${height}px;"
+                                        title="${escapeHTML(
+                                            formatResponseTime(value) +
+                                            " · " +
+                                            checkedAt
+                                        )}"
+                                    ></span>
+                                `;
+                            }
+                        ).join("") +
+                        `<div class="response-summary">
+                            <span>Min <strong>${formatResponseTime(minValue)}</strong></span>
+                            <span>Avg <strong>${formatResponseTime(avgValue)}</strong></span>
+                            <span>Max <strong>${formatResponseTime(maxValue)}</strong></span>
+                        </div>`;
+                }
+            }
+
+            if (performanceContainer) {
+                try {
+                    const performanceValues =
+                        responsePoints.filter(value => value !== null);
+
+                    const performance =
+                        getPerformanceStatus(performanceValues);
+
+                    performanceContainer.innerHTML =
+                        `<span class="response-performance-label">Performance</span>` +
+                        `<span class="response-performance-value ${performance.key}">${performance.label}</span>`;
+                } catch (performanceError) {
+                    console.error(
+                        `Performance render error for API ${apiId}:`,
+                        performanceError
+                    );
+
+                    performanceContainer.innerHTML =
+                        `<span class="response-performance-label">Performance</span>` +
+                        `<span class="response-performance-value stable">Unavailable</span>`;
+                }
+            }
+        }
+
+        async function loadRecentHealth(data) {
+
+            const requestId =
+                ++recentHealthRequestId;
+
+            await Promise.all(
+                data.map(
+                    async api => {
+
+                        const container =
+                            document.getElementById(
+                                `recent-health-bars-${api.id}`
+                            );
+
+                        if (!container) {
+                            return;
+                        }
+
+                        try {
+                            const response =
+                                await apiFetch(
+                                    `/api/monitoring/analytics/?monitor_id=${encodeURIComponent(api.id)}&period=24h`,
+                                    {
+                                        headers: {
+                                            "Authorization":
+                                                "Bearer " + token
+                                        }
+                                    }
+                                );
+
+                            if (
+                                response.status === 401 ||
+                                response.status === 403
+                            ) {
+                                return;
+                            }
+
+                            if (!response.ok) {
+                                throw new Error(
+                                    "Unable to load recent health history."
+                                );
+                            }
+
+                            const result =
+                                await response.json();
+
+                            if (requestId !== recentHealthRequestId) {
+                                return;
+                            }
+
+                            renderRecentHealth(
+                                api.id,
+                                api,
+                                Array.isArray(result.checks)
+                                    ? result.checks
+                                    : Array.isArray(result.recent_history)
+                                        ? result.recent_history
+                                        : [],
+                            );
+
+                        } catch (error) {
+                            if (requestId !== recentHealthRequestId) {
+                                return;
+                            }
+
+                            container.innerHTML =
+                                `<span class="recent-health-empty">History unavailable.</span>`;
+
+                            console.error(
+                                `Recent health error for API ${api.id}:`,
+                                error
+                            );
+                        }
+                    }
+                )
+            );
+        }
+
+        async function renderAPIs(data) {
 
             const list =
                 document.getElementById(
@@ -2254,6 +2967,77 @@
 
                                 </div>
 
+                                <div class="api-insights">
+
+                                    <div
+                                        class="recent-health"
+                                        id="recent-health-${api.id}"
+                                    >
+                                        <div class="recent-health-header">
+                                            <div class="recent-health-title">
+                                                Recent Health
+                                            </div>
+                                            <div class="recent-health-meta">
+                                                Last 12 checks
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="recent-health-bars"
+                                            id="recent-health-bars-${api.id}"
+                                        >
+                                            <span class="recent-health-empty">
+                                                Loading history...
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="recent-health-streak"
+                                            id="recent-health-streak-${api.id}"
+                                        >
+                                            Current streak: Loading...
+                                        </div>
+                                        <div
+                                            class="recent-health-uptime"
+                                            id="recent-health-uptime-${api.id}"
+                                        >
+                                            <strong>Recent uptime:</strong> Loading...
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="recent-response-trend"
+                                        id="recent-response-trend-${api.id}"
+                                    >
+                                        <div class="recent-response-trend-header">
+                                            <div class="recent-response-trend-title">
+                                                Response Time Trend
+                                            </div>
+                                            <div class="recent-response-trend-meta">
+                                                Last 12 checks
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="recent-response-bars"
+                                            id="recent-response-bars-${api.id}"
+                                        >
+                                            <span class="recent-response-empty">
+                                                Loading...
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="response-performance"
+                                            id="response-performance-${api.id}"
+                                        >
+                                            <span class="response-performance-label">
+                                                Performance
+                                            </span>
+                                            <span class="response-performance-value stable">
+                                                Loading...
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                </div>
+
                             </div>
 
                             <div class="api-actions">
@@ -2320,6 +3104,9 @@
                     `;
                 }
             );
+
+            // Load real recent monitoring checks after the cards exist in the DOM.
+            await loadRecentHealth(data);
         }
 
         /* ================================

@@ -9,6 +9,7 @@ from .views import (
     AllIncidentsView,
     IncidentDashboardView,
     MonitorAlertSettingsView,
+    NotificationHistoryView,
     MonitorAnalyticsView,
     GlobalAnalyticsView,
 )
@@ -76,6 +77,16 @@ urlpatterns = [
         "<int:monitor_id>/alert-settings/",
         MonitorAlertSettingsView.as_view(),
         name="monitor-alert-settings",
+    ),
+
+    # =========================================================================
+    # NOTIFICATION HISTORY
+    # =========================================================================
+
+    path(
+        "notifications/",
+        NotificationHistoryView.as_view(),
+        name="notification-history",
     ),
 
     # =========================================================================

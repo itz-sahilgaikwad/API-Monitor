@@ -444,6 +444,58 @@ tbody tr:hover {
     background: #f1f5f9;
 }
 
+/* Notification history */
+.alert-type {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.alert-down {
+    color: #dc2626;
+    background: #fff1f2;
+}
+
+.alert-slow {
+    color: #d97706;
+    background: #fffbeb;
+}
+
+.alert-recovery {
+    color: #059669;
+    background: #ecfdf5;
+}
+
+.notification-status-sent {
+    color: #059669;
+    background: #ecfdf5;
+}
+
+.notification-status-failed {
+    color: #dc2626;
+    background: #fff1f2;
+}
+
+.notification-subject {
+    max-width: 320px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 700;
+}
+
+.notification-error {
+    max-width: 260px;
+    color: #dc2626;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
 .code {
     font-family: Consolas, "Courier New", monospace;
     font-weight: 700;
@@ -1043,6 +1095,42 @@ tbody tr:hover {
 
             </section>
 
+            <section class="card" style="margin-top: 25px;">
+
+                <div class="card-header">
+
+                    <div>
+                        <h2 class="card-title">
+                            Notification History
+                        </h2>
+
+                        <p class="card-subtitle">
+                            Email alerts sent by the monitoring system, including failed delivery attempts.
+                        </p>
+                    </div>
+
+                    <button
+                        class="btn"
+                        type="button"
+                        id="notificationRefreshBtn"
+                        onclick="loadNotificationHistory()"
+                    >
+                        ↻ Refresh
+                    </button>
+
+                </div>
+
+                <div id="notificationContent">
+
+                    <div class="loading">
+                        <div class="loader"></div>
+                        Loading notification history...
+                    </div>
+
+                </div>
+
+            </section>
+
         </div>
 
     </main>
@@ -1600,6 +1688,7 @@ tbody tr:hover {
         currentPage = 1;
         syncUrlFilters();
         loadLogs(1);
+        loadNotificationHistory();
     }
 
     function queueFilterLoad() {
@@ -2010,6 +2099,285 @@ tbody tr:hover {
         }
     }
 
+    async function loadNotificationHistory() {
+
+        const container =
+            document.getElementById("notificationContent");
+
+        const button =
+            document.getElementById("notificationRefreshBtn");
+
+        if (!container || !button) {
+            return;
+        }
+
+        button.textContent = "↻ Loading...";
+        button.disabled = true;
+
+        container.innerHTML = `
+            <div class="loading">
+                <div class="loader"></div>
+                Loading notification history...
+            </div>
+        `;
+
+        try {
+
+            const params = new URLSearchParams();
+
+            const monitor =
+                document.getElementById("monitorSelect").value;
+
+            const period =
+                document.getElementById("periodSelect").value;
+
+            if (monitor) {
+                params.set("monitor_id", monitor);
+            }
+
+            if (period) {
+                params.set("period", period);
+            }
+
+            const response = await fetch(
+                "/api/monitoring/notifications/?" +
+                params.toString(),
+                {
+                    method: "GET",
+                    headers: authHeaders()
+                }
+            );
+
+            if (
+                response.status === 401 ||
+                response.status === 403
+            ) {
+                logout();
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    "Notification history request returned HTTP " +
+                    response.status
+                );
+            }
+
+            const data = await response.json();
+
+            const notifications =
+                Array.isArray(data)
+                    ? data
+                    : (
+                        Array.isArray(data.results)
+                            ? data.results
+                            : (
+                                Array.isArray(data.notifications)
+                                    ? data.notifications
+                                    : []
+                            )
+                    );
+
+            renderNotificationHistory(notifications);
+
+        } catch (error) {
+
+            console.error(
+                "Notification history error:",
+                error
+            );
+
+            container.innerHTML = `
+                <div class="error">
+                    <strong>Unable to load notification history</strong>
+                    <div style="margin-top:7px;">
+                        ${escapeHTML(error.message)}
+                    </div>
+                </div>
+            `;
+
+        } finally {
+
+            button.textContent = "↻ Refresh";
+            button.disabled = false;
+        }
+    }
+
+
+    function notificationAlertClass(alertType) {
+
+        const value =
+            String(alertType || "")
+                .toUpperCase();
+
+        if (value === "DOWN") {
+            return "alert-down";
+        }
+
+        if (value === "SLOW") {
+            return "alert-slow";
+        }
+
+        if (value === "RECOVERY") {
+            return "alert-recovery";
+        }
+
+        return "status-unknown";
+    }
+
+
+    function notificationStatusClass(status) {
+
+        const value =
+            String(status || "")
+                .toUpperCase();
+
+        if (value === "SENT") {
+            return "notification-status-sent";
+        }
+
+        if (value === "FAILED") {
+            return "notification-status-failed";
+        }
+
+        return "status-unknown";
+    }
+
+
+    function renderNotificationHistory(notifications) {
+
+        const container =
+            document.getElementById("notificationContent");
+
+        if (!notifications.length) {
+
+            container.innerHTML = `
+                <div class="empty">
+                    No notification history is available for the current filters.
+                </div>
+            `;
+
+            return;
+        }
+
+        const rows =
+            notifications.map(function(notification) {
+
+                const alertType =
+                    String(
+                        notification.alert_type || "UNKNOWN"
+                    ).toUpperCase();
+
+                const notificationStatus =
+                    String(
+                        notification.status || "UNKNOWN"
+                    ).toUpperCase();
+
+                const monitorName =
+                    notification.monitor_name ??
+                    notification.monitor?.name ??
+                    notification.api_name ??
+                    (
+                        notification.monitor_id
+                            ? "API #" + notification.monitor_id
+                            : "Unknown API"
+                    );
+
+                const error =
+                    notification.error_message;
+
+                return `
+                    <tr>
+
+                        <td>
+                            <strong>
+                                ${escapeHTML(monitorName)}
+                            </strong>
+                        </td>
+
+                        <td>
+                            <span class="alert-type ${notificationAlertClass(alertType)}">
+                                ${escapeHTML(alertType)}
+                            </span>
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                notification.recipient_email || "—"
+                            )}
+                        </td>
+
+                        <td>
+                            <div
+                                class="notification-subject"
+                                title="${escapeHTML(notification.subject || "")}"
+                            >
+                                ${escapeHTML(
+                                    notification.subject || "—"
+                                )}
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="status ${notificationStatusClass(notificationStatus)}">
+                                ${escapeHTML(notificationStatus)}
+                            </span>
+                        </td>
+
+                        <td>
+                            ${
+                                error
+                                    ? `<div
+                                        class="notification-error"
+                                        title="${escapeHTML(error)}"
+                                      >
+                                        ${escapeHTML(error)}
+                                      </div>`
+                                    : `<span class="muted">None</span>`
+                            }
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                formatDate(
+                                    notification.sent_at ??
+                                    notification.created_at
+                                )
+                            )}
+                        </td>
+
+                    </tr>
+                `;
+            }).join("");
+
+        container.innerHTML = `
+            <div class="table-wrap">
+
+                <table style="min-width: 1050px;">
+
+                    <thead>
+                        <tr>
+                            <th>API</th>
+                            <th>Alert Type</th>
+                            <th>Recipient</th>
+                            <th>Subject</th>
+                            <th>Status</th>
+                            <th>Error</th>
+                            <th>Sent At</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        ${rows}
+                    </tbody>
+
+                </table>
+
+            </div>
+        `;
+    }
+
+
     function logout() {
 
         localStorage.removeItem(
@@ -2115,12 +2483,18 @@ tbody tr:hover {
     loadLogs();
 
     /*
+     * Load alert/notification history separately from API monitoring logs.
+     */
+    loadNotificationHistory();
+
+    /*
      * Keep the Logs page live. The selected monitor, period, status,
      * search, and current pagination state are preserved.
      */
     refreshTimer = setInterval(
         function() {
             loadLogs(currentPage);
+            loadNotificationHistory();
         },
         30000
     );

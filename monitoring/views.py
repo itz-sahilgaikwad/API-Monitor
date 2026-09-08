@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.db.models import Avg, F, ExpressionWrapper, DurationField, Q
 
-from .models import APIMonitor, Incident, MonitorAlertSettings
+from .models import APIMonitor, Incident, MonitorAlertSettings, NotificationLog
 from logs.models import APILog
 from .serializers import APIMonitorSerializer, IncidentSerializer
 from users.models import _log
@@ -671,6 +671,82 @@ class MonitorAlertSettingsView(APIView):
             status=status.HTTP_200_OK,
         )
 
+
+
+# =============================================================================
+# NOTIFICATION HISTORY / ALERT LOGS
+# =============================================================================
+
+class NotificationHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        queryset = NotificationLog.objects.select_related("monitor", "monitor__owner")
+
+        if getattr(request.user, "role", "") == "ADMIN":
+            pass
+        else:
+            queryset = queryset.filter(monitor__owner=request.user)
+
+        monitor_id = request.query_params.get("monitor_id")
+        alert_type = request.query_params.get("alert_type")
+        notification_status = request.query_params.get("status")
+        limit = request.query_params.get("limit", "100")
+
+        if monitor_id:
+            try:
+                queryset = queryset.filter(monitor_id=int(monitor_id))
+            except (TypeError, ValueError):
+                return Response(
+                    {"detail": "monitor_id must be a valid integer."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        if alert_type:
+            alert_type = alert_type.strip().upper()
+            if alert_type not in {"DOWN", "SLOW", "RECOVERY"}:
+                return Response(
+                    {"detail": "Invalid alert_type."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            queryset = queryset.filter(alert_type=alert_type)
+
+        if notification_status:
+            notification_status = notification_status.strip().upper()
+            if notification_status not in {"SENT", "FAILED"}:
+                return Response(
+                    {"detail": "Invalid status."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            queryset = queryset.filter(status=notification_status)
+
+        try:
+            limit = max(1, min(int(limit), 500))
+        except (TypeError, ValueError):
+            limit = 100
+
+        logs = queryset.order_by("-sent_at")[:limit]
+
+        return Response(
+            {
+                "count": queryset.count(),
+                "results": [
+                    {
+                        "id": item.id,
+                        "monitor_id": item.monitor_id,
+                        "monitor_name": item.monitor.name,
+                        "alert_type": item.alert_type,
+                        "recipient_email": item.recipient_email,
+                        "subject": item.subject,
+                        "status": item.status,
+                        "error_message": item.error_message,
+                        "sent_at": item.sent_at,
+                    }
+                    for item in logs
+                ],
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 # =============================================================================

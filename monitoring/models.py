@@ -1,5 +1,4 @@
 from django.db import models
-
 from django.conf import settings
 
 
@@ -34,7 +33,6 @@ class APIMonitor(models.Model):
     )
 
     # Basic API configuration
-
     name = models.CharField(
         max_length=100
     )
@@ -61,7 +59,6 @@ class APIMonitor(models.Model):
     )
 
     # Runtime state
-
     status = models.CharField(
         max_length=10,
         choices=[
@@ -82,14 +79,12 @@ class APIMonitor(models.Model):
     )  # milliseconds
 
     # Slow response threshold
-
     response_time_threshold_ms = models.FloatField(
         default=1000,
         help_text="Response time threshold in milliseconds"
     )
 
     # Contact / authentication
-
     phone_number = models.CharField(
         max_length=20,
         blank=True,
@@ -109,14 +104,12 @@ class APIMonitor(models.Model):
     )
 
     # Custom request headers
-
     request_headers = models.JSONField(
         default=dict,
         blank=True
     )
 
     # Request body for POST / PUT / PATCH requests
-
     request_body = models.TextField(
         default="",
         blank=True,
@@ -124,7 +117,6 @@ class APIMonitor(models.Model):
     )
 
     # Response content validation
-
     response_validation_type = models.CharField(
         max_length=20,
         choices=RESPONSE_VALIDATION_TYPES,
@@ -143,7 +135,6 @@ class APIMonitor(models.Model):
     )
 
     # Downtime tracking
-
     downtime_started_at = models.DateTimeField(
         null=True,
         blank=True
@@ -155,28 +146,24 @@ class APIMonitor(models.Model):
     )  # seconds
 
     # Monitoring interval
-
     check_interval = models.IntegerField(
         choices=INTERVAL_CHOICES,
         default=60
     )
 
     # Last health check
-
     last_checked_at = models.DateTimeField(
         null=True,
         blank=True
     )
 
     # Last error
-
     last_error = models.TextField(
         null=True,
         blank=True
     )
 
     # Cached uptime
-
     uptime_percentage = models.FloatField(
         null=True,
         blank=True
@@ -228,7 +215,9 @@ class Incident(models.Model):
 
     def __str__(self):
         return f"{self.monitor.name} incident"
-        # =============================================================================
+
+
+# =============================================================================
 # MONITOR ALERT SETTINGS
 # =============================================================================
 
@@ -283,3 +272,59 @@ class MonitorAlertSettings(models.Model):
 
     def __str__(self):
         return f"Alert settings - {self.monitor.name}"
+
+
+# =============================================================================
+# NOTIFICATION HISTORY / ALERT LOG
+# =============================================================================
+
+class NotificationLog(models.Model):
+
+    ALERT_TYPES = (
+        ("DOWN", "DOWN"),
+        ("SLOW", "SLOW"),
+        ("RECOVERY", "RECOVERY"),
+    )
+
+    STATUS_CHOICES = (
+        ("SENT", "SENT"),
+        ("FAILED", "FAILED"),
+    )
+
+    monitor = models.ForeignKey(
+        APIMonitor,
+        on_delete=models.CASCADE,
+        related_name="notification_logs"
+    )
+
+    alert_type = models.CharField(
+        max_length=20,
+        choices=ALERT_TYPES
+    )
+
+    recipient_email = models.EmailField()
+
+    subject = models.CharField(
+        max_length=255
+    )
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES
+    )
+
+    error_message = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    sent_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return (
+            f"{self.monitor.name} - "
+            f"{self.alert_type} - "
+            f"{self.status}"
+        )

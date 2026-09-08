@@ -5,9 +5,8 @@ import requests
 import time
 from django.core.cache import cache
 from django.conf import settings
-from django.core.mail import send_mail
 
-from .models import APIMonitor, Incident
+from .models import APIMonitor, Incident, MonitorAlertSettings, NotificationLog
 from logs.models import APILog
 
 
@@ -31,9 +30,64 @@ def _collect_alert_emails(monitor):
     return list(emails)
 
 
-def _can_alert(monitor):
-    owner = monitor.owner
+def _get_alert_settings(monitor):
+    try:
+        settings_obj, _ = MonitorAlertSettings.objects.get_or_create(
+            monitor=monitor
+        )
+        return settings_obj
+    except Exception as exc:
+        print(
+            f"Alert settings unavailable for {monitor.name}: {exc}"
+        )
+        return None
 
+
+def _alert_type_enabled(monitor, alert_type):
+    settings_obj = _get_alert_settings(monitor)
+
+    # Keep existing behaviour safe if the settings record cannot be read.
+    if settings_obj is None:
+        return True
+
+    if not getattr(settings_obj, "alerts_enabled", True):
+        return False
+
+    if not getattr(settings_obj, "email_enabled", True):
+        return False
+
+    field = {
+        "down": "down_alert_enabled",
+        "slow": "slow_alert_enabled",
+        "recovery": "recovery_alert_enabled",
+    }.get(alert_type)
+
+    return bool(
+        getattr(settings_obj, field, True)
+        if field
+        else True
+    )
+
+
+def _can_alert(monitor):
+    settings_obj = _get_alert_settings(monitor)
+    if settings_obj is not None:
+        cooldown_minutes = max(
+            0,
+            int(getattr(settings_obj, "cooldown_minutes", 30) or 0),
+        )
+
+        if cooldown_minutes == 0:
+            return True
+
+        cooldown_key = (
+            f"api_monitor:email_alert_cooldown:"
+            f"{monitor.id}"
+        )
+
+        return not cache.get(cooldown_key)
+
+    owner = monitor.owner
     if not owner:
         return True
 
@@ -44,8 +98,22 @@ def _can_alert(monitor):
 
 
 def _mark_alerted(monitor):
-    owner = monitor.owner
+    settings_obj = _get_alert_settings(monitor)
+    if settings_obj is not None:
+        cooldown_minutes = max(
+            0,
+            int(getattr(settings_obj, "cooldown_minutes", 30) or 0),
+        )
 
+        if cooldown_minutes > 0:
+            cache.set(
+                f"api_monitor:email_alert_cooldown:{monitor.id}",
+                True,
+                timeout=cooldown_minutes * 60,
+            )
+        return
+
+    owner = monitor.owner
     if not owner:
         return
 
@@ -55,7 +123,7 @@ def _mark_alerted(monitor):
         pass
 
 
-def _send_email(monitor, subject, body, use_cooldown=True):
+def _send_email(monitor, subject, body, alert_type, use_cooldown=True):
     emails = _collect_alert_emails(monitor)
 
     if not emails:
@@ -66,32 +134,102 @@ def _send_email(monitor, subject, body, use_cooldown=True):
         print(f"Email cooldown active for {monitor.name}")
         return False
 
-    from_email = getattr(
-        settings,
-        "DEFAULT_FROM_EMAIL",
-        ""
+    brevo_api_key = os.getenv("BREVO_API_KEY", "").strip()
+
+    if not brevo_api_key:
+        error_message = "BREVO_API_KEY is not configured"
+        print(
+            f"Email alert failed for {monitor.name}: "
+            f"{error_message}"
+        )
+        for email in emails:
+            NotificationLog.objects.create(
+                monitor=monitor,
+                alert_type=alert_type,
+                recipient_email=email,
+                subject=subject,
+                status="FAILED",
+                error_message=error_message,
+            )
+        return False
+
+    from_email = os.getenv(
+        "BREVO_FROM_EMAIL",
+        os.getenv(
+            "DEFAULT_FROM_EMAIL",
+            getattr(settings, "DEFAULT_FROM_EMAIL", ""),
+        ),
     ).strip()
 
     if not from_email:
+        error_message = (
+            "BREVO_FROM_EMAIL or DEFAULT_FROM_EMAIL is not configured"
+        )
         print(
             f"Email alert failed for {monitor.name}: "
-            "DEFAULT_FROM_EMAIL is not configured"
+            f"{error_message}"
         )
+        for email in emails:
+            NotificationLog.objects.create(
+                monitor=monitor,
+                alert_type=alert_type,
+                recipient_email=email,
+                subject=subject,
+                status="FAILED",
+                error_message=error_message,
+            )
         return False
 
+    from_name = (
+        os.getenv("BREVO_FROM_NAME", "API Monitor").strip()
+        or "API Monitor"
+    )
+
+    payload = {
+        "sender": {
+            "name": from_name,
+            "email": from_email,
+        },
+        "to": [{"email": email} for email in emails],
+        "subject": subject,
+        "textContent": body,
+    }
+
     try:
-        send_mail(
-            subject=subject,
-            message=body,
-            from_email=from_email,
-            recipient_list=emails,
-            fail_silently=False,
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "accept": "application/json",
+                "api-key": brevo_api_key,
+                "content-type": "application/json",
+            },
+            json=payload,
+            timeout=20,
         )
+
+        if not response.ok:
+            try:
+                error_details = response.json()
+            except ValueError:
+                error_details = response.text[:500]
+
+            raise RuntimeError(
+                f"Brevo HTTP {response.status_code}: {error_details}"
+            )
 
         print(
             f"Email alert sent for {monitor.name} "
-            f"to {', '.join(emails)} via Gmail SMTP"
+            f"to {', '.join(emails)} via Brevo"
         )
+
+        for email in emails:
+            NotificationLog.objects.create(
+                monitor=monitor,
+                alert_type=alert_type,
+                recipient_email=email,
+                subject=subject,
+                status="SENT",
+            )
 
         if use_cooldown:
             _mark_alerted(monitor)
@@ -99,7 +237,17 @@ def _send_email(monitor, subject, body, use_cooldown=True):
         return True
 
     except Exception as exc:
-        print(f"Email alert failed for {monitor.name}: {exc}")
+        error_message = str(exc)[:2000]
+        print(f"Brevo email alert failed for {monitor.name}: {error_message}")
+        for email in emails:
+            NotificationLog.objects.create(
+                monitor=monitor,
+                alert_type=alert_type,
+                recipient_email=email,
+                subject=subject,
+                status="FAILED",
+                error_message=error_message,
+            )
         return False
 
 
@@ -364,7 +512,7 @@ def _recalc_uptime(monitor):
 
     successful = APILog.objects.filter(
         api_monitor=monitor,
-        status__in=["UP", "SLOW"],
+        status="UP",
     ).count()
 
     return round((successful / total) * 100, 2)
@@ -375,6 +523,9 @@ def _recalc_uptime(monitor):
 # =============================================================================
 
 def _send_slow_alert(monitor, response_time_ms, threshold):
+    if not _alert_type_enabled(monitor, "slow"):
+        return False
+
     if response_time_ms is None:
         return
 
@@ -405,11 +556,15 @@ def _send_slow_alert(monitor, response_time_ms, threshold):
         monitor,
         f"⚠️ {monitor.name} Slow Response",
         body,
+        alert_type="SLOW",
         use_cooldown=True,
     )
 
 
 def _send_down_alert(monitor, error_message):
+    if not _alert_type_enabled(monitor, "down"):
+        return False
+
     timestamp = timezone.now().strftime(
         "%d %b %Y, %H:%M UTC"
     )
@@ -429,11 +584,15 @@ def _send_down_alert(monitor, error_message):
         monitor,
         f"🔴 {monitor.name} is DOWN",
         body,
+        alert_type="DOWN",
         use_cooldown=False,
     )
 
 
 def _send_recovery_alert(monitor, downtime_text=""):
+    if not _alert_type_enabled(monitor, "recovery"):
+        return False
+
     timestamp = timezone.now().strftime(
         "%d %b %Y, %H:%M UTC"
     )
@@ -458,6 +617,7 @@ def _send_recovery_alert(monitor, downtime_text=""):
         monitor,
         f"✅ {monitor.name} has RECOVERED",
         body,
+        alert_type="RECOVERY",
         use_cooldown=False,
     )
 
@@ -552,25 +712,19 @@ def _calculate_downtime(monitor):
 
 @shared_task
 def check_api_health(monitor_id=None, force=False):
-    """
-    Run health checks for active monitors.
-
-    When ``monitor_id`` is supplied, only that monitor is checked.
-    This is used by the Dashboard "Check Now" action so a manual check
-    never triggers checks for every API.
-    When called without an id, the normal scheduled all-monitors behavior
-    is preserved. ``force=True`` bypasses the normal interval guard for a
-    manual Dashboard check.
-    """
-
-    monitors = (
-        APIMonitor.objects
-        .filter(is_active=True)
-        .select_related("owner")
-    )
 
     if monitor_id is not None:
-        monitors = monitors.filter(id=monitor_id)
+        monitors = (
+            APIMonitor.objects
+            .filter(pk=monitor_id)
+            .select_related("owner")
+        )
+    else:
+        monitors = (
+            APIMonitor.objects
+            .filter(is_active=True)
+            .select_related("owner")
+        )
 
     now = timezone.now()
 
@@ -580,7 +734,7 @@ def check_api_health(monitor_id=None, force=False):
         # CHECK INTERVAL
         # =====================================================================
 
-        if monitor.last_checked_at and not (monitor_id is not None and force):
+        if not force and monitor.last_checked_at:
             elapsed = (
                 now - monitor.last_checked_at
             ).total_seconds()
@@ -688,21 +842,11 @@ def check_api_health(monitor_id=None, force=False):
             )
 
         # =====================================================================
-        # SLOW RESPONSE
-        # =====================================================================
-
-        is_slow = (
-            request_succeeded
-            and response_time is not None
-            and response_time > threshold
-        )
-
-        # =====================================================================
         # CONFIRMED STATUS
         # =====================================================================
 
         if request_succeeded:
-            new_status = "SLOW" if is_slow else "UP"
+            new_status = "UP"
 
         elif previous_status == "DOWN":
             new_status = "DOWN"
@@ -715,6 +859,16 @@ def check_api_health(monitor_id=None, force=False):
 
         else:
             new_status = "UP"
+
+        # =====================================================================
+        # SLOW RESPONSE
+        # =====================================================================
+
+        is_slow = (
+            request_succeeded
+            and response_time is not None
+            and response_time > threshold
+        )
 
         # =====================================================================
         # UPDATE MONITOR STATE
@@ -758,9 +912,7 @@ def check_api_health(monitor_id=None, force=False):
         APILog.objects.create(
             api_monitor=monitor,
             status=(
-                "SLOW"
-                if is_slow
-                else "UP"
+                "UP"
                 if request_succeeded
                 else "DOWN"
             ),
@@ -863,7 +1015,7 @@ def check_api_health(monitor_id=None, force=False):
 
         elif (
             previous_status == "DOWN"
-            and new_status in ("UP", "SLOW")
+            and new_status == "UP"
         ):
 
             _resolve_incident(monitor)
@@ -887,14 +1039,11 @@ def check_api_health(monitor_id=None, force=False):
         # SLOW RESPONSE LOGIC
         # =====================================================================
 
-        elif new_status in ("UP", "SLOW"):
+        elif new_status == "UP":
 
             previously_slow = (
-                previous_status == "SLOW"
-                or (
-                    previous_response_time is not None
-                    and previous_response_time > threshold
-                )
+                previous_response_time is not None
+                and previous_response_time > threshold
             )
 
             if is_slow and not previously_slow:
