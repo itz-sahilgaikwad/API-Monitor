@@ -1,7 +1,7 @@
 API Monitor
 
-A full-stack API monitoring platform built with Django and Django
-REST Framework for continuously monitoring API health, response times,
+A full-stack API monitoring platform built with Django and Django REST
+Framework for continuously monitoring API health, response times,
 failures, downtime incidents, recovery events, and performance
 analytics.
 
@@ -37,8 +37,8 @@ Uptime statistics
 
 Performance analytics
 
-The monitoring system runs automatically in the background using
-Celery, Celery Beat, and Redis.
+The monitoring system runs automatically in the background using Celery,
+Celery Beat, and Redis.
 
 Key Features
 
@@ -67,8 +67,8 @@ Downtime Detection
 API Monitor uses consecutive failure detection instead of immediately
 marking an API as unavailable after a single failed request.
 
-An API must experience three consecutive failed checks before
-downtime is confirmed.
+An API must experience three consecutive failed checks before downtime
+is confirmed.
 
 This helps reduce false incidents caused by temporary network problems.
 
@@ -237,6 +237,8 @@ Celery Beat
 
 Dashboard
 
+Dashboard
+
 The dashboard provides a real-time overview of monitored APIs.
 
 It displays:
@@ -261,7 +263,7 @@ Recent health information
 
 Response-time trends
 
-Analytics
+Analytics Dashboard
 
 The analytics dashboard provides detailed performance information for
 individual monitored APIs.
@@ -354,93 +356,94 @@ Twilio                  SMS notification support
 
 Architecture
 
-                         ┌─────────────────────┐
-                         │      Frontend       │
-                         │    HTML / CSS / JS  │
-                         └──────────┬──────────┘
-                                    │
-                                    ▼
-                         ┌─────────────────────┐
-                         │       Django        │
-                         │   REST Framework    │
-                         └──────────┬──────────┘
-                                    │
-                ┌───────────────────┼───────────────────┐
-                │                   │                   │
-                ▼                   ▼                   ▼
-         ┌────────────┐      ┌────────────┐      ┌────────────┐
-         │ PostgreSQL │      │   Redis    │      │ Monitoring │
-         │  Database  │      │   Broker   │      │   System   │
-         └────────────┘      └─────┬──────┘      └────────────┘
-                                   │
-                            ┌──────┴──────┐
-                            │             │
-                            ▼             ▼
-                     ┌────────────┐ ┌────────────┐
-                     │   Celery   │ │   Celery   │
-                     │   Worker   │ │    Beat    │
-                     └─────┬──────┘ └─────┬──────┘
-                           │               │
-                           └───────┬───────┘
-                                   ▼
-                          ┌────────────────┐
-                          │ Monitored APIs │
-                          └────────────────┘
+                     ┌─────────────────────┐
+                     │      Frontend       │
+                     │    HTML / CSS / JS  │
+                     └──────────┬──────────┘
+                                │
+                                ▼
+                     ┌─────────────────────┐
+                     │       Django        │
+                     │   REST Framework    │
+                     └──────────┬──────────┘
+                                │
+            ┌───────────────────┼───────────────────┐
+            │                   │                   │
+            ▼                   ▼                   ▼
+     ┌────────────┐      ┌────────────┐      ┌────────────┐
+     │ PostgreSQL │      │   Redis    │      │ Monitoring │
+     │  Database  │      │   Broker   │      │   System   │
+     └────────────┘      └─────┬──────┘      └────────────┘
+                               │
+                        ┌──────┴──────┐
+                        │             │
+                        ▼             ▼
+                 ┌────────────┐ ┌────────────┐
+                 │   Celery   │ │   Celery   │
+                 │   Worker   │ │    Beat    │
+                 └─────┬──────┘ └─────┬──────┘
+                       │               │
+                       └───────┬───────┘
+                               ▼
+                      ┌────────────────┐
+                      │ Monitored APIs │
+                      └────────────────┘
 
 Monitoring Flow
 
 User configures an API
-          │
-          ▼
+        │
+        ▼
 Monitor configuration is stored
-          │
-          ▼
+        │
+        ▼
 Celery Beat schedules health checks
-          │
-          ▼
+        │
+        ▼
 Celery Worker executes the check
-          │
-          ▼
+        │
+        ▼
 HTTP request is sent to monitored API
-          │
-          ▼
+        │
+        ▼
 Response is evaluated
-          │
-     ┌────┴───────────────┐
-     │                    │
-     ▼                    ▼
-Successful             Failed / Slow
-     │                    │
-     ▼                    ▼
-Record health          Record failure
-     │                    │
-     │              Consecutive failures
-     │                    │
-     │              ┌─────┴─────┐
-     │              │           │
-     │             < 3          3+
-     │              │           │
-     │              ▼           ▼
-     │         Continue      Confirm DOWN
-     │                       Create incident
-     │                            │
-     └──────────────┬─────────────┘
-                    ▼
-              Store monitoring log
-                    │
-                    ▼
-             Update dashboard
-                    │
-                    ▼
-          Successful recovery check
-                    │
-                    ▼
-            Resolve open incident
-                    │
-                    ▼
-             Record recovery
+        │
+        ├───────────────┐
+        ▼               ▼
+   Successful      Failed / Slow
+        │               │
+        ▼               ▼
+ Record health     Record failure
+                        │
+                        ▼
+               Consecutive failures
+                        │
+                  ┌─────┴─────┐
+                  │           │
+                 < 3          3+
+                  │           │
+                  ▼           ▼
+              Continue    Confirm DOWN
+              monitoring      │
+                              ▼
+                       Create incident
+                              │
+                              ▼
+                     Store monitoring log
+                              │
+                              ▼
+                       Update dashboard
+                              │
+                              ▼
+                  Successful recovery check
+                              │
+                              ▼
+                    Resolve open incident
+                              │
+                              ▼
+                     Record recovery
 
-Monitoring logic
+Monitoring Logic
 
 A user configures an API to monitor.
 
@@ -635,6 +638,7 @@ variables.
 Example files are provided for reference:
 
 .env.example
+
 .env.production.example
 
 Typical configuration areas include:
@@ -666,7 +670,7 @@ variables.
 
 Database
 
-Local development
+Local Development
 
 SQLite can be used for local development.
 
@@ -809,4 +813,4 @@ Additional monitoring integrations
 License
 
 This project is available for learning, development, and portfolio
-purposes.
+purpose.
