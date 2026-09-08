@@ -236,11 +236,10 @@ class MonitorCheckNowView(APIView):
 
             task = check_api_health.delay()
 
-        except Exception as exc:
+        except Exception:
             return Response(
                 {
                     "error": "Unable to queue health check.",
-                    "detail": str(exc),
                 },
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )

@@ -28,7 +28,7 @@ click-repl==0.3.0
 gunicorn==23.0.0
 
 # ── PostgreSQL driver ──────────────────────────────────────────────────────────
-psycopg2-binary==2.9.10
+psycopg2-binary==2.9.12
 
 # ── DB URL parsing (DATABASE_URL env var) ─────────────────────────────────────
 dj-database-url==2.3.0
@@ -37,4 +37,4 @@ dj-database-url==2.3.0
 twilio==9.4.5
 
 # ── Email + HTTP utils ─────────────────────────────────────────────────────────
-PyYAML==6.0.2
+PyYAML==6.0.3

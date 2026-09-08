@@ -277,7 +277,7 @@ def _classify_error(exc):
     if "ssl" in message or "certificate" in message:
         return "SSL Error"
 
-    return f"Request Error: {str(exc)[:100]}"
+    return "Request Error"
 
 
 def _classify_http_error(status_code):
