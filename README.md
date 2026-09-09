@@ -1,4 +1,4 @@
-API Monitor
+# API Monitor
 
 A full-stack API monitoring platform built with Django and Django REST
 Framework for continuously monitoring API health, response times,
@@ -8,61 +8,61 @@ analytics.
 The system periodically checks configured APIs in the background and
 provides a dashboard for monitoring their current and historical health.
 
-Overview
+## Overview
 
 API Monitor allows users to configure and monitor multiple APIs from a
 centralized dashboard.
 
 Each monitoring check records information such as:
 
-API availability
+- API availability
 
-HTTP status code
+- HTTP status code
 
-Response time
+- Response time
 
-Request time
+- Request time
 
-Errors
+- Errors
 
-Slow responses
+- Slow responses
 
-Consecutive failures
+- Consecutive failures
 
-Downtime incidents
+- Downtime incidents
 
-Recovery events
+- Recovery events
 
-Uptime statistics
+- Uptime statistics
 
-Performance analytics
+- Performance analytics
 
 The monitoring system runs automatically in the background using Celery,
 Celery Beat, and Redis.
 
-Key Features
+## Key Features
 
-API Monitoring
+### API Monitoring
 
-Monitor multiple APIs
+- Monitor multiple APIs
 
-Configurable HTTP methods
+- Configurable HTTP methods
 
-Expected HTTP status validation
+- Expected HTTP status validation
 
-Response-time threshold monitoring
+- Response-time threshold monitoring
 
-Automatic periodic health checks
+- Automatic periodic health checks
 
-API availability tracking
+- API availability tracking
 
-Slow-response detection
+- Slow-response detection
 
-Manual Check Now functionality
+- Manual Check Now functionality
 
-Pause and resume monitoring
+- Pause and resume monitoring
 
-Downtime Detection
+### Downtime Detection
 
 API Monitor uses consecutive failure detection instead of immediately
 marking an API as unavailable after a single failed request.
@@ -72,143 +72,143 @@ is confirmed.
 
 This helps reduce false incidents caused by temporary network problems.
 
-Incident Management
+### Incident Management
 
 When downtime is confirmed:
 
-The failed check is recorded.
+- The failed check is recorded.
 
-An incident is created.
+- An incident is created.
 
-The API is marked as DOWN.
+- The API is marked as DOWN.
 
-Monitoring continues.
+- Monitoring continues.
 
-A successful check triggers recovery.
+- A successful check triggers recovery.
 
-The incident is automatically resolved.
+- The incident is automatically resolved.
 
-Recovery information is recorded.
+- Recovery information is recorded.
 
 The incident dashboard provides:
 
-Total incidents
+- Total incidents
 
-Open incidents
+- Open incidents
 
-Resolved incidents
+- Resolved incidents
 
-Affected APIs
+- Affected APIs
 
-Incident history
+- Incident history
 
-Start time
+- Start time
 
-Resolution time
+- Resolution time
 
-Incident duration
+- Incident duration
 
-Incident status
+- Incident status
 
-Analytics
+### Analytics
 
 API Monitor provides performance analytics including:
 
-Uptime percentage
+- Uptime percentage
 
-Error rate
+- Error rate
 
-Average response time
+- Average response time
 
-P95 latency
+- P95 latency
 
-Total checks
+- Total checks
 
-Successful checks
+- Successful checks
 
-Failed checks
+- Failed checks
 
-Response-time trends
+- Response-time trends
 
 Analytics can be viewed over:
 
-Last 24 hours
+- Last 24 hours
 
-Last 7 days
+- Last 7 days
 
-Last 30 days
+- Last 30 days
 
-Monitoring Logs
+### Monitoring Logs
 
 Every monitoring check is stored as a log containing information such
 as:
 
-Status
+- Status
 
-HTTP status code
+- HTTP status code
 
-Response time
+- Response time
 
-Error information
+- Error information
 
-Check timestamp
+- Check timestamp
 
-API health result
+- API health result
 
 The logs interface also provides filtering and search functionality and
 supports exporting monitoring data.
 
-Authentication
+### Authentication
 
 The application includes user authentication with:
 
-User registration
+- User registration
 
-User login
+- User login
 
-Email/mobile login support
+- Email/mobile login support
 
-JWT authentication
+- JWT authentication
 
-Access tokens
+- Access tokens
 
-Refresh tokens
+- Refresh tokens
 
-Per-user monitor ownership
+- Per-user monitor ownership
 
-User-generated API keys
+- User-generated API keys
 
 API keys are stored using hashes rather than storing the original raw
 key.
 
-Monitored API Authentication
+### Monitored API Authentication
 
 The APIs being monitored can use:
 
-Bearer authentication
+- Bearer authentication
 
-API key authentication
+- API key authentication
 
 This allows API Monitor to monitor both public and authenticated
 endpoints.
 
-Notifications
+### Notifications
 
 The monitoring system supports:
 
-Email notifications
+- Email notifications
 
-Twilio SMS support
+- Twilio SMS support
 
-Downtime alerts
+- Downtime alerts
 
-Recovery alerts
+- Recovery alerts
 
-Slow-response alerts
+- Slow-response alerts
 
-User notification preferences
+- User notification preferences
 
-Background Processing
+### Background Processing
 
 Monitoring tasks are handled asynchronously using:
 
@@ -221,122 +221,123 @@ Redis --- message broker and task backend
 This allows API health checks to run independently from normal web
 requests.
 
-Docker Support
+### Docker Support
 
 The project includes Docker configuration for running:
 
 Django
 
-PostgreSQL
+- PostgreSQL
 
-Redis
+- Redis
 
 Celery Worker
 
-Celery Beat
+- Celery Beat
 
-Dashboard
+### Dashboard
 
-Dashboard
+### Dashboard
 
 The dashboard provides a real-time overview of monitored APIs.
 
 It displays:
 
-Total APIs
+- Total APIs
 
-Healthy APIs
+- Healthy APIs
 
-Down APIs
+- Down APIs
 
-Slow APIs
+- Slow APIs
 
-Availability percentage
+- Availability percentage
 
-Response time
+- Response time
 
-Last checked time
+- Last checked time
 
-Last error
+- Last error
 
-Recent health information
+- Recent health information
 
-Response-time trends
+- Response-time trends
 
-Analytics Dashboard
+### Analytics Dashboard
 
 The analytics dashboard provides detailed performance information for
 individual monitored APIs.
 
 It includes:
 
-Uptime
+- Uptime
 
-Average response time
+- Average response time
 
-P95 latency
+- P95 latency
 
-Total checks
+- Total checks
 
-Successful checks
+- Successful checks
 
-Failed checks
+- Failed checks
 
-Response-time charts
+- Response-time charts
 
-Availability information
+- Availability information
 
-Configurable time periods
+- Configurable time periods
 
-Logs
+### Logs
 
 The logs dashboard provides access to historical monitoring checks.
 
 Users can:
 
-View monitoring history
+- View monitoring history
 
-Filter by API
+- Filter by API
 
-Filter by time period
+- Filter by time period
 
-Filter by status
+- Filter by status
 
-Search logs
+- Search logs
 
-Inspect response times
+- Inspect response times
 
-View HTTP status codes
+- View HTTP status codes
 
-View monitoring errors
+- View monitoring errors
 
-Export monitoring data
+- Export monitoring data
 
-Incidents
+### Incidents
 
 The incident dashboard tracks confirmed API downtime.
 
 It provides:
 
-Active incidents
+- Active incidents
 
-Incident history
+- Incident history
 
-Incident status
+- Incident status
 
-Affected API
+- Affected API
 
-Start time
+- Start time
 
-Resolution time
+- Resolution time
 
 Duration
 
-Recovery information
+- Recovery information
 
-Technology Stack
+## Technology Stack
 
-Technology              Purpose
+| Technology | Purpose |
+|---|---|
 
 Python                  Backend programming
 Django                  Web framework
@@ -354,8 +355,9 @@ Docker                  Containerization
 Gunicorn                Production WSGI server
 Twilio                  SMS notification support
 
-Architecture
+## Architecture
 
+```text
                      ┌─────────────────────┐
                      │      Frontend       │
                      │    HTML / CSS / JS  │
@@ -388,25 +390,37 @@ Architecture
                       ┌────────────────┐
                       │ Monitored APIs │
                       └────────────────┘
+```
 
-Monitoring Flow
+## Monitoring Flow
 
 User configures an API
+```text
         │
         ▼
+```
 Monitor configuration is stored
+```text
         │
         ▼
+```
 Celery Beat schedules health checks
+```text
         │
         ▼
+```
 Celery Worker executes the check
+```text
         │
         ▼
+```
 HTTP request is sent to monitored API
+```text
         │
         ▼
+```
 Response is evaluated
+```text
         │
         ├───────────────┐
         ▼               ▼
@@ -442,8 +456,9 @@ Response is evaluated
                               │
                               ▼
                      Record recovery
+```
 
-Monitoring Logic
+## Monitoring Logic
 
 A user configures an API to monitor.
 
@@ -465,14 +480,15 @@ A downtime incident is created and the API is marked DOWN.
 
 Monitoring continues while the incident is active.
 
-A successful check triggers recovery.
+- A successful check triggers recovery.
 
 The incident is resolved and recovery information is recorded.
 
 Dashboard and analytics data reflect the latest monitoring results.
 
-Project Structure
+## Project Structure
 
+```text
 API-Monitor/
 │
 ├── backend/
@@ -516,7 +532,6 @@ API-Monitor/
 │   ├── admin.py
 │   └── migrations/
 │
-├── templates/
 │
 ├── Dockerfile
 ├── docker-compose.yml
@@ -526,29 +541,38 @@ API-Monitor/
 ├── .env.production.example
 ├── .gitignore
 └── README.md
+```
 
-Local Development
+## Local Development
 
 1. Clone the repository
 
+```bash
 git clone https://github.com/itz-sahilgaikwad/API-Monitor.git
 cd API-Monitor
+```
 
 2. Create a virtual environment
 
 Windows
 
+```bash
 python -m venv venv
 .\venv\Scripts\activate
+```
 
 macOS / Linux
 
+```bash
 python3 -m venv venv
 source venv/bin/activate
+```
 
 3. Install dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
 4. Configure environment variables
 
@@ -566,17 +590,23 @@ Never commit real passwords, API keys, tokens, or other secrets to Git.
 
 5. Run database migrations
 
+```bash
 python manage.py migrate
+```
 
 6. Start the Django server
 
+```bash
 python manage.py runserver
+```
 
 The application will be available at:
 
+```text
 http://127.0.0.1:8000/
+```
 
-Background Monitoring
+## Background Monitoring
 
 For background monitoring, the project uses Celery, Redis, and Celery
 Beat.
@@ -587,50 +617,62 @@ Redis must be available as the Celery broker.
 
 Start Celery Worker
 
+```bash
 celery -A backend worker --loglevel=info
+```
 
 Start Celery Beat
 
+```bash
 celery -A backend beat --loglevel=info
+```
 
 The worker executes monitoring tasks while Celery Beat schedules them.
 
-Docker
+## Docker
 
 The project includes a Docker Compose configuration for the main
 application services.
 
 The Docker setup includes:
 
-Django web server
+- Django web server
 
-PostgreSQL
+- PostgreSQL
 
-Redis
+- Redis
 
-Celery worker
+- Celery worker
 
-Celery Beat
+- Celery Beat
 
 Start the full stack
 
+```bash
 docker compose --env-file .env.production up --build
+```
 
 The Django web service is exposed on:
 
+```text
 http://127.0.0.1:8000/
+```
 
 Stop the stack
 
+```bash
 docker compose --env-file .env.production down
+```
 
 Stop and remove volumes
 
+```bash
 docker compose --env-file .env.production down -v
+```
 
 Removing volumes also removes the Docker-managed PostgreSQL data volume.
 
-Environment Configuration
+## Environment Configuration
 
 The project separates configuration from source code using environment
 variables.
@@ -668,28 +710,28 @@ Production security settings
 Real credentials must only be stored in local or deployment environment
 variables.
 
-Database
+## Database
 
-Local Development
+## Local Development
 
 SQLite can be used for local development.
 
-Production / Docker
+### Production / Docker
 
 PostgreSQL is supported for production-style deployments.
 
 The Docker Compose configuration provides a PostgreSQL service with
 persistent storage.
 
-Security
+## Security
 
 API Monitor includes several security-oriented features:
 
-JWT authentication
+- JWT authentication
 
 Access and refresh tokens
 
-Per-user monitor ownership
+- Per-user monitor ownership
 
 Hashed user-generated API keys
 
@@ -703,7 +745,7 @@ Production security configuration
 
 Secrets should never be committed to the repository.
 
-Monitoring Reliability
+## Monitoring Reliability
 
 API Monitor is designed to avoid treating every temporary failure as
 confirmed downtime.
@@ -716,33 +758,43 @@ Failure 3 → Confirm downtime
 
 After downtime is confirmed:
 
+```text
 DOWN
  │
  ▼
+```
 Incident created
+```text
  │
  ▼
+```
 Monitoring continues
+```text
  │
  ▼
+```
 Successful check
+```text
  │
  ▼
+```
 Recovery detected
+```text
  │
  ▼
+```
 Incident resolved
 
 This approach helps reduce false-positive downtime incidents caused by
 temporary request failures.
 
-Current Capabilities
+## Current Capabilities
 
 API Monitor currently provides:
 
 Multi-API monitoring
 
-Configurable HTTP methods
+- Configurable HTTP methods
 
 Expected status-code validation
 
@@ -770,21 +822,21 @@ Uptime analytics
 
 Average response-time analytics
 
-P95 latency
+- P95 latency
 
-Response-time trends
+- Response-time trends
 
-JWT authentication
+- JWT authentication
 
 User registration and login
 
 API-key authentication
 
-Bearer authentication
+- Bearer authentication
 
-Email notifications
+- Email notifications
 
-Twilio SMS support
+- Twilio SMS support
 
 Docker support
 
@@ -792,25 +844,25 @@ PostgreSQL support
 
 Redis/Celery background processing
 
-Future Improvements
+## Future Improvements
 
 Potential future improvements include:
 
-More notification providers
+- More notification providers
 
-Additional monitoring protocols
+- Additional monitoring protocols
 
-Advanced alert rules
+- Advanced alert rules
 
-More detailed performance reports
+- More detailed performance reports
 
-Expanded API documentation
+- Expanded API documentation
 
-More deployment options
+- More deployment options
 
-Additional monitoring integrations
+- Additional monitoring integrations
 
-License
+## License
 
 This project is available for learning, development, and portfolio
 purpose.
