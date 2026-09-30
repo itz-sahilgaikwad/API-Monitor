@@ -232,9 +232,11 @@ class MonitorCheckNowView(APIView):
             )
 
         try:
-            from .tasks import check_api_health
+            from .tasks import queue_monitor_check
 
-            task = check_api_health.delay()
+            task = queue_monitor_check(
+                monitor.id,
+            )
 
         except Exception:
             return Response(

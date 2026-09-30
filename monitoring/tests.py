@@ -1,5 +1,8 @@
 from django.test import TestCase
 from django.utils import timezone
+from rest_framework.test import APIClient
+from unittest.mock import patch
+from logs.models import APILog
 from users.models import User
 from monitoring.models import (
     APIMonitor,
@@ -94,4 +97,138 @@ class MonitoringModelTests(TestCase):
         self.assertEqual(
             notification.recipient_email,
             "test@example.com",
+        )
+
+
+class MonitoringStateCorrectnessTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="state-test@example.com",
+            password="TestPassword123!",
+        )
+        self.monitor = APIMonitor.objects.create(
+            name="State Test API",
+            url="https://example.com",
+            owner=self.user,
+        )
+
+    @patch("monitoring.tasks._send_down_alert", return_value=True)
+    @patch("monitoring.tasks.time.sleep")
+    @patch("monitoring.tasks._attempt_request")
+    @patch("monitoring.tasks._monitor_check_lock")
+    def test_down_requires_three_separate_failed_checks(
+        self,
+        mock_lock_factory,
+        mock_attempt,
+        _mock_sleep,
+        _mock_down_alert,
+    ):
+        from monitoring.tasks import check_api_health
+
+        lock = mock_lock_factory.return_value
+        lock.acquire.return_value = True
+        failed_response = type("Response", (), {"status_code": 503})()
+        mock_attempt.return_value = (
+            failed_response,
+            12.0,
+            None,
+        )
+
+        for expected_status, expected_failures in (
+            ("UP", 1),
+            ("UP", 2),
+            ("DOWN", 3),
+        ):
+            check_api_health.run(
+                monitor_id=self.monitor.id,
+                force=True,
+            )
+            self.monitor.refresh_from_db()
+            self.assertEqual(self.monitor.status, expected_status)
+            self.assertEqual(
+                self.monitor.failure_count,
+                expected_failures,
+            )
+
+        self.assertEqual(APILog.objects.filter(api_monitor=self.monitor).count(), 3)
+        self.assertEqual(
+            Incident.objects.filter(
+                monitor=self.monitor,
+                status="ONGOING",
+            ).count(),
+            1,
+        )
+        self.assertEqual(_mock_down_alert.call_count, 1)
+        self.assertEqual(lock.acquire.call_count, 3)
+        self.assertEqual(lock.release.call_count, 3)
+
+    @patch("monitoring.tasks._attempt_request")
+    @patch("monitoring.tasks._monitor_check_lock")
+    def test_busy_lock_skips_duplicate_check(
+        self,
+        mock_lock_factory,
+        mock_attempt,
+    ):
+        from monitoring.tasks import check_api_health
+
+        mock_lock_factory.return_value.acquire.return_value = False
+
+        result = check_api_health.run(
+            monitor_id=self.monitor.id,
+            force=True,
+        )
+
+        self.assertIn("already running", result)
+        mock_attempt.assert_not_called()
+        self.assertEqual(APILog.objects.filter(api_monitor=self.monitor).count(), 0)
+
+    @patch("monitoring.tasks.queue_monitor_check")
+    def test_periodic_task_fans_out_per_active_monitor(self, mock_queue):
+        from monitoring.tasks import check_api_health
+
+        another_monitor = APIMonitor.objects.create(
+            name="Second API",
+            url="https://example.org",
+            owner=self.user,
+        )
+        paused_monitor = APIMonitor.objects.create(
+            name="Paused API",
+            url="https://paused.example",
+            owner=self.user,
+            is_active=False,
+        )
+
+        queued_count = check_api_health.run()
+
+        self.assertEqual(queued_count, 2)
+        self.assertCountEqual(
+            [
+                call.args[0]
+                for call in mock_queue.call_args_list
+            ],
+            [self.monitor.id, another_monitor.id],
+        )
+        self.assertNotIn(
+            paused_monitor.id,
+            [call.args[0] for call in mock_queue.call_args_list],
+        )
+
+    @patch("monitoring.tasks.queue_monitor_check")
+    def test_check_now_queues_only_selected_monitor(self, mock_queue):
+        mock_queue.return_value = type("QueuedTask", (), {"id": "task-123"})()
+        client = APIClient()
+        client.force_authenticate(self.user)
+
+        response = client.post(
+            f"/api/monitoring/{self.monitor.id}/check-now/",
+            {},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(mock_queue.call_count, 1)
+        self.assertEqual(
+            mock_queue.call_args,
+            ((self.monitor.id,), {}),
         )

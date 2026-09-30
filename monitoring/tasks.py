@@ -5,6 +5,7 @@ import requests
 import time
 from django.core.cache import cache
 from django.conf import settings
+import redis
 
 from .models import APIMonitor, Incident, MonitorAlertSettings, NotificationLog
 from logs.models import APILog
@@ -710,8 +711,50 @@ def _calculate_downtime(monitor):
 # MAIN CELERY TASK
 # =============================================================================
 
+def _monitor_check_lock(monitor_id):
+    """Return a Redis-backed lock shared by every Celery worker."""
+    client = redis.Redis.from_url(settings.CELERY_BROKER_URL)
+    return client.lock(
+        f"api_monitor:check_lock:{monitor_id}",
+        timeout=180,
+        blocking_timeout=0,
+    )
+
+
 @shared_task
 def check_api_health(monitor_id=None, force=False):
+    # Beat invokes this task without an ID. Fan out into one task per monitor
+    # so each check can be independently locked and does not block all checks.
+    if monitor_id is None:
+        monitor_ids = list(
+            APIMonitor.objects.filter(is_active=True)
+            .values_list("pk", flat=True)
+        )
+        for queued_monitor_id in monitor_ids:
+            queue_monitor_check(queued_monitor_id, force=force)
+        return len(monitor_ids)
+
+    lock = _monitor_check_lock(monitor_id)
+    if not lock.acquire():
+        return "skipped: monitor check already running"
+
+    try:
+        return _check_api_health_for_monitor(monitor_id, force)
+    finally:
+        try:
+            lock.release()
+        except redis.exceptions.LockError:
+            # The lease may have expired if the worker stalled unexpectedly.
+            pass
+
+
+def queue_monitor_check(monitor_id, force=False):
+    return check_api_health.apply_async(
+        kwargs={"monitor_id": monitor_id, "force": force}
+    )
+
+
+def _check_api_health_for_monitor(monitor_id, force=False):
 
     if monitor_id is not None:
         monitors = (
@@ -851,10 +894,9 @@ def check_api_health(monitor_id=None, force=False):
         elif previous_status == "DOWN":
             new_status = "DOWN"
 
-        elif current_failure_count >= 1:
-            # The task already performs 3 HTTP attempts above. If all
-            # attempts fail (including response-body validation), the
-            # current health check is considered a confirmed failure.
+        elif current_failure_count >= 3:
+            # Each task run is one failed health check; the three HTTP
+            # attempts above are retries within that check.
             new_status = "DOWN"
 
         else:
