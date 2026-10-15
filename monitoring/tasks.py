@@ -31,6 +31,17 @@ def _collect_alert_emails(monitor):
     return list(emails)
 
 
+def _collect_alert_phones(monitor):
+    """Return mobile numbers eligible for SMS alerts."""
+    phones = set()
+    owner = monitor.owner
+    if not owner or not getattr(owner, "sms_alerts_enabled", True):
+        return []
+    if owner.mobile_number:
+        phones.add(owner.mobile_number)
+    return list(phones)
+
+
 def _get_alert_settings(monitor):
     try:
         settings_obj, _ = MonitorAlertSettings.objects.get_or_create(
@@ -42,6 +53,12 @@ def _get_alert_settings(monitor):
             f"Alert settings unavailable for {monitor.name}: {exc}"
         )
         return None
+
+
+def _sms_enabled(monitor):
+    """Check if the SMS channel is enabled for this monitor."""
+    settings_obj = _get_alert_settings(monitor)
+    return bool(getattr(settings_obj, "phone_enabled", False)) if settings_obj else False
 
 
 def _alert_type_enabled(monitor, alert_type):
@@ -250,6 +267,32 @@ def _send_email(monitor, subject, body, alert_type, use_cooldown=True):
                 error_message=error_message,
             )
         return False
+
+
+def _send_sms(monitor, subject, body, alert_type, use_cooldown=True):
+    """Send SMS alert via Twilio and record in NotificationLog."""
+    phones = _collect_alert_phones(monitor)
+    if not phones or not _sms_enabled(monitor):
+        return False
+    if use_cooldown and not _can_alert(monitor):
+        return False
+    from .sms_utils import send_sms_alert
+    all_sent = True
+    for phone in phones:
+        success = send_sms_alert(body, phone)
+        NotificationLog.objects.create(
+            monitor=monitor,
+            alert_type=alert_type,
+            recipient_email=phone,
+            subject=f"[SMS] {subject}",
+            status="SENT" if success else "FAILED",
+            error_message="" if success else "Twilio SMS delivery failed",
+        )
+        if not success:
+            all_sent = False
+    if use_cooldown and all_sent:
+        _mark_alerted(monitor)
+    return all_sent
 
 
 # =============================================================================
@@ -560,6 +603,13 @@ def _send_slow_alert(monitor, response_time_ms, threshold):
         alert_type="SLOW",
         use_cooldown=True,
     )
+    _send_sms(
+        monitor,
+        f"{monitor.name} Slow Response",
+        body,
+        alert_type="SLOW",
+        use_cooldown=True,
+    )
 
 
 def _send_down_alert(monitor, error_message):
@@ -581,13 +631,21 @@ def _send_down_alert(monitor, error_message):
         "— API Monitor"
     )
 
-    return _send_email(
+    email_sent = _send_email(
         monitor,
         f"🔴 {monitor.name} is DOWN",
         body,
         alert_type="DOWN",
         use_cooldown=False,
     )
+    sms_sent = _send_sms(
+        monitor,
+        f"{monitor.name} is DOWN",
+        body,
+        alert_type="DOWN",
+        use_cooldown=False,
+    )
+    return email_sent or sms_sent
 
 
 def _send_recovery_alert(monitor, downtime_text=""):
@@ -617,6 +675,13 @@ def _send_recovery_alert(monitor, downtime_text=""):
     _send_email(
         monitor,
         f"✅ {monitor.name} has RECOVERED",
+        body,
+        alert_type="RECOVERY",
+        use_cooldown=False,
+    )
+    _send_sms(
+        monitor,
+        f"{monitor.name} has RECOVERED",
         body,
         alert_type="RECOVERY",
         use_cooldown=False,
@@ -774,322 +839,348 @@ def _check_api_health_for_monitor(monitor_id, force=False):
     for monitor in monitors:
 
         # =====================================================================
-        # CHECK INTERVAL
+        # PER-MONITOR LOCK
         # =====================================================================
+        # Prevent concurrent runs (Celery beat every 30s plus the "check now"
+        # endpoint) from checking the same monitor at the same time. The
+        # Redis-backed cache `add` is atomic, so exactly one run per monitor
+        # proceeds; competing runs skip this cycle.
 
-        if not force and monitor.last_checked_at:
-            elapsed = (
-                now - monitor.last_checked_at
-            ).total_seconds()
+        lock_key = f"api_monitor:check_lock:{monitor.id}"
+        lock_timeout = max(45, monitor.check_interval)
 
-            if elapsed < monitor.check_interval:
+        if not cache.add(lock_key, True, timeout=lock_timeout):
+            print(f"Check skipped for {monitor.name} (lock held)")
+            continue
+
+        try:
+            if not monitor.is_active:
+                print(f"Check skipped for {monitor.name} (monitor paused)")
                 continue
 
-        # =====================================================================
-        # PREVIOUS STATE
-        # =====================================================================
+            # CHECK INTERVAL
+            # =====================================================================
 
-        previous_status = monitor.status
-        previous_response_time = monitor.response_time
-        previous_failure_count = monitor.failure_count or 0
+            if not force and monitor.last_checked_at:
+                elapsed = (
+                    now - monitor.last_checked_at
+                ).total_seconds()
 
-        threshold = (
-            monitor.response_time_threshold_ms
-            or 1000
-        )
+                if elapsed < monitor.check_interval:
+                    continue
 
-        # =====================================================================
-        # REQUEST + RETRIES
-        # =====================================================================
+            # =====================================================================
+            # PREVIOUS STATE
+            # =====================================================================
 
-        response = None
-        response_time = None
-        error_message = None
+            previous_status = monitor.status
+            previous_response_time = monitor.response_time
+            previous_failure_count = monitor.failure_count or 0
 
-        retries = 3
-        retry_delay = 2
-
-        for attempt in range(retries):
-
-            response, elapsed_ms, request_error = (
-                _attempt_request(monitor)
+            threshold = (
+                monitor.response_time_threshold_ms
+                or 1000
             )
 
-            response_time = elapsed_ms
+            # =====================================================================
+            # REQUEST + RETRIES
+            # =====================================================================
 
-            if response is not None:
+            response = None
+            response_time = None
+            error_message = None
 
-                if response.status_code == monitor.expected_status:
-                    body_valid, body_error = _validate_response_body(
-                        monitor,
-                        response,
-                    )
+            retries = 3
+            retry_delay = 2
 
-                    if body_valid:
-                        error_message = None
-                        break
+            for attempt in range(retries):
 
-                    error_message = body_error
+                response, elapsed_ms, request_error = (
+                    _attempt_request(monitor)
+                )
+
+                response_time = elapsed_ms
+
+                if response is not None:
+
+                    if response.status_code == monitor.expected_status:
+                        body_valid, body_error = _validate_response_body(
+                            monitor,
+                            response,
+                        )
+
+                        if body_valid:
+                            error_message = None
+                            break
+
+                        error_message = body_error
+
+                    else:
+                        error_message = (
+                            f"Expected HTTP "
+                            f"{monitor.expected_status}, "
+                            f"received HTTP "
+                            f"{response.status_code}"
+                        )
 
                 else:
-                    error_message = (
-                        f"Expected HTTP "
-                        f"{monitor.expected_status}, "
-                        f"received HTTP "
-                        f"{response.status_code}"
-                    )
+                    error_message = request_error
 
-            else:
-                error_message = request_error
+                if attempt < retries - 1:
+                    time.sleep(retry_delay)
 
-            if attempt < retries - 1:
-                time.sleep(retry_delay)
+            # =====================================================================
+            # RESULT
+            # =====================================================================
 
-        # =====================================================================
-        # RESULT
-        # =====================================================================
-
-        request_succeeded = (
-            response is not None
-            and response.status_code == monitor.expected_status
-            and _validate_response_body(
-                monitor,
-                response,
-            )[0]
-        )
-
-        status_code = (
-            response.status_code
-            if response is not None
-            else None
-        )
-
-        log_error = (
-            None
-            if request_succeeded
-            else (
-                error_message
-                or "Unknown Error"
-            )
-        )
-
-        # =====================================================================
-        # FAILURE COUNT
-        # =====================================================================
-
-        if request_succeeded:
-            current_failure_count = 0
-        else:
-            current_failure_count = (
-                previous_failure_count + 1
+            request_succeeded = (
+                response is not None
+                and response.status_code == monitor.expected_status
+                and _validate_response_body(
+                    monitor,
+                    response,
+                )[0]
             )
 
-        # =====================================================================
-        # CONFIRMED STATUS
-        # =====================================================================
-
-        if request_succeeded:
-            new_status = "UP"
-
-        elif previous_status == "DOWN":
-            new_status = "DOWN"
-
-        elif current_failure_count >= 3:
-            # Each task run is one failed health check; the three HTTP
-            # attempts above are retries within that check.
-            new_status = "DOWN"
-
-        else:
-            new_status = "UP"
-
-        # =====================================================================
-        # SLOW RESPONSE
-        # =====================================================================
-
-        is_slow = (
-            request_succeeded
-            and response_time is not None
-            and response_time > threshold
-        )
-
-        # =====================================================================
-        # UPDATE MONITOR STATE
-        # =====================================================================
-
-        monitor.status = new_status
-        monitor.response_time = response_time
-        monitor.last_checked_at = timezone.now()
-
-        if request_succeeded:
-
-            if is_slow:
-                monitor.last_error = (
-                    f"Slow response: "
-                    f"{response_time:.0f} ms"
-                )
-            else:
-                monitor.last_error = None
-
-            monitor.failure_count = 0
-
-        else:
-
-            monitor.failure_count = (
-                current_failure_count
+            status_code = (
+                response.status_code
+                if response is not None
+                else None
             )
 
-            # Do not display temporary failures
-            # as an actual error until DOWN.
-            if new_status == "DOWN":
-                monitor.last_error = log_error
-            else:
-                monitor.last_error = None
-
-        monitor.save()
-
-        # =====================================================================
-        # LOG
-        # =====================================================================
-
-        APILog.objects.create(
-            api_monitor=monitor,
-            status=(
-                "UP"
+            log_error = (
+                None
                 if request_succeeded
-                else "DOWN"
-            ),
-            status_code=status_code,
-            response_time_ms=response_time,
-            error_message=log_error,
-            checked_at=timezone.now(),
-        )
-
-        # =====================================================================
-        # UPTIME
-        # =====================================================================
-
-        monitor.uptime_percentage = (
-            _recalc_uptime(monitor)
-        )
-
-        monitor.save(
-            update_fields=[
-                "uptime_percentage"
-            ]
-        )
-
-        # =====================================================================
-        # CONSOLE LOG
-        # =====================================================================
-
-        print(
-            f"Monitor {monitor.name}: "
-            f"status={new_status}, "
-            f"failures={monitor.failure_count}, "
-            f"expected_status="
-            f"{monitor.expected_status}, "
-            f"actual_status={status_code}, "
-            f"response_time="
-            f"{response_time:.0f}ms"
-            if response_time is not None
-            else
-            f"Monitor {monitor.name}: "
-            f"status={new_status}, "
-            f"failures={monitor.failure_count}, "
-            f"expected_status="
-            f"{monitor.expected_status}, "
-            f"actual_status={status_code}"
-        )
-
-        # =====================================================================
-        # DOWN LOGIC
-        # =====================================================================
-
-        if new_status == "DOWN":
-
-            incident = _get_ongoing_incident(
-                monitor
+                else (
+                    error_message
+                    or "Unknown Error"
+                )
             )
 
-            if not incident:
-                _start_incident(
-                    monitor,
-                    log_error or "API request failed",
+            # =====================================================================
+            # FAILURE COUNT
+            # =====================================================================
+
+            if request_succeeded:
+                current_failure_count = 0
+            else:
+                current_failure_count = (
+                    previous_failure_count + 1
                 )
 
-            down_cache_key = (
-                f"api_monitor:"
-                f"down_alert_sent:"
-                f"{monitor.id}"
+            # =====================================================================
+            # CONFIRMED STATUS
+            # =====================================================================
+
+                        if request_succeeded:
+                new_status = "UP"
+
+            elif previous_status == "DOWN":
+                new_status = "DOWN"
+
+            elif current_failure_count >= 3:
+                # Confirm downtime after three separate failed checks.
+                new_status = "DOWN"
+
+            else:
+                new_status = "UP"
+
+            # =====================================================================
+            # SLOW RESPONSE
+            # =====================================================================
+
+            is_slow = (
+                request_succeeded
+                and response_time is not None
+                and response_time > threshold
             )
 
-            if not cache.get(down_cache_key):
+            # =====================================================================
+            # UPDATE MONITOR STATE
+            # =====================================================================
 
-                email_sent = _send_down_alert(
-                    monitor,
-                    log_error,
-                )
+            monitor.status = new_status
+            monitor.response_time = response_time
+            monitor.last_checked_at = timezone.now()
 
-                if email_sent:
+            if request_succeeded:
 
-                    cache.set(
-                        down_cache_key,
-                        True,
-                        timeout=7 * 24 * 60 * 60,
+                if is_slow:
+                    monitor.last_error = (
+                        f"Slow response: "
+                        f"{response_time:.0f} ms"
                     )
-
-                    print(
-                        f"DOWN email delivery confirmed "
-                        f"for {monitor.name}"
-                    )
-
                 else:
+                    monitor.last_error = None
 
-                    print(
-                        f"DOWN email delivery failed "
-                        f"for {monitor.name}; "
-                        f"will retry on the next check"
+                monitor.failure_count = 0
+
+            else:
+
+                monitor.failure_count = (
+                    current_failure_count
+                )
+
+                # Do not display temporary failures
+                # as an actual error until DOWN.
+                if new_status == "DOWN":
+                    monitor.last_error = log_error
+                else:
+                    monitor.last_error = None
+
+            monitor.save()
+
+            # =====================================================================
+            # LOG
+            # =====================================================================
+
+            APILog.objects.create(
+                api_monitor=monitor,
+                status=(
+                    "UP"
+                    if request_succeeded
+                    else "DOWN"
+                ),
+                status_code=status_code,
+                response_time_ms=response_time,
+                error_message=log_error,
+                checked_at=timezone.now(),
+            )
+
+            # =====================================================================
+            # UPTIME
+            # =====================================================================
+
+            monitor.uptime_percentage = (
+                _recalc_uptime(monitor)
+            )
+
+            monitor.save(
+                update_fields=[
+                    "uptime_percentage"
+                ]
+            )
+
+            # =====================================================================
+            # CONSOLE LOG
+            # =====================================================================
+
+            print(
+                f"Monitor {monitor.name}: "
+                f"status={new_status}, "
+                f"failures={monitor.failure_count}, "
+                f"expected_status="
+                f"{monitor.expected_status}, "
+                f"actual_status={status_code}, "
+                f"response_time="
+                f"{response_time:.0f}ms"
+                if response_time is not None
+                else
+                f"Monitor {monitor.name}: "
+                f"status={new_status}, "
+                f"failures={monitor.failure_count}, "
+                f"expected_status="
+                f"{monitor.expected_status}, "
+                f"actual_status={status_code}"
+            )
+
+            # =====================================================================
+            # DOWN LOGIC
+            # =====================================================================
+
+            if new_status == "DOWN":
+
+                incident = _get_ongoing_incident(
+                    monitor
+                )
+
+                if not incident:
+                    _start_incident(
+                        monitor,
+                        log_error or "API request failed",
                     )
 
-        # =====================================================================
-        # RECOVERY LOGIC
-        # =====================================================================
+                down_cache_key = (
+                    f"api_monitor:"
+                    f"down_alert_sent:"
+                    f"{monitor.id}"
+                )
 
-        elif (
-            previous_status == "DOWN"
-            and new_status == "UP"
-        ):
+                if not cache.get(down_cache_key):
 
-            _resolve_incident(monitor)
+                    email_sent = _send_down_alert(
+                        monitor,
+                        log_error,
+                    )
 
-            downtime_text = _calculate_downtime(
-                monitor
-            )
+                    if email_sent:
 
-            _send_recovery_alert(
-                monitor,
-                downtime_text,
-            )
+                        cache.set(
+                            down_cache_key,
+                            True,
+                            timeout=7 * 24 * 60 * 60,
+                        )
 
-            cache.delete(
-                f"api_monitor:"
-                f"down_alert_sent:"
-                f"{monitor.id}"
-            )
+                        print(
+                            f"DOWN email delivery confirmed "
+                            f"for {monitor.name}"
+                        )
 
-        # =====================================================================
-        # SLOW RESPONSE LOGIC
-        # =====================================================================
+                    else:
 
-        elif new_status == "UP":
+                        print(
+                            f"DOWN email delivery failed "
+                            f"for {monitor.name}; "
+                            f"will retry on the next check"
+                        )
 
-            previously_slow = (
-                previous_response_time is not None
-                and previous_response_time > threshold
-            )
+            # =====================================================================
+            # RECOVERY LOGIC
+            # =====================================================================
 
-            if is_slow and not previously_slow:
+            elif (
+                previous_status == "DOWN"
+                and new_status == "UP"
+            ):
 
+                _resolve_incident(monitor)
+
+                downtime_text = _calculate_downtime(
+                    monitor
+                )
+
+                _send_recovery_alert(
+                    monitor,
+                    downtime_text,
+                )
+
+                cache.delete(
+                    f"api_monitor:"
+                    f"down_alert_sent:"
+                    f"{monitor.id}"
+                )
+
+            # =====================================================================
+            # SLOW RESPONSE LOGIC
+            # =====================================================================
+
+            elif new_status == "UP":
+
+                previously_slow = (
+                    previous_response_time is not None
+                    and previous_response_time > threshold
+                )
+
+                if is_slow and not previously_slow:
+
+                    _send_slow_alert(
+                        monitor,
+                        response_time,
+                        threshold,
+                    )
+
+        finally:
+            cache.delete(lock_key)
                 _send_slow_alert(
                     monitor,
                     response_time,

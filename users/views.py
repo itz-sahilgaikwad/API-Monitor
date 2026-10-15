@@ -14,7 +14,8 @@ from rest_framework import status
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import _log, APIKey, ActivityLog, Team, TeamMember
+from .models import _log, APIKey, ActivityLog, Team, TeamMember, TeamMonitor
+from monitoring.models import APIMonitor
 
 
 User = get_user_model()
@@ -161,7 +162,11 @@ class UserLoginView(APIView):
         # Multiple accounts may share the same email/mobile.
         # The password determines which account logs in.
         for candidate in candidates:
-            if candidate.check_password(password):
+            if (
+                candidate.is_active
+                and not candidate.is_locked()
+                and candidate.check_password(password)
+            ):
                 user = candidate
                 break
 
@@ -1112,3 +1117,138 @@ class AdminUserListView(APIView):
         ]
 
         return Response(data)
+
+
+# ============================================================
+# TEAM MONITORS - LIST AND SHARE
+# ============================================================
+
+class TeamMonitorListCreateView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def _get_team(self, request, team_id):
+        try:
+            return Team.objects.get(
+                id=team_id,
+                owner=request.user,
+            )
+        except Team.DoesNotExist:
+            return None
+
+    def get(self, request, team_id):
+        team = self._get_team(request, team_id)
+
+        if team is None:
+            return Response(
+                {"error": "Team not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        monitors = APIMonitor.objects.filter(
+            team_monitors__team=team,
+        )
+
+        data = [
+            {
+                "id": m.id,
+                "name": m.name,
+                "url": m.url,
+                "status": m.status,
+            }
+            for m in monitors
+        ]
+
+        return Response(data)
+
+    def post(self, request, team_id):
+        team = self._get_team(request, team_id)
+
+        if team is None:
+            return Response(
+                {"error": "Team not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        monitor_id = request.data.get("monitor_id")
+
+        if not monitor_id:
+            return Response(
+                {"error": "monitor_id required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            monitor = APIMonitor.objects.get(
+                id=monitor_id,
+                owner=request.user,
+            )
+
+        except APIMonitor.DoesNotExist:
+            return Response(
+                {"error": "Monitor not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        _, created = TeamMonitor.objects.get_or_create(
+            team=team,
+            monitor=monitor,
+        )
+
+        return Response(
+            {
+                "message": (
+                    "Monitor already shared"
+                    if not created
+                    else "Monitor shared with team"
+                ),
+                "monitor_id": monitor.id,
+                "team_id": team.id,
+            },
+            status=(
+                status.HTTP_200_OK
+                if not created
+                else status.HTTP_201_CREATED
+            ),
+        )
+
+
+# ============================================================
+# TEAM MONITORS - UNSHARE
+# ============================================================
+
+class TeamMonitorDeleteView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, team_id, monitor_id):
+        try:
+            team = Team.objects.get(
+                id=team_id,
+                owner=request.user,
+            )
+
+        except Team.DoesNotExist:
+            return Response(
+                {"error": "Team not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        deleted_count = TeamMonitor.objects.filter(
+            team=team,
+            monitor_id=monitor_id,
+        ).delete()[0]
+
+        if not deleted_count:
+            return Response(
+                {"error": "Monitor not shared with team"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            {
+                "message": "Monitor removed from team",
+                "monitor_id": monitor_id,
+                "team_id": team.id,
+            }
+        )

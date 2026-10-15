@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <title>Analytics - API Monitor</title>
     <meta name="description" content="Live API monitoring analytics">
 
@@ -336,6 +339,18 @@
             height: 330px;
         }
 
+        .chart-empty-state {
+            min-height: 220px;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            border: 1px dashed rgba(180, 207, 211, .18);
+            border-radius: 10px;
+            color: #9aadaf !important;
+            text-align: center;
+            line-height: 1.6;
+        }
+
         .mini-chart {
             height: 235px;
         }
@@ -450,6 +465,17 @@
         .badge.down {
             color: #f87171;
             background: rgba(239, 68, 68, 0.12);
+        }
+
+        .status-circle.slow {
+            background: rgba(245, 158, 11, 0.10);
+            border-color: rgba(245, 158, 11, 0.24);
+            color: #d97706;
+        }
+
+        .badge.slow {
+            color: #b45309;
+            background: rgba(245, 158, 11, 0.14);
         }
 
         .badge.unknown {
@@ -995,7 +1021,102 @@
         }
 
 
-    </style>
+    
+
+/* Dashboard-consistent navigation and typography: intentionally last to override legacy page styles. */
+html, body, button, input, select, textarea, option, label,
+.layout, .main, .topbar, .toolbar, .metric, .card, .panel, .nav,
+.nav a, .brand, .brand-text, .brand-title, .brand-subtitle,
+h1, h2, h3, p, small, strong, .eyebrow, .subtitle, .metric-label,
+.metric-value, .card-header, .card-body, .toolbar-label, .control,
+.btn, .live, .section-title, .section-subtitle {
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+}
+body {
+  background-image:
+    radial-gradient(ellipse at 14% 6%, rgba(94,143,151,.22), transparent 31%),
+    radial-gradient(ellipse at 83% 23%, rgba(101,128,136,.17), transparent 34%),
+    radial-gradient(ellipse at 53% 92%, rgba(53,103,109,.12), transparent 42%),
+    linear-gradient(132deg,#0b1214 0%,#111c20 48%,#0a1012 100%) !important;
+  background-attachment: fixed !important;
+  color: #edf4f5 !important;
+}
+.layout { min-height: 100vh !important; }
+.sidebar {
+  width: 250px !important; min-width: 250px !important; flex: 0 0 250px !important;
+  position: fixed !important; inset: 0 auto 0 0 !important; height: 100vh !important;
+  min-height: 100vh !important; padding: 26px 18px !important; overflow-y: auto !important;
+  box-sizing: border-box !important; z-index: 100 !important;
+  background: linear-gradient(180deg,rgba(17,31,35,.94),rgba(10,19,22,.98)) !important;
+  border-right: 1px solid rgba(201,229,235,.17) !important;
+  box-shadow: 18px 0 54px rgba(0,0,0,.16),inset -1px 0 0 rgba(255,255,255,.035) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(150%) !important;
+  backdrop-filter: blur(34px) saturate(150%) !important;
+}
+.brand {
+  display: flex !important; align-items: center !important; justify-content: flex-start !important;
+  gap: 12px !important; padding: 0 2px !important; margin: 0 0 38px !important;
+  min-height: 48px !important; border: 0 !important; background: transparent !important;
+}
+.brand-icon {
+  width: 42px !important; height: 42px !important; min-width: 42px !important;
+  display: grid !important; place-items: center !important; border-radius: 13px !important;
+  background: linear-gradient(145deg,#f0f5f6,#aabdc2) !important; color: #152125 !important;
+  border: 1px solid rgba(255,255,255,.70) !important; font-size: 20px !important; font-weight: 900 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9),0 10px 26px rgba(0,0,0,.28) !important;
+}
+.brand-text { display: block !important; min-width: 0 !important; }
+.brand-text h2 { margin: 0 !important; color: #edf4f5 !important; font-size: 16px !important; line-height: 1.25 !important; font-weight: 800 !important; letter-spacing: -.035em !important; }
+.brand-text span { display: block !important; margin-top: 3px !important; color: #9aadaf !important; font-size: 10px !important; line-height: 1.4 !important; font-weight: 500 !important; }
+.nav-title {
+  display: block !important; margin: 0 0 12px !important; padding: 0 11px !important;
+  color: #789093 !important; font-size: 10px !important; line-height: 1.5 !important;
+  font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: .15em !important;
+}
+.nav {
+  display: flex !important; flex-direction: column !important; grid-template-columns: none !important;
+  align-items: stretch !important; gap: 5px !important; width: 100% !important;
+  padding: 0 !important; margin: 0 !important; overflow: visible !important;
+}
+.nav a {
+  display: flex !important; align-items: center !important; justify-content: flex-start !important;
+  gap: 13px !important; width: 100% !important; height: 48px !important; min-height: 48px !important;
+  margin: 0 !important; padding: 0 14px !important; border: 1px solid transparent !important;
+  border-radius: 12px !important; background: transparent !important; color: #a7babc !important;
+  text-decoration: none !important; font-size: 13px !important; font-weight: 700 !important;
+  line-height: 1.2 !important; letter-spacing: -.01em !important; transition: background .18s ease,border-color .18s ease,color .18s ease !important;
+}
+.nav a:hover {
+  color: #edf5f6 !important; background: rgba(196,219,225,.08) !important;
+  border-color: rgba(219,237,241,.13) !important;
+}
+.nav a.active {
+  color: #d8e7e9 !important;
+  background: linear-gradient(115deg,rgba(196,219,225,.15),rgba(111,145,153,.07)) !important;
+  border-color: rgba(219,237,241,.25) !important;
+  box-shadow: inset 3px 0 0 rgba(220,238,242,.76),inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+.nav-icon {
+  display: inline-flex !important; align-items: center !important; justify-content: center !important;
+  width: 16px !important; min-width: 16px !important; color: #a8c5c7 !important;
+  font-size: 14px !important; line-height: 1 !important; text-align: center !important;
+}
+.main { min-width: 0 !important; margin-left: 250px !important; width: calc(100% - 250px) !important; }
+#pageTitle, h1 { font-family: Inter,Arial,Helvetica,sans-serif !important; font-weight: 800 !important; letter-spacing: -.045em !important; }
+.eyebrow { color: #9bb9bc !important; }
+@media (max-width: 720px) {
+  .layout { display: block !important; }
+  .sidebar { position: relative !important; inset: auto !important; width: 100% !important; min-width: 0 !important; height: auto !important; min-height: 0 !important; padding: 15px 16px 10px !important; border-right: 0 !important; border-bottom: 1px solid rgba(201,229,235,.17) !important; }
+  .brand { min-height: 48px !important; margin: 0 0 12px !important; padding: 0 2px !important; }
+  .nav-title { display: none !important; }
+  .nav { display: grid !important; grid-template-columns: repeat(5,minmax(0,1fr)) !important; gap: 4px !important; }
+  .nav a { justify-content: center !important; height: 42px !important; min-height: 42px !important; padding: 0 4px !important; gap: 5px !important; font-size: 10px !important; }
+  .nav a span:last-child { display: none !important; }
+  .nav a.active { box-shadow: inset 0 -2px #b8d1d3 !important; }
+  .main { width: 100% !important; margin: 0 !important; padding: 26px 16px 48px !important; }
+}
+
+</style>
 
 <style id="canonical-app-shell">
 /* =========================================================
@@ -1783,40 +1904,1275 @@ td {
     @media (max-width:700px) { .health-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 </style>
 
+    <script src="theme.js"></script>
+    <script src="admin-nav.js"></script>
+
+
+<style id="analytics-premium-glass-redesign">
+/* API Monitor Analytics — full visual pass; existing markup and data logic remain intact. */
+:root {
+  color-scheme: dark;
+  --bg: #091113;
+  --panel: rgba(19, 31, 34, .78);
+  --panel-raised: rgba(27, 42, 45, .82);
+  --line: rgba(180, 205, 207, .17);
+  --line-strong: rgba(190, 218, 220, .27);
+  --ink: #edf4f4;
+  --muted: #9aadaf;
+  --accent: #a9c8cb;
+  --accent-strong: #d8e8e9;
+  --success: #69d6ae;
+  --warning: #ffbd59;
+  --danger: #ff8589;
+  --shadow: 0 22px 60px rgba(0, 0, 0, .22);
+}
+html { color-scheme: dark !important; background: #091113 !important; }
+body {
+  min-height: 100vh !important;
+  color: var(--ink) !important;
+  background:
+    radial-gradient(ellipse at 74% -8%, rgba(117, 157, 160, .18), transparent 34%),
+    radial-gradient(ellipse at 4% 88%, rgba(76, 118, 122, .11), transparent 32%),
+    linear-gradient(145deg, #0b1416 0%, #0a1113 48%, #0d1719 100%) !important;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif !important;
+  letter-spacing: -.01em;
+}
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .12;
+  background-image: linear-gradient(rgba(220,240,240,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(220,240,240,.025) 1px, transparent 1px);
+  background-size: 42px 42px; mask-image: linear-gradient(to bottom, black, transparent 88%);
+}
+.layout { position: relative !important; z-index: 1 !important; }
+.sidebar {
+  width: 250px !important; min-width: 250px !important; position: fixed !important;
+  inset: 0 auto 0 0 !important; height: 100vh !important; min-height: 100vh !important;
+  padding: 0 !important; overflow-y: auto !important; box-sizing: border-box !important;
+  background: linear-gradient(180deg, rgba(17,29,32,.96), rgba(10,18,20,.98)) !important;
+  border-right: 1px solid var(--line) !important; box-shadow: 14px 0 40px rgba(0,0,0,.10) !important;
+  backdrop-filter: blur(22px) !important; z-index: 20 !important;
+}
+.brand { padding: 28px 23px 25px !important; border-bottom: 1px solid var(--line) !important; gap: 13px !important; }
+.brand-logo {
+  width: 44px !important; height: 44px !important; flex: 0 0 44px !important; border-radius: 13px !important;
+  color: #152225 !important; background: linear-gradient(145deg, #e1eeee, #91a8ab) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 8px 24px rgba(0,0,0,.22) !important;
+  font-family: Inter, sans-serif !important; font-size: 21px !important;
+}
+.brand-title { color: #f0f6f6 !important; font-family: Inter, sans-serif !important; font-size: 16px !important; font-weight: 800 !important; letter-spacing: -.04em !important; }
+.brand-subtitle { color: #8fa3a6 !important; font-size: 10px !important; }
+.menu-label { padding: 26px 25px 10px !important; color: #789093 !important; font-size: 10px !important; letter-spacing: .15em !important; }
+.nav { padding: 0 12px !important; display: flex !important; flex-direction: column !important; gap: 5px !important; }
+.nav a {
+  height: 46px !important; min-height: 46px !important; margin: 0 !important; padding: 0 14px !important;
+  display: flex !important; align-items: center !important; gap: 13px !important; border-radius: 11px !important;
+  border: 1px solid transparent !important; color: #9aadaf !important; background: transparent !important;
+  font-size: 12px !important; font-weight: 650 !important; transition: .18s ease !important;
+}
+.nav a:hover { color: #f2f7f7 !important; background: rgba(184,215,217,.07) !important; border-color: rgba(184,215,217,.08) !important; }
+.nav a.active { color: #f1f7f7 !important; background: linear-gradient(110deg, rgba(160,194,197,.17), rgba(160,194,197,.055)) !important; border-color: rgba(183,214,216,.22) !important; box-shadow: inset 3px 0 #b8d1d3, inset 0 1px rgba(255,255,255,.04) !important; }
+.nav a span:first-child, .nav-icon { color: #a8c5c7 !important; width: 18px !important; min-width: 18px !important; text-align: center !important; }
+.sidebar-bottom { padding: 16px !important; margin-top: auto !important; }
+.system-card { padding: 15px !important; border-radius: 13px !important; border: 1px solid var(--line) !important; background: rgba(193,220,222,.045) !important; }
+.system-top { color: #dce9e9 !important; font-size: 11px !important; }
+.online-dot { background: var(--success) !important; box-shadow: 0 0 0 4px rgba(105,214,174,.10) !important; }
+.system-description { color: #809698 !important; }
+.main {
+  width: calc(100% - 250px) !important; min-width: 0 !important; min-height: 100vh !important;
+  margin-left: 250px !important; padding: 42px clamp(24px, 3.2vw, 54px) 76px !important;
+  box-sizing: border-box !important; background: transparent !important; position: relative !important;
+}
+.main::before { content: "" !important; position: absolute !important; top: -90px !important; right: 2% !important; width: 680px !important; height: 360px !important; background: radial-gradient(ellipse, rgba(132,177,180,.12), transparent 70%) !important; pointer-events: none !important; }
+.topbar { position: relative !important; z-index: 1 !important; align-items: flex-end !important; margin-bottom: 30px !important; }
+.eyebrow { color: #9dbdc0 !important; font-size: 10px !important; font-weight: 800 !important; letter-spacing: .17em !important; margin-bottom: 10px !important; }
+h1, #pageTitle { color: #f0f6f6 !important; font-family: Inter, "Segoe UI", sans-serif !important; font-size: clamp(31px, 3vw, 43px) !important; font-weight: 800 !important; letter-spacing: -.055em !important; line-height: 1.08 !important; }
+.subtitle, #pageSubtitle { margin-top: 10px !important; max-width: 760px !important; color: #9aadaf !important; font-size: 13px !important; line-height: 1.65 !important; }
+.top-actions { gap: 10px !important; }
+.btn { height: 42px !important; min-height: 42px !important; padding: 0 17px !important; border-radius: 11px !important; border: 1px solid var(--line-strong) !important; background: rgba(190,218,220,.055) !important; color: #d4e2e3 !important; font-size: 11px !important; font-weight: 750 !important; box-shadow: inset 0 1px rgba(255,255,255,.04) !important; transition: transform .18s ease, background .18s ease, border-color .18s ease !important; }
+.btn:hover { transform: translateY(-1px) !important; border-color: rgba(201,228,230,.42) !important; background: rgba(190,218,220,.10) !important; }
+.btn-primary { color: #102022 !important; border-color: transparent !important; background: linear-gradient(145deg, #e1eeee, #a7c0c2) !important; box-shadow: inset 0 1px rgba(255,255,255,.7), 0 8px 22px rgba(0,0,0,.16) !important; }
+.btn-primary:hover { background: linear-gradient(145deg, #f0f7f7, #b8d0d2) !important; }
+.toolbar {
+  position: relative !important; z-index: 1 !important; display: flex !important; align-items: center !important;
+  justify-content: space-between !important; gap: 16px !important; padding: 16px 18px !important; margin-bottom: 22px !important;
+  border: 1px solid var(--line) !important; border-radius: 15px !important;
+  background: linear-gradient(120deg, rgba(29,45,48,.78), rgba(16,28,30,.72)) !important;
+  box-shadow: var(--shadow), inset 0 1px rgba(255,255,255,.045) !important; backdrop-filter: blur(18px) !important;
+}
+.toolbar-left { gap: 11px !important; }
+.toolbar-label { color: #8fa5a7 !important; font-size: 10px !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: .09em !important; }
+.control { height: 42px !important; padding: 0 13px !important; border: 1px solid var(--line-strong) !important; border-radius: 10px !important; background: rgba(8,17,19,.55) !important; color: #e4eeee !important; font-size: 11px !important; font-weight: 650 !important; }
+.control:focus { outline: none !important; border-color: #a7c8ca !important; box-shadow: 0 0 0 3px rgba(167,200,202,.12) !important; }
+.live { color: #8ee0bd !important; font-size: 10px !important; font-weight: 800 !important; letter-spacing: .015em !important; }
+.live-dot { background: var(--success) !important; box-shadow: 0 0 0 4px rgba(105,214,174,.10) !important; }
+#content { position: relative !important; z-index: 1 !important; }
+.metrics { grid-template-columns: repeat(4, minmax(0,1fr)) !important; gap: 16px !important; margin-bottom: 22px !important; }
+.metric, .card {
+  color: var(--ink) !important; border: 1px solid var(--line) !important; border-radius: 17px !important;
+  background: linear-gradient(145deg, rgba(29,45,48,.82), rgba(15,26,28,.88)) !important;
+  box-shadow: 0 18px 42px rgba(0,0,0,.18), inset 0 1px rgba(238,255,255,.065) !important;
+  backdrop-filter: blur(18px) !important;
+}
+.metric { min-height: 148px !important; padding: 22px !important; }
+.metric::after { width: 120px !important; height: 120px !important; right: -42px !important; bottom: -54px !important; background: radial-gradient(circle, rgba(166,204,206,.11), transparent 70%) !important; }
+.metric-label { color: #a8babc !important; font-size: 11px !important; font-weight: 750 !important; }
+.metric-value { position: relative !important; z-index: 1 !important; margin-top: 15px !important; color: #f2f8f8 !important; font-family: Inter, sans-serif !important; font-size: clamp(27px, 2.2vw, 34px) !important; font-weight: 800 !important; letter-spacing: -.055em !important; }
+.metric-help { margin-top: 8px !important; color: #83999b !important; font-size: 10px !important; line-height: 1.5 !important; }
+.grid { grid-template-columns: minmax(0,1.35fr) minmax(300px,.85fr) !important; gap: 20px !important; margin-bottom: 22px !important; }
+.card { margin-bottom: 22px; overflow: hidden !important; }
+.card-header { min-height: 76px !important; padding: 20px 23px !important; border-bottom: 1px solid var(--line) !important; background: linear-gradient(100deg, rgba(174,211,213,.055), transparent) !important; }
+.card-title { color: #eff6f6 !important; font-family: Inter, sans-serif !important; font-size: 15px !important; font-weight: 800 !important; letter-spacing: -.025em !important; }
+.card-subtitle { color: #8fa5a7 !important; font-size: 10px !important; line-height: 1.55 !important; }
+.card-body { padding: 23px !important; color: #dbe7e7 !important; }
+.chart-wrap { height: 360px !important; }
+.mini-chart { height: 260px !important; }
+.status-panel { min-height: 260px !important; }
+.status-circle { width: 112px !important; height: 112px !important; border-width: 7px !important; box-shadow: 0 0 42px rgba(105,214,174,.06) !important; }
+.status-circle.down { box-shadow: 0 0 42px rgba(255,133,137,.07) !important; }
+.status-title { color: #edf5f5 !important; font-size: 16px !important; }
+.status-detail { color: #8fa5a7 !important; line-height: 1.6 !important; }
+.summary { gap: 15px !important; }
+.summary-row { color: #91a6a8 !important; font-size: 11px !important; }
+.summary-row strong { color: #e7f0f0 !important; font-size: 12px !important; }
+.summary-divider { background: var(--line) !important; }
+.table-wrap { border-radius: 0 0 17px 17px !important; }
+table { min-width: 720px !important; }
+th, td { padding: 15px 20px !important; border-bottom-color: var(--line) !important; font-size: 11px !important; }
+th { color: #809799 !important; font-size: 9px !important; letter-spacing: .12em !important; }
+td { color: #d2e0e0 !important; }
+tbody tr { transition: background .15s ease; }
+tbody tr:hover { background: rgba(181,216,218,.045) !important; }
+.badge { padding: 6px 10px !important; font-size: 9px !important; letter-spacing: .04em !important; }
+.badge.up { color: #80e2bd !important; background: rgba(105,214,174,.11) !important; }
+.badge.down { color: #ff9a9e !important; background: rgba(255,133,137,.12) !important; }
+.badge.unknown { color: #ffd087 !important; background: rgba(255,189,89,.12) !important; }
+.empty, .loading { color: #8da2a4 !important; }
+.error { color: #ffb4b6 !important; }
+.error strong { color: #ff8589 !important; }
+.loader { border-color: rgba(177,209,211,.16) !important; border-top-color: #c4dfe0 !important; }
+.last-update { color: #7e9698 !important; }
+/* Insights, anomaly analysis, score, and timeline use the same dark glass system. */
+.insight-item, .insights-empty, .health-timeline-detail {
+  color: #d5e2e2 !important; background: rgba(7,16,18,.42) !important;
+  border-color: var(--line) !important; border-radius: 12px !important;
+}
+.insight-item { padding: 14px 15px !important; font-size: 11px !important; }
+.insight-dot { background: #b4d1d3 !important; box-shadow: 0 0 0 4px rgba(180,209,211,.10) !important; }
+.trend-badge { background: rgba(180,209,211,.09) !important; color: #a9c6c8 !important; }
+.trend-badge.improving { background: rgba(105,214,174,.12) !important; color: #80e2bd !important; }
+.trend-badge.degrading { background: rgba(255,133,137,.12) !important; color: #ff9a9e !important; }
+.trend-badge.stable { background: rgba(180,209,211,.10) !important; color: #c2d8d9 !important; }
+.anomaly-title { color: #edf5f5 !important; }
+.anomaly-detail, .anomaly-stat-label, .score-note { color: #8aa1a3 !important; }
+.anomaly-stat-value, .score-row strong { color: #e7f1f1 !important; }
+.anomaly-badge.normal { color: #80e2bd !important; background: rgba(105,214,174,.12) !important; }
+.anomaly-badge.warning { color: #ffd087 !important; background: rgba(255,189,89,.12) !important; }
+.anomaly-badge.critical { color: #ff9a9e !important; background: rgba(255,133,137,.12) !important; }
+.score-ring { background: conic-gradient(#b4d1d3 calc(var(--score,0) * 1%), rgba(180,209,211,.10) 0) !important; }
+.score-ring::after { background: #152326 !important; border-color: var(--line) !important; }
+.score-number { color: #f2f8f8 !important; font-family: Inter, sans-serif !important; font-weight: 800 !important; }
+.score-grade { color: #b4d1d3 !important; }
+.score-bar { background: rgba(180,209,211,.12) !important; }
+.score-bar span { background: linear-gradient(90deg, #8eafb2, #d0e2e3) !important; }
+.health-axis { color: #81999b !important; }
+.health-track { border-color: var(--line) !important; background: rgba(5,13,15,.42) !important; }
+.health-segment.incident-linked::after { border-color: #142225 !important; }
+.health-timeline-detail { background: rgba(7,16,18,.42) !important; }
+.health-detail-empty { color: #8fa5a7 !important; }
+.health-legend-item { color: #9aadaf !important; }
+@media (max-width: 1200px) {
+  .main { padding: 34px 28px 60px !important; }
+  .metrics { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  .grid { grid-template-columns: minmax(0,1fr) !important; }
+  .chart-wrap { height: 320px !important; }
+}
+@media (max-width: 720px) {
+  .layout { display: block !important; }
+  .sidebar { position: relative !important; width: 100% !important; min-width: 0 !important; height: auto !important; min-height: 0 !important; inset: auto !important; border-right: 0 !important; border-bottom: 1px solid var(--line) !important; }
+  .brand { min-height: 76px !important; padding: 15px 18px !important; }
+  .menu-label, .sidebar-bottom { display: none !important; }
+  .nav { display: grid !important; grid-template-columns: repeat(5,minmax(0,1fr)) !important; padding: 0 10px 10px !important; gap: 4px !important; }
+  .nav a { justify-content: center !important; height: 42px !important; min-height: 42px !important; padding: 0 4px !important; font-size: 10px !important; gap: 5px !important; }
+  .nav a span:last-child { display: none !important; }
+  .nav a.active { border-left: 1px solid rgba(183,214,216,.22) !important; box-shadow: inset 0 -2px #b8d1d3 !important; }
+  .main { width: 100% !important; margin: 0 !important; padding: 26px 16px 48px !important; }
+  .topbar { align-items: flex-start !important; flex-direction: column !important; gap: 18px !important; margin-bottom: 22px !important; }
+  .top-actions { width: 100% !important; justify-content: stretch !important; }
+  .top-actions .btn { flex: 1 !important; }
+  .toolbar { align-items: stretch !important; flex-direction: column !important; padding: 14px !important; }
+  .toolbar-left { width: 100% !important; }
+  .toolbar-left .control { flex: 1 !important; min-width: 0 !important; }
+  .live { padding: 2px 0 !important; }
+  .metric { min-height: 128px !important; padding: 18px !important; }
+  .card-header { padding: 17px !important; }
+  .card-body { padding: 17px !important; }
+  .chart-wrap { height: 280px !important; }
+  .mini-chart { height: 230px !important; }
+}
+@media (max-width: 460px) {
+  .metrics { grid-template-columns: 1fr !important; gap: 11px !important; }
+  h1, #pageTitle { font-size: 31px !important; }
+  .toolbar-left { display: grid !important; grid-template-columns: auto minmax(0,1fr) !important; }
+  .toolbar-label { align-self: center !important; }
+  .metric { min-height: 118px !important; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+/* ============================================================
+   DASHBOARD V30 CONSISTENCY PATCH
+   Shared visual language only; Analytics markup and JavaScript
+   remain intact. Sidebar spacing follows dashboard.html.
+============================================================ */
+:root {
+  --dash-ink: #eaf1f3;
+  --dash-muted: #a8b7bd;
+  --dash-line: rgba(205, 226, 232, .19);
+  --dash-line-strong: rgba(220, 240, 244, .30);
+}
+html, body {
+  background: #0a1113 !important;
+  color: var(--dash-ink) !important;
+}
+body {
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  background-image:
+    radial-gradient(ellipse at 14% 6%, rgba(94,143,151,.22), transparent 31%),
+    radial-gradient(ellipse at 83% 23%, rgba(101,128,136,.17), transparent 34%),
+    radial-gradient(ellipse at 53% 92%, rgba(53,103,109,.12), transparent 42%),
+    linear-gradient(132deg, #0b1214 0%, #111c20 48%, #0a1012 100%) !important;
+  background-attachment: fixed !important;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(118deg, rgba(255,255,255,.025), transparent 27%, transparent 72%, rgba(165,209,215,.025));
+}
+.layout { position: relative !important; min-height: 100vh !important; }
+.sidebar {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 250px !important;
+  min-height: 100vh !important;
+  height: 100vh !important;
+  flex: 0 0 250px !important;
+  padding: 26px 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: auto !important;
+  background: linear-gradient(180deg, rgba(17,31,35,.83), rgba(10,19,22,.78)) !important;
+  border-right: 1px solid rgba(201,229,235,.17) !important;
+  box-shadow: 18px 0 54px rgba(0,0,0,.16), inset -1px 0 0 rgba(255,255,255,.035) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(150%) !important;
+  backdrop-filter: blur(34px) saturate(150%) !important;
+  z-index: 20 !important;
+}
+.brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 0 10px !important;
+  margin: 0 0 38px !important;
+  min-height: 43px !important;
+  border: 0 !important;
+}
+.brand-icon {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  flex: 0 0 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  background: linear-gradient(145deg, #f0f5f6, #aabdc2) !important;
+  color: #152125 !important;
+  border: 1px solid rgba(255,255,255,.70) !important;
+  font-family: Inter, Arial, sans-serif !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 10px 26px rgba(0,0,0,.28) !important;
+}
+.brand-text h2 {
+  margin: 0 !important;
+  color: #edf3f5 !important;
+  font-family: Inter, Arial, sans-serif !important;
+  font-size: 17px !important;
+  line-height: 1.25 !important;
+  font-weight: 800 !important;
+  letter-spacing: -.035em !important;
+}
+.brand-text span {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #a8b7bd !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+.nav-title {
+  padding: 0 12px !important;
+  margin: 0 0 10px !important;
+  color: #9aadb2 !important;
+  font-family: Inter, Arial, sans-serif !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  font-weight: 700 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+.nav {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.sidebar .nav a {
+  width: 100% !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 11px !important;
+  padding: 0 13px !important;
+  margin: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 13px !important;
+  color: #a8b7bd !important;
+  background: transparent !important;
+  text-decoration: none !important;
+  font-family: Inter, Arial, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  transform: none;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease !important;
+}
+.sidebar .nav a .nav-icon,
+.sidebar .nav a span:first-child {
+  width: 20px !important;
+  min-width: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #b2c5c9 !important;
+  font-size: 16px !important;
+  text-align: center !important;
+}
+.sidebar .nav a:hover {
+  background: linear-gradient(110deg, rgba(210,237,241,.105), rgba(210,237,241,.025)) !important;
+  border-color: rgba(218,241,245,.18) !important;
+  color: #f0f6f7 !important;
+  transform: translateX(2px) !important;
+}
+.sidebar .nav a.active {
+  background: linear-gradient(110deg, rgba(190,222,228,.16), rgba(117,163,172,.075)) !important;
+  border: 1px solid rgba(220,241,245,.28) !important;
+  box-shadow: inset 3px 0 0 #b9d1d6, inset 0 1px 0 rgba(255,255,255,.10), 0 8px 22px rgba(0,0,0,.13) !important;
+  color: #f0f6f7 !important;
+  padding-left: 13px !important;
+}
+.main {
+  position: relative !important;
+  z-index: 1 !important;
+  width: calc(100% - 250px) !important;
+  min-width: 0 !important;
+  margin-left: 250px !important;
+  padding: 30px 34px 42px !important;
+}
+.main::before {
+  content: "";
+  position: absolute;
+  width: 700px;
+  height: 260px;
+  right: 5%;
+  top: -80px;
+  background: radial-gradient(ellipse, rgba(92,116,121,.13), transparent 70%);
+  pointer-events: none;
+}
+.topbar {
+  position: relative !important;
+  z-index: 1 !important;
+  align-items: center !important;
+  margin-bottom: 27px !important;
+}
+.eyebrow {
+  color: #9aafb3 !important;
+  font-family: Inter, Arial, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1.5px !important;
+}
+h1, #pageTitle {
+  color: #f0f6f7 !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: clamp(28px, 2.7vw, 36px) !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -.045em !important;
+}
+.subtitle, #pageSubtitle {
+  color: var(--dash-muted) !important;
+  font-family: Inter, Arial, sans-serif !important;
+}
+.top-actions { gap: 12px !important; }
+.btn {
+  border-radius: 12px !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  font-family: Inter, Arial, sans-serif !important;
+  font-weight: 700 !important;
+}
+.btn-primary {
+  color: #142126 !important;
+  -webkit-text-fill-color: #142126 !important;
+  background: linear-gradient(135deg, #f0f6f7 0%, #d7e5e8 52%, #bfd3d8 100%) !important;
+  border: 1px solid rgba(255,255,255,.9) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.96), inset 0 -1px 0 rgba(83,111,119,.15), 0 10px 24px rgba(0,0,0,.22) !important;
+}
+.toolbar {
+  background: linear-gradient(145deg, rgba(38,57,61,.64), rgba(15,27,30,.74)) !important;
+  border: 1px solid var(--dash-line) !important;
+  border-radius: 16px !important;
+  box-shadow: inset 0 1px 0 rgba(245,253,255,.11), 0 14px 32px rgba(0,0,0,.12) !important;
+}
+.metric, .card {
+  border: 1px solid rgba(205,226,232,.20) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(145%) !important;
+  backdrop-filter: blur(25px) saturate(145%) !important;
+  box-shadow: inset 0 1px 0 rgba(245,253,255,.13), inset 0 -1px 0 rgba(0,0,0,.18), 0 18px 38px rgba(0,0,0,.16) !important;
+}
+.metric {
+  background: linear-gradient(142deg, rgba(219,241,245,.105), rgba(127,170,179,.035) 44%, rgba(9,20,23,.38)) !important;
+}
+.card {
+  background: linear-gradient(145deg, rgba(39,60,65,.63), rgba(17,31,35,.66) 52%, rgba(13,24,27,.75)) !important;
+  border-radius: 21px !important;
+}
+.card-header {
+  background: linear-gradient(110deg, rgba(220,243,247,.12), rgba(144,186,194,.045) 62%, rgba(255,255,255,.018)) !important;
+  border-bottom-color: rgba(211,234,239,.16) !important;
+}
+.card-title, .metric-value {
+  font-family: Inter, Arial, sans-serif !important;
+}
+.control, input, select, textarea {
+  color: #eaf2f4 !important;
+  background: rgba(5,14,17,.60) !important;
+  border-color: rgba(207,231,236,.20) !important;
+  border-radius: 11px !important;
+}
+@media (max-width: 1100px) {
+  .main { padding: 26px 24px 36px !important; }
+}
+@media (max-width: 760px) {
+  .layout { display: block !important; }
+  .sidebar {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 14px 14px 10px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(201,229,235,.17) !important;
+  }
+  .brand { margin: 0 0 12px !important; padding: 0 4px !important; }
+  .nav-title { display: none !important; }
+  .nav {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0,1fr)) !important;
+    gap: 5px !important;
+    overflow: visible !important;
+  }
+  .sidebar .nav a {
+    justify-content: center !important;
+    gap: 5px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 4px !important;
+    font-size: 10px !important;
+  }
+  .sidebar .nav a span:last-child { display: none !important; }
+  .main { width: 100% !important; margin: 0 !important; padding: 22px 16px 36px !important; }
+}
+
+</style>
+
+
+<style id="dashboard-v30-main-content-match">
+/* Main content theme aligned to the current dark-glass Dashboard. Sidebar rules are intentionally untouched. */
+:root {
+  --bg: #0b1214;
+  --panel: #152326;
+  --panel-2: #192b2e;
+  --border: rgba(191, 220, 224, .19);
+  --text: #edf4f5;
+  --muted: #91a7aa;
+  --primary: #a8c6ca;
+  --primary-2: #7f9fa4;
+  --green: #4fd1a1;
+}
+html {
+  color-scheme: dark !important;
+  background: #0b1214 !important;
+}
+body {
+  margin: 0 !important;
+  min-height: 100vh !important;
+  color: #edf4f5 !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  background:
+    radial-gradient(ellipse at 14% 6%, rgba(94,143,151,.22), transparent 31%),
+    radial-gradient(ellipse at 83% 23%, rgba(101,128,136,.17), transparent 34%),
+    radial-gradient(ellipse at 53% 92%, rgba(53,103,109,.12), transparent 42%),
+    linear-gradient(132deg,#0b1214 0%,#111c20 48%,#0a1012 100%) !important;
+  background-attachment: fixed !important;
+}
+.main {
+  width: calc(100% - 250px) !important;
+  min-width: 0 !important;
+  min-height: 100vh !important;
+  margin-left: 250px !important;
+  padding: 30px 35px 64px !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  position: relative !important;
+}
+.main::before {
+  content: "" !important;
+  position: absolute !important;
+  width: 650px !important;
+  height: 280px !important;
+  right: 2% !important;
+  top: -90px !important;
+  background: radial-gradient(ellipse, rgba(103,145,151,.13), transparent 70%) !important;
+  pointer-events: none !important;
+}
+.topbar {
+  position: relative !important;
+  z-index: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+  margin-bottom: 24px !important;
+}
+.eyebrow {
+  margin: 0 0 7px !important;
+  color: #9bb9bc !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+  font-weight: 800 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+}
+h1, #pageTitle {
+  margin: 0 !important;
+  color: #f1f6f6 !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 29px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+  letter-spacing: -.045em !important;
+}
+.subtitle, #pageSubtitle {
+  margin: 7px 0 0 !important;
+  color: #9aadaf !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  word-break: normal !important;
+}
+.top-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+.btn {
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 16px !important;
+  border: 1px solid rgba(191,220,224,.24) !important;
+  border-radius: 10px !important;
+  background: rgba(26,42,45,.88) !important;
+  color: #d4e2e4 !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease !important;
+}
+.btn:hover {
+  background: rgba(42,62,66,.95) !important;
+  border-color: rgba(206,232,235,.38) !important;
+  transform: translateY(-1px) !important;
+}
+.btn-primary {
+  background: linear-gradient(135deg,#edf4f5,#b9cfd2) !important;
+  border-color: rgba(255,255,255,.62) !important;
+  color: #182326 !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg,#ffffff,#c7dadd) !important;
+}
+.toolbar {
+  position: relative !important;
+  z-index: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  min-height: 76px !important;
+  padding: 13px 16px !important;
+  margin-bottom: 18px !important;
+  border: 1px solid rgba(191,220,224,.18) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(145deg,rgba(25,42,45,.92),rgba(17,31,34,.92)) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.035) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+}
+.toolbar-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+.toolbar-label {
+  color: #8da5a8 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .04em !important;
+  text-transform: uppercase !important;
+}
+.control {
+  height: 40px !important;
+  max-width: 100% !important;
+  padding: 0 12px !important;
+  border: 1px solid rgba(191,220,224,.23) !important;
+  border-radius: 10px !important;
+  background: #101b1e !important;
+  color: #e4eeee !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  outline: none !important;
+}
+.control:focus {
+  border-color: rgba(177,210,214,.62) !important;
+  box-shadow: 0 0 0 3px rgba(177,210,214,.10) !important;
+}
+.live {
+  color: #77dcb7 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+}
+.live-dot {
+  background: #55d6a9 !important;
+  box-shadow: 0 0 0 4px rgba(85,214,169,.11) !important;
+}
+.metrics, .grid, #content {
+  position: relative !important;
+  z-index: 1 !important;
+}
+.metrics {
+  grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  gap: 16px !important;
+  margin-bottom: 18px !important;
+}
+.metric, .card {
+  color: #edf4f5 !important;
+  background: linear-gradient(145deg,rgba(29,47,50,.96),rgba(16,30,33,.98)) !important;
+  border: 1px solid rgba(191,220,224,.19) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.035) !important;
+  overflow: hidden !important;
+}
+.metric {
+  min-height: 135px !important;
+  padding: 20px !important;
+}
+.metric::after {
+  background: radial-gradient(circle,rgba(164,198,202,.09),transparent 72%) !important;
+  width: 110px !important;
+  height: 110px !important;
+  right: -35px !important;
+  bottom: -44px !important;
+}
+.metric-label {
+  color: #a6b8ba !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+.metric-value {
+  margin-top: 15px !important;
+  color: #f0f5f5 !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 29px !important;
+  line-height: 1.15 !important;
+  font-weight: 800 !important;
+  letter-spacing: -.035em !important;
+}
+.metric-help {
+  margin-top: 8px !important;
+  color: #8fa5a8 !important;
+  font-size: 10px !important;
+  line-height: 1.45 !important;
+}
+.grid {
+  gap: 18px !important;
+  margin-bottom: 18px !important;
+}
+.card {
+  border-radius: 19px !important;
+}
+.card-header {
+  min-height: 80px !important;
+  padding: 19px 22px !important;
+  border-bottom: 1px solid rgba(191,220,224,.15) !important;
+  background: linear-gradient(115deg,rgba(188,215,218,.10),rgba(188,215,218,.025)) !important;
+}
+.card-title, .summary-row strong {
+  margin: 0 !important;
+  color: #edf4f5 !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 16px !important;
+  line-height: 1.3 !important;
+  font-weight: 800 !important;
+  letter-spacing: -.025em !important;
+}
+.card-subtitle {
+  margin-top: 5px !important;
+  color: #94aaad !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+}
+.card-body {
+  padding: 20px 22px !important;
+  color: #d6e3e4 !important;
+}
+.status-panel {
+  color: #e6efef !important;
+}
+.status-circle {
+  background: rgba(41,160,125,.12) !important;
+  border-color: rgba(67,204,160,.22) !important;
+  color: #4ed5a8 !important;
+}
+.status-circle.down {
+  background: rgba(230,85,85,.12) !important;
+  border-color: rgba(230,85,85,.24) !important;
+  color: #ff8e8e !important;
+}
+.status-title {
+  color: #edf4f5 !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-weight: 800 !important;
+}
+.status-detail, .summary-row, .metric-help, .last-update {
+  color: #8fa5a8 !important;
+}
+.summary-row strong {
+  font-size: 12px !important;
+}
+.summary-divider, th, td {
+  border-color: rgba(191,220,224,.13) !important;
+}
+th {
+  color: #8da5a8 !important;
+}
+td {
+  color: #d4e1e2 !important;
+}
+.badge.up {
+  color: #70dfb7 !important;
+  background: rgba(53,188,143,.13) !important;
+}
+.badge.down {
+  color: #ff9696 !important;
+  background: rgba(239,95,95,.13) !important;
+}
+.badge.unknown {
+  color: #f2c477 !important;
+  background: rgba(245,158,11,.13) !important;
+}
+.loading, .empty {
+  color: #91a7aa !important;
+}
+.loader {
+  border-color: rgba(191,220,224,.17) !important;
+  border-top-color: #a8c6ca !important;
+}
+.insight-item, .insights-empty {
+  background: rgba(12,24,27,.55) !important;
+  border-color: rgba(191,220,224,.15) !important;
+  color: #d4e1e2 !important;
+}
+.insight-dot {
+  background: #a8c6ca !important;
+  box-shadow: 0 0 0 4px rgba(168,198,202,.10) !important;
+}
+.trend-badge {
+  background: rgba(168,198,202,.10) !important;
+  color: #a8c6ca !important;
+}
+.trend-badge.improving { background: rgba(16,185,129,.12) !important; color: #70dfb7 !important; }
+.trend-badge.degrading { background: rgba(239,68,68,.12) !important; color: #ff9696 !important; }
+.trend-badge.stable { background: rgba(168,198,202,.10) !important; color: #b4cacc !important; }
+@media (max-width: 1100px) {
+  .main { padding: 28px 26px 56px !important; }
+  .metrics { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+}
+@media (max-width: 720px) {
+  .main { width: 100% !important; margin-left: 0 !important; padding: 24px 16px 48px !important; }
+  .topbar { align-items: flex-start !important; flex-direction: column !important; margin-bottom: 22px !important; }
+  h1, #pageTitle { font-size: 28px !important; }
+  .top-actions { width: 100% !important; justify-content: stretch !important; }
+  .top-actions .btn { flex: 1 !important; }
+  .toolbar { align-items: flex-start !important; flex-direction: column !important; }
+  .toolbar-left { width: 100% !important; }
+  .toolbar-left .control { flex: 1 !important; min-width: 0 !important; }
+}
+@media (max-width: 480px) {
+  .metrics { grid-template-columns: 1fr !important; }
+  .metric { min-height: 120px !important; }
+  .card-header { padding: 16px !important; }
+  .card-body { padding: 16px !important; }
+}
+</style>
+
+
+<style id="analytics-mobile-dashboard-alignment">
+/* Responsive refinements: match Dashboard's compact mobile shell without
+   changing analytics data, event handlers, API requests, or desktop styling. */
+@media (max-width: 720px) {
+  html, body {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .layout {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .sidebar {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 14px 16px 9px !important;
+    overflow: visible !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(191,220,224,.18) !important;
+  }
+
+  .brand {
+    min-height: 48px !important;
+    margin: 0 0 12px !important;
+    padding: 0 2px !important;
+    border: 0 !important;
+    gap: 11px !important;
+  }
+
+  .brand-icon {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    flex: 0 0 42px !important;
+  }
+
+  .brand-text h2 {
+    font-size: 16px !important;
+  }
+
+  .nav-title, .menu-label, .sidebar-bottom, .system-card {
+    display: none !important;
+  }
+
+  .nav {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+    gap: 5px !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .nav a {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 0 3px !important;
+    gap: 0 !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+  }
+
+  .nav a span:last-child {
+    display: none !important;
+  }
+
+  .nav a .nav-icon,
+  .nav a span:first-child {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    font-size: 15px !important;
+  }
+
+  .nav a.active {
+    border: 1px solid rgba(219,237,241,.25) !important;
+    border-left: 1px solid rgba(219,237,241,.25) !important;
+    padding: 0 3px !important;
+    box-shadow: inset 0 -2px rgba(220,238,242,.76) !important;
+  }
+
+  .main {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 24px 16px 44px !important;
+    box-sizing: border-box !important;
+  }
+
+  .topbar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 15px !important;
+    margin-bottom: 20px !important;
+  }
+
+  h1, #pageTitle {
+    max-width: 100% !important;
+    font-size: clamp(27px, 7.4vw, 32px) !important;
+    line-height: 1.15 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .subtitle, #pageSubtitle {
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+    font-size: 12px !important;
+  }
+
+  .top-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 9px !important;
+  }
+
+  .top-actions .btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 9px !important;
+    white-space: nowrap !important;
+  }
+
+  .toolbar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 11px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 13px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .toolbar-left {
+    display: grid !important;
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 8px 10px !important;
+  }
+
+  .toolbar-left .control {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .toolbar-label {
+    font-size: 9px !important;
+  }
+
+  .live {
+    max-width: 100% !important;
+    line-height: 1.5 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .metric {
+    min-width: 0 !important;
+    min-height: 112px !important;
+    padding: 14px !important;
+    border-radius: 15px !important;
+  }
+
+  .metric-label {
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .metric-value {
+    margin-top: 11px !important;
+    font-size: clamp(22px, 6.5vw, 28px) !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .metric-help {
+    font-size: 9px !important;
+    line-height: 1.45 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .card {
+    min-width: 0 !important;
+    border-radius: 16px !important;
+  }
+
+  .card-header {
+    min-height: 0 !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 15px !important;
+  }
+
+  .card-title {
+    font-size: 15px !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .card-subtitle {
+    font-size: 10px !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .card-body {
+    min-width: 0 !important;
+    padding: 15px !important;
+  }
+
+  .chart-wrap {
+    height: 260px !important;
+    max-width: 100% !important;
+  }
+
+  .mini-chart {
+    height: 210px !important;
+    max-width: 100% !important;
+  }
+
+  .status-panel {
+    min-height: 190px !important;
+  }
+
+  .anomaly-content {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 15px !important;
+  }
+
+  .anomaly-detail {
+    overflow-wrap: anywhere !important;
+    line-height: 1.55 !important;
+  }
+
+  .anomaly-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    justify-content: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .anomaly-stat {
+    min-width: 0 !important;
+    text-align: left !important;
+    padding: 10px 8px !important;
+    border: 1px solid rgba(191,220,224,.13) !important;
+    border-radius: 10px !important;
+    background: rgba(8,17,19,.25) !important;
+  }
+
+  .anomaly-stat-label {
+    font-size: 8px !important;
+  }
+
+  .anomaly-stat-value {
+    font-size: 12px !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .table-wrap {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 620px !important;
+  }
+
+  th, td {
+    padding: 10px 12px !important;
+    white-space: nowrap;
+  }
+
+  .summary-row {
+    gap: 10px !important;
+    line-height: 1.45 !important;
+  }
+
+  .last-update {
+    text-align: left !important;
+    overflow-wrap: anywhere !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .main {
+    padding-right: 12px !important;
+    padding-left: 12px !important;
+  }
+
+  .metrics {
+    gap: 8px !important;
+  }
+
+  .metric {
+    padding: 12px !important;
+  }
+
+  .toolbar-left {
+    grid-template-columns: 36px minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .anomaly-stats {
+    gap: 5px !important;
+  }
+
+  .anomaly-stat {
+    padding: 8px 6px !important;
+  }
+}
+</style>
+
+<style id="analytics-mobile-nav-labels-fix">
+/* Mobile navigation: match the Dashboard's icon-over-label button layout. */
+@media (max-width: 760px) {
+  .sidebar .nav {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    padding: 0 !important;
+    align-items: stretch !important;
+  }
+  .sidebar .nav a {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
+    height: 48px !important;
+    padding: 5px 2px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+  }
+  .sidebar .nav a .nav-icon,
+  .sidebar .nav a span:first-child {
+    display: block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    line-height: 1 !important;
+  }
+  .sidebar .nav a span:last-child,
+  .sidebar .nav a .nav-label {
+    display: block !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+  }
+  .sidebar .nav a.active {
+    box-shadow: inset 0 2px rgba(184,209,211,.85) !important;
+  }
+}
+</style>
 </head>
 
 <body>
 <div class="layout">
 
     <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-logo">A</div>
-            <div>
-                <div class="brand-title">API Monitor</div>
-                <div class="brand-subtitle">Monitoring Platform</div>
-            </div>
+    <div class="brand">
+        <div class="brand-icon">A</div>
+        <div class="brand-text">
+            <h2>API Monitor</h2>
+            <span>Monitoring Platform</span>
         </div>
-
-        <div class="menu-label">Workspace</div>
-
-        <nav class="nav">
-            <a href="/app/dashboard.html">▣ <span>Dashboard</span></a>
-            <a href="/app/analytics.html" class="active">⌁ <span>Analytics</span></a>
-            <a href="/app/logs.html">☷ <span>Logs</span></a>
-            <a href="/app/incidents.html">! <span>Incidents</span></a>
-            <a href="/app/settings.html">⚙ <span>Settings</span></a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="system-card">
-                <div class="system-top">
-                    <span class="online-dot"></span>
-                    <span>System Online</span>
-                </div>
-                <div class="system-description">All systems operational</div>
-            </div>
-        </div>
-    </aside>
+    </div>
+    <div class="nav-title">Menu</div>
+    <nav class="nav" aria-label="Main navigation">
+        <a href="/app/dashboard.html"><span class="nav-icon">▦</span><span>Dashboard</span></a>
+        <a href="/app/analytics.html" class="active" aria-current="page"><span class="nav-icon">◈</span><span>Analytics</span></a>
+        <a href="/app/logs.html"><span class="nav-icon">☷</span><span>Logs</span></a>
+        <a href="/app/incidents.html"><span class="nav-icon">!</span><span>Incidents</span></a>
+        <a href="/app/settings.html"><span class="nav-icon">⚙</span><span class="nav-label">Settings</span></a>
+    </nav>
+</aside>
 
     <main class="main">
 
@@ -2009,13 +3365,31 @@ td {
         refreshBtn.disabled = true;
 
         try {
-            const data = await apiFetch(
+            const analyticsUrl =
                 "/api/monitoring/analytics/"
                 + "?monitor_id="
                 + encodeURIComponent(selectedMonitorId)
                 + "&period="
-                + encodeURIComponent(period)
-            );
+                + encodeURIComponent(period);
+
+            const data = await apiFetch(analyticsUrl);
+
+            // Diagnostic logging: inspect the exact backend payload for the
+            // selected monitor/period before changing any data calculations.
+            console.groupCollapsed("[API Monitor Analytics] Response");
+            console.info("Request:", analyticsUrl);
+            console.info("Selected monitor:", selectedMonitorId);
+            console.info("Selected period:", period);
+            console.info("Payload:", data);
+            console.info("Data keys:", data && typeof data === "object" ? Object.keys(data) : []);
+            console.info("Check totals:", {
+                total_checks: data?.total_checks,
+                up_checks: data?.up_checks,
+                down_checks: data?.down_checks,
+                history_length: Array.isArray(data?.history) ? data.history.length : null,
+                checks_length: Array.isArray(data?.checks) ? data.checks.length : null
+            });
+            console.groupEnd();
 
             renderAnalytics(data);
             firstLoad = false;
@@ -2120,7 +3494,22 @@ td {
             };
 
         const status = String(data.status || "").toUpperCase();
+        const slowChecks = numberOrNull(data.slow_checks) ?? 0;
+        const slowPercentage = numberOrNull(data.slow_percentage) ?? 0;
         const isDown = status === "DOWN";
+        // Availability and performance are separate: an API can be reachable
+        // (UP) while its response time exceeds the configured threshold.
+        const isSlow = !isDown && (
+            status === "SLOW" || slowChecks > 0 || slowPercentage > 0
+        );
+        const hasChecks = total !== null && total > 0;
+        const healthLabel = isDown ? "DOWN" : (isSlow ? "SLOW" : "UP");
+        const healthTitle = isDown
+            ? "API needs attention"
+            : (isSlow ? "API is reachable, but slow" : "API is healthy");
+        const uptimeDisplay = hasChecks ? formatPercent(uptime) : "No data";
+        const avgDisplay = hasChecks ? formatMs(avg) : "No data";
+        const p95Display = hasChecks ? formatMs(p95) : "No data";
 
         document.getElementById("pageTitle").textContent =
             (data.name || "API") + " Analytics";
@@ -2134,7 +3523,7 @@ td {
                 <div class="metric">
                     <div class="metric-label">Uptime</div>
                     <div class="metric-value">
-                        ${formatPercent(uptime)}
+                        ${uptimeDisplay}
                     </div>
                     <div class="metric-help">
                         ${formatNumber(up)} successful / ${formatNumber(total)} checks
@@ -2144,7 +3533,7 @@ td {
                 <div class="metric">
                     <div class="metric-label">Average Response</div>
                     <div class="metric-value">
-                        ${formatMs(avg)}
+                        ${avgDisplay}
                     </div>
                     <div class="metric-help">
                         Average API latency
@@ -2154,7 +3543,7 @@ td {
                 <div class="metric">
                     <div class="metric-label">P95 Latency</div>
                     <div class="metric-value">
-                        ${formatMs(p95)}
+                        ${p95Display}
                     </div>
                     <div class="metric-help">
                         95% of recorded responses are at or below this value
@@ -2215,19 +3604,18 @@ td {
                         <div class="status-panel">
 
                             <div>
-                                <div class="status-circle ${isDown ? "down" : ""}">
-                                    ${isDown ? "DOWN" : "UP"}
+                                <div class="status-circle ${isDown ? "down" : (isSlow ? "slow" : "")}">
+                                    ${healthLabel}
                                 </div>
 
                                 <div class="status-title">
-                                    ${isDown
-                                        ? "API needs attention"
-                                        : "API is healthy"}
+                                    ${healthTitle}
                                 </div>
 
                                 <div class="status-detail">
                                     ${formatPercent(uptime)} uptime
                                     · ${formatNumber(down)} failed checks
+                                    ${isSlow ? ` · ${formatNumber(slowChecks)} slow checks (${formatPercent(slowPercentage)})` : ""}
                                 </div>
                             </div>
 
@@ -2272,8 +3660,8 @@ td {
                             <div class="summary-row">
                                 <span>Current status</span>
                                 <strong>
-                                    <span class="badge ${isDown ? "down" : "up"}">
-                                        ${isDown ? "● DOWN" : "● UP"}
+                                    <span class="badge ${isDown ? "down" : (isSlow ? "slow" : "up")}">
+                                        ${isDown ? "● DOWN" : (isSlow ? "● SLOW" : "● UP")}
                                     </span>
                                 </strong>
                             </div>
@@ -2350,7 +3738,7 @@ td {
                             </div>
 
                             <div class="score-row">
-                                <span>Slow checks</span>
+                                <span>Slow-check health</span>
                                 <div class="score-bar"><span id="scoreSlowBar"></span></div>
                                 <strong id="scoreSlow">—</strong>
                             </div>
@@ -2483,14 +3871,14 @@ td {
         }
 
         drawCharts(data.history || []);
-        renderChecks(data.checks || []);
+        renderChecks(data.checks || [], threshold);
         renderPerformanceScore(
             performanceScore,
             performanceGrade,
             scoreBreakdown
         );
-        renderSmartInsights(insights, latencyTrend);
-        renderAnomaly(anomaly);
+        renderSmartInsights(insights, latencyTrend, slowPercentage, threshold, isSlow);
+        renderAnomaly(anomaly, isSlow, slowPercentage, threshold, data.history || [], data.checks || []);
         renderHealthTimeline(data.history || [], data.incidents || [], threshold, activePeriod);
     }
 
@@ -2647,7 +4035,7 @@ td {
         return parts.join(" ");
     }
 
-    function renderAnomaly(anomaly) {
+    function renderAnomaly(anomaly, isSlow = false, slowPercentage = 0, threshold = null, history = [], checks = []) {
         const badge = document.getElementById("anomalyBadge");
         const title = document.getElementById("anomalyTitle");
         const detail = document.getElementById("anomalyDetail");
@@ -2672,38 +4060,77 @@ td {
         badge.className = `anomaly-badge ${severity}`;
         badge.textContent = labels[severity];
 
-        title.textContent =
-            anomaly?.title || "No anomaly detected";
+        const hasThresholdDegradation = Boolean(isSlow) && Number(slowPercentage) > 0;
 
-        detail.textContent =
-            anomaly?.detail ||
-            "Recent monitoring behavior is within the normal range.";
+        // History is ordered from oldest to newest; checks are rendered newest first.
+        // Use only real measurements supplied by the analytics API.
+        const historySamples = (Array.isArray(history) ? history : [])
+            .map(item => numberOrNull(item?.latency))
+            .filter(value => value !== null && value >= 0);
+
+        const checkSamples = (Array.isArray(checks) ? checks : [])
+            .map(item => numberOrNull(item?.response_time_ms))
+            .filter(value => value !== null && value >= 0);
+
+        const derivedCurrent = historySamples.length
+            ? historySamples[historySamples.length - 1]
+            : (checkSamples.length ? checkSamples[0] : null);
+
+        // Prefer a historical baseline that excludes the latest history point.
+        // If history has too few samples, use the available check measurements,
+        // excluding the newest check when possible.
+        let baselineSamples = historySamples.slice(0, -1);
+        if (!baselineSamples.length && checkSamples.length > 1) {
+            baselineSamples = checkSamples.slice(1);
+        }
+        if (!baselineSamples.length && historySamples.length) {
+            baselineSamples = historySamples;
+        }
+        if (!baselineSamples.length && checkSamples.length) {
+            baselineSamples = checkSamples;
+        }
+
+        const derivedBaseline = baselineSamples.length
+            ? baselineSamples.reduce((sum, value) => sum + value, 0) / baselineSamples.length
+            : null;
+
+        const recentWindow = historySamples.length
+            ? historySamples.slice(-Math.min(5, historySamples.length))
+            : checkSamples.slice(0, Math.min(5, checkSamples.length));
+
+        // "Affected" counts recent measurements >= 50% above the historical
+        // baseline. This is separate from the slow-threshold percentage.
+        const derivedAffected = derivedBaseline !== null && derivedBaseline > 0
+            ? recentWindow.filter(value => value >= derivedBaseline * 1.5).length
+            : 0;
+
+        title.textContent = hasThresholdDegradation && severity === "normal"
+            ? "No sudden anomaly detected"
+            : (anomaly?.title || "No anomaly detected");
+
+        detail.textContent = hasThresholdDegradation && severity === "normal"
+            ? `Latency is consistently above the configured ${formatMs(threshold)} threshold (${formatPercent(slowPercentage)} of measured checks). No separate sudden spike was identified.`
+            : (anomaly?.detail || "Recent monitoring behavior is within the normal range.");
+
+        const currentValue = numberOrNull(anomaly?.current_ms) ?? derivedCurrent;
+        const baselineValue = numberOrNull(anomaly?.baseline_ms) ?? derivedBaseline;
+        const backendAffected = numberOrNull(anomaly?.affected_checks);
+        const affectedValue = backendAffected !== null ? backendAffected : derivedAffected;
 
         if (current) {
-            current.textContent =
-                anomaly?.current_ms !== null &&
-                anomaly?.current_ms !== undefined
-                    ? formatMs(anomaly.current_ms)
-                    : "—";
+            current.textContent = currentValue !== null ? formatMs(currentValue) : "—";
         }
 
         if (baseline) {
-            baseline.textContent =
-                anomaly?.baseline_ms !== null &&
-                anomaly?.baseline_ms !== undefined
-                    ? formatMs(anomaly.baseline_ms)
-                    : "—";
+            baseline.textContent = baselineValue !== null ? formatMs(baselineValue) : "—";
         }
 
         if (affected) {
-            affected.textContent =
-                Number.isFinite(Number(anomaly?.affected_checks))
-                    ? String(Number(anomaly.affected_checks))
-                    : "0";
+            affected.textContent = String(Math.max(0, Math.round(affectedValue)));
         }
     }
 
-    function renderSmartInsights(insights, latencyTrend) {
+    function renderSmartInsights(insights, latencyTrend, slowPercentage = 0, threshold = null, isSlow = false) {
         const content = document.getElementById("insightsContent");
         const header = document.getElementById("insightsHeaderRight");
 
@@ -2723,12 +4150,25 @@ td {
             header.innerHTML = `<span class="trend-badge ${safeTrend}">${escapeHTML(trendLabels[safeTrend])}</span>`;
         }
 
-        if (!insights.length) {
+        const safeInsights = insights.map(insight => String(insight));
+        const hasThresholdDegradation = Boolean(isSlow) && Number(slowPercentage) > 0;
+        const thresholdInsight = hasThresholdDegradation
+            ? `${formatPercent(slowPercentage)} of measured checks exceeded the configured ${formatMs(threshold)} response-time threshold. The API is reachable, but performance is degraded.`
+            : null;
+
+        // Add the threshold explanation even if backend insights are empty or
+        // the latency trend is stable. Stable means no material trend change;
+        // it does not mean latency is within the configured threshold.
+        if (thresholdInsight && !safeInsights.some(item => item.toLowerCase().includes("exceeded the configured response-time threshold"))) {
+            safeInsights.unshift(thresholdInsight);
+        }
+
+        if (!safeInsights.length) {
             content.innerHTML = `<div class="insights-empty">No additional insights were detected for the selected period.</div>`;
             return;
         }
 
-        content.innerHTML = insights.slice(0, 5).map(insight => `
+        content.innerHTML = safeInsights.slice(0, 5).map(insight => `
             <div class="insight-item">
                 <span class="insight-dot"></span>
                 <span>${escapeHTML(String(insight))}</span>
@@ -2787,35 +4227,51 @@ td {
     }
 
     function drawCharts(history) {
-        if (typeof Chart === "undefined") {
-            return;
-        }
-
         if (latencyChart) {
             latencyChart.destroy();
+            latencyChart = null;
         }
 
         if (uptimeChart) {
             uptimeChart.destroy();
+            uptimeChart = null;
         }
 
-        const labels = history.map(item =>
+        const latencyCanvas = document.getElementById("latencyChart");
+        const uptimeCanvas = document.getElementById("uptimeChart");
+        const validHistory = Array.isArray(history) ? history : [];
+
+        // Do not draw a fabricated zero-valued chart when the API returns
+        // no history. The previous fallback [0] produced repeated "1 ms"
+        // axis labels even though no checks existed for the selected period.
+        if (!validHistory.length) {
+            [latencyCanvas, uptimeCanvas].forEach(canvas => {
+                if (canvas && canvas.parentElement) {
+                    canvas.parentElement.innerHTML = `
+                        <div class="empty chart-empty-state">
+                            No monitoring history is available for the selected period.
+                        </div>
+                    `;
+                }
+            });
+            return;
+        }
+
+        if (typeof Chart === "undefined") {
+            return;
+        }
+
+        const labels = validHistory.map(item =>
             formatChartLabel(item.timestamp)
         );
 
-        const latencyValues = history.map(item =>
+        const latencyValues = validHistory.map(item =>
             numberOrNull(item.latency)
         );
 
-        const uptimeValues = history.map(item =>
+        const uptimeValues = validHistory.map(item =>
             numberOrNull(item.uptime)
         );
-
-        const latencyCanvas =
-            document.getElementById("latencyChart");
-
-        const uptimeCanvas =
-            document.getElementById("uptimeChart");
 
         if (latencyCanvas) {
             latencyChart = new Chart(
@@ -2823,12 +4279,10 @@ td {
                 {
                     type: "line",
                     data: {
-                        labels: labels.length ? labels : ["No data"],
+                        labels: labels,
                         datasets: [{
                             label: "Response time",
-                            data: latencyValues.length
-                                ? latencyValues
-                                : [0],
+                            data: latencyValues,
                             borderColor: "#7c6cff",
                             backgroundColor: "rgba(124,108,255,0.12)",
                             fill: true,
@@ -2849,12 +4303,10 @@ td {
                 {
                     type: "line",
                     data: {
-                        labels: labels.length ? labels : ["No data"],
+                        labels: labels,
                         datasets: [{
                             label: "Uptime",
-                            data: uptimeValues.length
-                                ? uptimeValues
-                                : [0],
+                            data: uptimeValues,
                             borderColor: "#10b981",
                             backgroundColor: "rgba(16,185,129,0.10)",
                             fill: true,
@@ -2934,9 +4386,16 @@ td {
                         },
 
                         callback: function(value) {
-                            return unit === "%"
-                                ? value + "%"
-                                : formatMs(value);
+                            if (unit === "%") {
+                                return Number(value).toFixed(0) + "%";
+                            }
+
+                            const numericValue = Number(value);
+                            if (!Number.isFinite(numericValue)) return "";
+                            if (numericValue > 0 && numericValue < 10) {
+                                return numericValue.toFixed(1) + " ms";
+                            }
+                            return formatMs(numericValue);
                         }
                     }
                 }
@@ -2944,7 +4403,7 @@ td {
         };
     }
 
-    function renderChecks(checks) {
+    function renderChecks(checks, thresholdValue = null) {
         const body = document.getElementById("checksBody");
 
         if (!body) {
@@ -2965,17 +4424,28 @@ td {
         }
 
         body.innerHTML = checks.map(check => {
-            const isUp = String(check.status || "").toUpperCase() === "UP";
+            const rawStatus = String(check.status || "").toUpperCase();
+            const isUp = rawStatus === "UP";
+            const responseTime = numberOrNull(check.response_time_ms);
+            const configuredThreshold = numberOrNull(thresholdValue);
+            const threshold = configuredThreshold !== null && configuredThreshold > 0
+                ? configuredThreshold
+                : 1000;
+            const isSlow = isUp && responseTime !== null && responseTime > threshold;
 
-            const badge = isUp
-                ? `<span class="badge up">● UP</span>`
-                : `<span class="badge down">● DOWN</span>`;
+            // Preserve the recorded availability status and show latency as a
+            // separate indicator instead of relabeling a successful HTTP check.
+            const statusBadges = isUp
+                ? `<span class="badge up">● UP</span>${isSlow ? ` <span class="badge slow">● SLOW</span>` : ""}`
+                : rawStatus === "DOWN"
+                    ? `<span class="badge down">● DOWN</span>`
+                    : `<span class="badge unknown">${escapeHTML(rawStatus || "UNKNOWN")}</span>`;
 
             return `
                 <tr>
                     <td>${escapeHTML(formatDateTime(check.checked_at))}</td>
-                    <td>${badge}</td>
-                    <td>${formatMs(check.response_time_ms)}</td>
+                    <td>${statusBadges}</td>
+                    <td>${formatMs(check.response_time_ms)}${isSlow ? `<div class="metric-help">Above ${formatMs(threshold)} threshold</div>` : ""}</td>
                     <td>${check.status_code ?? "—"}</td>
                     <td>${escapeHTML(check.error_message || "—")}</td>
                 </tr>

@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin System Overview - API Monitor</title>
+
+    <script src="theme.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f4f5ff;
+            color: #17213a;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 250px;
+            background: #ffffff;
+            border-right: 1px solid #e3e5f2;
+            padding: 28px 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 42px;
+            padding-left: 10px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: #7656ed;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            font-weight: 700;
+            box-shadow: 0 8px 20px rgba(118, 86, 237, 0.22);
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: #74809a;
+            margin-top: 2px;
+        }
+
+        .menu-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #8992a8;
+            letter-spacing: 0.8px;
+            margin: 0 12px 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            margin-bottom: 5px;
+            border-radius: 11px;
+            color: #62708a;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .nav-link:hover {
+            background: #f1edff;
+            color: #7656ed;
+        }
+
+        .nav-link.active {
+            background: #eee9ff;
+            color: #7656ed;
+        }
+
+        .admin-badge {
+            margin-top: auto;
+            padding: 14px;
+            border-radius: 13px;
+            background: #f5f1ff;
+            border: 1px solid #e6ddff;
+        }
+
+        .admin-badge-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #7656ed;
+        }
+
+        .admin-badge-text {
+            font-size: 11px;
+            color: #7d879d;
+            margin-top: 4px;
+        }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            padding: 42px 36px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            font-weight: 700;
+            color: #7656ed;
+            letter-spacing: 1px;
+            margin-bottom: 7px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 750;
+            color: #17213a;
+        }
+
+        .description {
+            margin: 8px 0 0;
+            color: #66738c;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            border: 0;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .btn {
+            padding: 11px 17px;
+            border-radius: 10px;
+            background: white;
+            border: 1px solid #dfe3ef;
+            color: #34415c;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .btn-primary {
+            background: #7656ed;
+            border-color: #7656ed;
+            color: white;
+        }
+
+        /* METRICS */
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .metric {
+            background: white;
+            border: 1px solid #e3e5f0;
+            border-radius: 17px;
+            padding: 20px;
+            box-shadow: 0 7px 22px rgba(53, 61, 96, 0.05);
+        }
+
+        .metric-label {
+            color: #69758e;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 750;
+            color: #17213a;
+        }
+
+        .metric-small {
+            margin-top: 6px;
+            color: #8993a8;
+            font-size: 11px;
+        }
+
+        /* CARDS */
+        .grid {
+            display: grid;
+            grid-template-columns: 1.25fr 0.75fr;
+            gap: 22px;
+            margin-bottom: 22px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e3e5f0;
+            border-radius: 17px;
+            padding: 22px;
+            box-shadow: 0 7px 22px rgba(53, 61, 96, 0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .card-subtitle {
+            margin: 5px 0 0;
+            color: #8993a8;
+            font-size: 12px;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            border-radius: 12px;
+            background: #edfff7;
+            border: 1px solid #cef4e3;
+            margin-bottom: 18px;
+        }
+
+        .status-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: #16b878;
+            flex-shrink: 0;
+        }
+
+        .status-dot.error {
+            background: #ef5350;
+        }
+
+        .status-title {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .status-text {
+            margin-top: 3px;
+            color: #718097;
+            font-size: 11px;
+        }
+
+        .check-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 13px 0;
+            border-bottom: 1px solid #eef0f6;
+            font-size: 13px;
+        }
+
+        .check-row:last-child {
+            border-bottom: 0;
+        }
+
+        .check-name {
+            color: #5f6c84;
+        }
+
+        .check-value.ok {
+            color: #12a66d;
+            font-weight: 700;
+        }
+
+        .check-value.error {
+            color: #e54848;
+            font-weight: 700;
+        }
+
+        /* INCIDENTS */
+        .incident {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 14px 0;
+            border-bottom: 1px solid #eef0f6;
+        }
+
+        .incident:last-child {
+            border-bottom: 0;
+        }
+
+        .incident-name {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .incident-reason {
+            color: #78849a;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .incident-meta {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .incident-status {
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 7px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .incident-status.ongoing {
+            background: #fff0f0;
+            color: #e54848;
+        }
+
+        .incident-status.resolved {
+            background: #eafff5;
+            color: #12a66d;
+        }
+
+        .incident-date {
+            margin-top: 5px;
+            color: #8a94a8;
+            font-size: 10px;
+        }
+
+        .empty {
+            padding: 25px 0;
+            text-align: center;
+            color: #8993a8;
+            font-size: 13px;
+        }
+
+        .last-updated {
+            color: #8a94a8;
+            font-size: 11px;
+            margin-top: 25px;
+            text-align: right;
+        }
+
+        @media (max-width: 1100px) {
+            .metrics {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 750px) {
+            .sidebar {
+                width: 190px;
+            }
+
+            .main {
+                padding: 25px 18px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 18px;
+            }
+
+            .metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">A</div>
+
+            <div>
+                <div class="brand-title">API Monitor</div>
+                <div class="brand-subtitle">Monitoring Platform</div>
+            </div>
+        </div>
+
+        <div class="menu-title">ADMINISTRATION</div>
+
+        <a class="nav-link active" href="admin_overview.html">
+            ▦
+            <span>System Overview</span>
+        </a>
+
+        <a class="nav-link" href="dashboard.html">
+            ▦
+            <span>Dashboard</span>
+        </a>
+
+        <a class="nav-link" href="analytics.html">
+            ◈
+            <span>Analytics</span>
+        </a>
+
+        <a class="nav-link" href="logs.html">
+            ≡
+            <span>Logs</span>
+        </a>
+
+        <a class="nav-link" href="incidents.html">
+            !
+            <span>Incidents</span>
+        </a>
+
+        <a class="nav-link" href="settings.html">
+            ⚙
+            <span>Settings</span>
+        </a>
+
+        <div class="admin-badge">
+            <div class="admin-badge-title">ADMIN ACCESS</div>
+            <div class="admin-badge-text">
+                System-wide monitoring information
+            </div>
+        </div>
+
+    </aside>
+
+
+    <main class="main">
+
+        <header class="header">
+
+            <div>
+                <div class="eyebrow">ADMINISTRATION</div>
+
+                <h1>System Overview</h1>
+
+                <p class="description">
+                    Monitor the overall health and activity of the API Monitor platform.
+                </p>
+            </div>
+
+            <div class="header-actions">
+                <button class="btn" onclick="goDashboard()">
+                    ← Dashboard
+                </button>
+
+                <button class="btn btn-primary" onclick="loadOverview()">
+                    ↻ Refresh
+                </button>
+            </div>
+
+        </header>
+
+
+        <!-- METRICS -->
+
+        <section class="metrics">
+
+            <div class="metric">
+                <div class="metric-label">Total Users</div>
+                <div class="metric-value" id="users">—</div>
+                <div class="metric-small">Registered accounts</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Total APIs</div>
+                <div class="metric-value" id="monitors">—</div>
+                <div class="metric-small">Configured monitors</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Active APIs</div>
+                <div class="metric-value" id="active-monitors">—</div>
+                <div class="metric-small">Currently monitoring</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Healthy APIs</div>
+                <div class="metric-value" id="healthy-monitors">—</div>
+                <div class="metric-small">Current UP status</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Down APIs</div>
+                <div class="metric-value" id="down-monitors">—</div>
+                <div class="metric-small">Current DOWN status</div>
+            </div>
+
+        </section>
+
+
+        <section class="metrics">
+
+            <div class="metric">
+                <div class="metric-label">Paused APIs</div>
+                <div class="metric-value" id="paused-monitors">—</div>
+                <div class="metric-small">Inactive monitors</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Total Checks</div>
+                <div class="metric-value" id="total-checks">—</div>
+                <div class="metric-small">Monitoring history</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Successful Checks</div>
+                <div class="metric-value" id="successful-checks">—</div>
+                <div class="metric-small">UP results</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Failed Checks</div>
+                <div class="metric-value" id="failed-checks">—</div>
+                <div class="metric-small">Non-UP results</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Ongoing Incidents</div>
+                <div class="metric-value" id="ongoing-incidents">—</div>
+                <div class="metric-small">Currently unresolved</div>
+            </div>
+
+        </section>
+
+
+        <section class="grid">
+
+            <!-- SYSTEM HEALTH -->
+
+            <section class="card">
+
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">System Health</h2>
+                        <p class="card-subtitle">
+                            Backend dependency status
+                        </p>
+                    </div>
+                </div>
+
+                <div class="system-status" id="overall-status">
+                    <div class="status-dot" id="overall-dot"></div>
+
+                    <div>
+                        <div class="status-title" id="overall-title">
+                            Checking system...
+                        </div>
+
+                        <div class="status-text" id="overall-text">
+                            Loading current system health.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="check-row">
+                    <span class="check-name">Database</span>
+                    <span class="check-value" id="database-status">—</span>
+                </div>
+
+                <div class="check-row">
+                    <span class="check-name">Redis</span>
+                    <span class="check-value" id="redis-status">—</span>
+                </div>
+
+            </section>
+
+
+            <!-- INCIDENT SUMMARY -->
+
+            <section class="card">
+
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Incident Summary</h2>
+                        <p class="card-subtitle">
+                            Current platform incident activity
+                        </p>
+                    </div>
+                </div>
+
+                <div class="check-row">
+                    <span class="check-name">Total incidents</span>
+                    <strong id="total-incidents">—</strong>
+                </div>
+
+                <div class="check-row">
+                    <span class="check-name">Ongoing</span>
+                    <strong id="ongoing-incidents-2">—</strong>
+                </div>
+
+                <div class="check-row">
+                    <span class="check-name">Resolved</span>
+                    <strong id="resolved-incidents">—</strong>
+                </div>
+
+            </section>
+
+        </section>
+
+
+        <!-- RECENT INCIDENTS -->
+
+        <section class="card">
+
+            <div class="card-header">
+
+                <div>
+                    <h2 class="card-title">Recent Incidents</h2>
+
+                    <p class="card-subtitle">
+                        Latest system-wide incidents
+                    </p>
+                </div>
+
+            </div>
+
+            <div id="incidents-list">
+                <div class="empty">
+                    Loading incidents...
+                </div>
+            </div>
+
+        </section>
+
+
+        <div class="last-updated">
+            Last updated: <span id="last-updated">—</span>
+        </div>
+
+    </main>
+
+</div>
+
+
+<script>
+    "use strict";
+
+    function getAccessToken() {
+        return localStorage.getItem("access_token");
+    }
+
+
+    function goDashboard() {
+        window.location.href = "dashboard.html";
+    }
+
+
+    function setText(id, value) {
+        const element = document.getElementById(id);
+
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
+
+    function formatDate(value) {
+        if (!value) {
+            return "—";
+        }
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return "—";
+        }
+
+        return date.toLocaleString();
+    }
+
+
+    function renderSystemHealth(data) {
+        const database = data.checks?.database || "error";
+        const redis = data.checks?.redis || "error";
+
+        setText("database-status", database.toUpperCase());
+        setText("redis-status", redis.toUpperCase());
+
+        document.getElementById("database-status").className =
+            "check-value " + (database === "ok" ? "ok" : "error");
+
+        document.getElementById("redis-status").className =
+            "check-value " + (redis === "ok" ? "ok" : "error");
+
+        const dot = document.getElementById("overall-dot");
+        const title = document.getElementById("overall-title");
+        const text = document.getElementById("overall-text");
+
+        if (data.status === "ok") {
+            dot.className = "status-dot";
+            title.textContent = "System Operational";
+            text.textContent =
+                "Database and Redis are responding normally.";
+        } else {
+            dot.className = "status-dot error";
+            title.textContent = "System Degraded";
+            text.textContent =
+                "One or more system dependencies are unavailable.";
+        }
+    }
+
+
+    function renderMetrics(system) {
+
+        setText("users", system.users);
+        setText("monitors", system.monitors);
+        setText("active-monitors", system.active_monitors);
+        setText("paused-monitors", system.paused_monitors);
+        setText("healthy-monitors", system.healthy_monitors);
+        setText("down-monitors", system.down_monitors);
+
+        setText("total-checks", system.total_checks);
+        setText("successful-checks", system.successful_checks);
+        setText("failed-checks", system.failed_checks);
+
+        setText("total-incidents", system.total_incidents);
+        setText("ongoing-incidents", system.ongoing_incidents);
+        setText("ongoing-incidents-2", system.ongoing_incidents);
+
+        const resolved =
+            Number(system.total_incidents || 0) -
+            Number(system.ongoing_incidents || 0);
+
+        setText(
+            "resolved-incidents",
+            Math.max(0, resolved)
+        );
+    }
+
+
+    function renderIncidents(incidents) {
+
+        const container = document.getElementById("incidents-list");
+
+        if (!incidents || incidents.length === 0) {
+            container.innerHTML =
+                '<div class="empty">No incidents found.</div>';
+
+            return;
+        }
+
+        container.innerHTML = incidents.map(function (incident) {
+
+            const statusClass =
+                incident.status === "ONGOING"
+                    ? "ongoing"
+                    : "resolved";
+
+            return `
+                <div class="incident">
+
+                    <div>
+                        <div class="incident-name">
+                            ${escapeHtml(
+                                incident.monitor__name || "Unknown Monitor"
+                            )}
+                        </div>
+
+                        <div class="incident-reason">
+                            ${escapeHtml(
+                                incident.reason || "No reason recorded"
+                            )}
+                        </div>
+                    </div>
+
+                    <div class="incident-meta">
+
+                        <span class="incident-status ${statusClass}">
+                            ${escapeHtml(incident.status || "UNKNOWN")}
+                        </span>
+
+                        <div class="incident-date">
+                            ${formatDate(incident.started_at)}
+                        </div>
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+
+    async function loadOverview() {
+
+        const token = getAccessToken();
+
+        if (!token) {
+            alert("Admin authentication token not found.");
+            window.location.href = "user_login.html";
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                "/api/admin/system-overview/",
+                {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Accept": "application/json"
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            if (response.status === 403) {
+                document.getElementById("incidents-list").innerHTML =
+                    '<div class="empty">Admin access required.</div>';
+
+                setText("overall-title", "Access Denied");
+                setText(
+                    "overall-text",
+                    "This page is available only to administrators."
+                );
+
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail || "Unable to load system overview."
+                );
+            }
+
+            renderMetrics(data.system);
+            renderSystemHealth(data);
+            renderIncidents(data.recent_incidents);
+
+            setText(
+                "last-updated",
+                formatDate(data.generated_at)
+            );
+
+        } catch (error) {
+
+            console.error("Admin overview error:", error);
+
+            setText("overall-title", "Unable to Load Overview");
+            setText(
+                "overall-text",
+                error.message || "An unexpected error occurred."
+            );
+
+            document.getElementById("overall-dot")
+                .className = "status-dot error";
+        }
+    }
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        loadOverview
+    );
+</script>
+
+</body>
+</html>
