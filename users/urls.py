@@ -129,4 +129,16 @@ urlpatterns = [
         name='team-members'
     ),
 
+    path(
+        'teams/<int:team_id>/monitors/',
+        views.TeamMonitorListCreateView.as_view(),
+        name='team-monitors'
+    ),
+
+    path(
+        'teams/<int:team_id>/monitors/<int:monitor_id>/',
+        views.TeamMonitorDeleteView.as_view(),
+        name='team-monitor-delete'
+    ),
+
 ]

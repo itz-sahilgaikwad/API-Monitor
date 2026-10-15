@@ -1266,6 +1266,8 @@
 }
 </style>
 
+    <script src="theme.js"></script>
+    <script src="admin-nav.js"></script>
 </head>
 
 <body>
@@ -1540,6 +1542,72 @@
                                 </span>
 
                             </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- APPEARANCE -->
+
+                <section class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title-row">
+
+                            <div class="card-icon">
+                                ◐
+                            </div>
+
+                            <div>
+
+                                <h2 class="card-title">
+                                    Appearance
+                                </h2>
+
+                                <p class="card-subtitle">
+                                    Choose how API Monitor looks in your browser.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="preference-row">
+
+                            <div>
+
+                                <div class="preference-name">
+                                    Theme
+                                </div>
+
+                                <div class="preference-description">
+                                    Your choice is saved locally and applies across API Monitor pages.
+                                </div>
+
+                            </div>
+
+
+                            <select
+                                class="select"
+                                id="theme-select"
+                                onchange="setApiMonitorTheme(this.value)"
+                            >
+                                <option value="dark">
+                                    Dark
+                                </option>
+                                <option value="light">
+                                    Light
+                                </option>
+                            </select>
 
                         </div>
 
@@ -2337,6 +2405,23 @@
 
     function loadPreferences() {
 
+        const theme =
+            localStorage.getItem(
+                "api_monitor_theme"
+            ) ||
+            "dark";
+
+
+        const themeSelect =
+            document.getElementById(
+                "theme-select"
+            );
+
+        if (themeSelect) {
+            themeSelect.value = theme;
+        }
+
+
         const autoRefresh =
             localStorage.getItem(
                 "api_monitor_auto_refresh"
@@ -2455,6 +2540,8 @@
     ========================================================= */
 
     function resetPreferences() {
+
+        setApiMonitorTheme("dark");
 
         localStorage.removeItem(
             "api_monitor_auto_refresh"

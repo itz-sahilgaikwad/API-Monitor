@@ -32,7 +32,12 @@ services:
     command: >
       sh -c "python manage.py migrate --noinput &&
              python manage.py collectstatic --noinput &&
-             gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 1 --timeout 120"
+             gunicorn backend.wsgi:application
+             --bind 0.0.0.0:8000
+             --workers 1
+             --timeout 120
+             --access-logfile -
+             --error-logfile -"
     env_file: .env.production
     environment:
       DATABASE_URL: postgres://${DB_USER:?DB_USER is required}:${DB_PASSWORD:?DB_PASSWORD is required}@db:5432/${DB_NAME:?DB_NAME is required}

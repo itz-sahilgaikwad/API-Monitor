@@ -125,6 +125,11 @@ class APIKeyAuthentication(BaseAuthentication):
                 "Invalid API Key"
             )
 
+        if not api_key.user.is_active:
+            raise AuthenticationFailed(
+                "Invalid API Key"
+            )
+
         # Update last-used timestamp
         api_key.last_used_at = timezone.now()
 
